@@ -55,7 +55,9 @@ C = [[kc, 0,  0, 0],
 
 D = [[0,0], [0,0]]
 
-# qt =
+
+# control parameters
+
 
 
 
