@@ -13,21 +13,6 @@ d = 1     # dumping (friction)
 b = 1     # pendulum up (b=1)
 
 def inverted_pendulum(t, x, u, params={}):
-    """ Inverted Pendulum dynamics
-
-    Parameters
-    ----------
-    x: 4x1 array
-       x[0] - location of cart
-       x[1] - dx[0]
-       x[2] - pendulum angle  (down:0, up:pi)
-       x[3] - dx[1]
-    u:
-
-    Returns
-    -------
-    dxdt
-    """
     Sx = np.sin(x[2])
     Cx = np.cos(x[2])
     D = m*L*L*(M+m*(1-Cx*Cx))
@@ -55,6 +40,18 @@ K = np.matrix(inv(R) * (B.T * P))
 
 
 class InvertedPendulum(Simulator):
+    """
+    States: (4,)
+        x[0]: location of cart
+        x[1]: dx[0]
+        x[2]: pendulum angle  (down:0, up:pi)
+        x[3]: dx[1]
+    Control Input: (1,)
+        u[0]: force on the cart
+    Output: (4,)
+        State Feedback
+    Controller: LQR
+    """
     def __init__(self):
         pass
 

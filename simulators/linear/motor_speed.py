@@ -1,14 +1,16 @@
+# Ref: https://ctms.engin.umich.edu/CTMS/index.php?example=MotorSpeed&section=SystemModeling
+
 import numpy as np
 
 from utils import PID, Simulator
 
 # system dynamics
-J = 0.01
-b = 0.1
-Ke = 0.01
-Kt = 0.01
-R = 1
-L = 0.5
+J = 0.01   # moment of inertia of the rotor
+b = 0.1    # motor viscous friction constant
+Ke = 0.01  # electromotive force constant
+Kt = 0.01  # motor torque constant
+R = 1      # electric resistance
+L = 0.5    # electric inductance
 
 A = [[-b / J, Kt / J], [-Ke / L, -R / L]]
 B = [[0], [1 / L]]
@@ -37,6 +39,17 @@ class Controller:
 
 
 class MotorSpeed(Simulator):
+    """
+    States: (2,)
+        x[0]: rotational speed
+        x[1]: electric current
+    Control Input: (1,)
+        u[0]: armature voltage
+    Output: (1,)
+        y[0]: rotational speed
+        Output Feedback
+    Controller: PID
+    """
     def __init__(self, name, dt, max_index):
         super().__init__('Motor Speed ' + name, dt, max_index)
         self.linear(A, B, C)

@@ -35,15 +35,6 @@ k2 = 3.35 if op else 3.29
 gamma1 = 0.70 if op else 0.43  # The flow to Tank 1 is gamma1*k1*v1 and the flow to Tank 4 is (1-gamma1)*k1*v1
 gamma2 = 0.60 if op else 0.34
 
-# IO
-IO = """
-System Input:   v1, v2  -  input voltages to the pumps
-System Output:  y1, y2  -  voltages from level measurement devices
-System Model:
-    xi := hi - hi_0
-    ui := vi - vi_0   
-"""
-
 A = [[-1 / T1, 0, A3 / (A1 * T3), 0],
      [0, -1 / T2, 0, A4 / (A2 * T4)],
      [0, 0, -1 / T3, 0],
@@ -90,6 +81,19 @@ class Controller:
 
 
 class QuadrupleTank(Simulator):
+    """
+    States: (4,)
+        x[i-1]: hi - hi_0    i=1,2,3,4
+        hi: water level of the i-th tank
+    Control Input: (2,)
+        u[i-1]: vi - vi_0    i=1,2
+        vi: input voltages to the i-th pumps
+    Output:  (2,)
+        y[i]: kc*x[i]      i=0,1
+        y[i]: voltages from (i+1)-th level measurement devices
+        Output Feedback
+    Controller: PID
+    """
     def __init__(self, name, dt, max_index):
         super().__init__('Quadruple Tank ' + name, dt, max_index)
         self.linear(A, B, C, D)
