@@ -20,8 +20,8 @@ x_0 = np.array([0, 0])
 
 # control parameters
 P = 19
-I = 35
-D = 0.5
+I = 37
+D = 0.1
 
 
 class Controller:

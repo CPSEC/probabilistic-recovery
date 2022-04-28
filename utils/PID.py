@@ -25,6 +25,9 @@
 # python_version  :2.7
 # ==============================================================================
 
+# add control limit - Lin
+# update DTerm using delta_pv - Lin
+
 """Ivmech PID Controller is simple implementation of a Proportional-Integral-Derivative (PID) Controller in the Python Programming Language.
 More information about PID Controller: http://en.wikipedia.org/wiki/PID_controller
 """
@@ -56,6 +59,7 @@ class PID:
         self.ITerm = 0.0
         self.DTerm = 0.0
         self.last_error = 0.0
+        self.last_pv = None
 
         # Windup Guard
         self.int_error = 0.0
@@ -90,13 +94,17 @@ class PID:
             elif (self.ITerm > self.windup_guard):
                 self.ITerm = self.windup_guard
 
+            delta_pv = 0
+            if self.last_pv:
+                delta_pv = feedback_value - self.last_pv
             self.DTerm = 0.0
             if delta_time > 0:
-                self.DTerm = delta_error / delta_time
+                self.DTerm = delta_pv / delta_time
 
             # Remember last time and last error for next calculation
             self.last_time = self.current_time
             self.last_error = error
+            self.last_pv = feedback_value
 
             self.output = self.PTerm + (self.Ki * self.ITerm) + (self.Kd * self.DTerm)
             if self.control_up and self.control_up < self.output:
@@ -135,5 +143,5 @@ class PID:
         self.sample_time = sample_time
 
     def setControlLimit(self, control_lo, control_up):
-        self.control_lo = control_lo[0]
-        self.control_up = control_up[0]
+        self.control_lo = control_lo
+        self.control_up = control_up
