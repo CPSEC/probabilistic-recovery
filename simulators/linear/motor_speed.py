@@ -32,7 +32,7 @@ class Controller:
         # self.pid.setControlLimit()
 
     def update(self, ref, feedback_value, current_time):
-        self.pid.SetPoint = ref
+        self.pid.SetPoint = ref[0, 0]
         self.pid.update(feedback_value[0, 0], current_time)
         return np.matrix([[self.pid.output]])
 
@@ -53,7 +53,7 @@ class MotorSpeed(Simulator):
 if __name__ == "__main__":
     max_index = 500
     dt = 0.02
-    ref = [5] * 201 + [4] * 200 + [5] * 100
+    ref = [np.matrix([[5]])] * 201 + [np.matrix([[4]])] * 200 + [np.matrix([[5]])] * 100
     motor_speed = MotorSpeed('test', dt, max_index)
     for i in range(0, max_index + 1):
         assert motor_speed.cur_index == i
@@ -64,7 +64,7 @@ if __name__ == "__main__":
     import matplotlib.pyplot as plt
 
     t_arr = np.linspace(0, 10, max_index + 1)
-    ref = motor_speed.refs[:max_index + 1]
+    ref = [x[0, 0] for x in motor_speed.refs[:max_index + 1]]
     y_arr = [x[0, 0] for x in motor_speed.outputs[:max_index + 1]]
 
     plt.plot(t_arr, y_arr, t_arr, ref)

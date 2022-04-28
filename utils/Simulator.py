@@ -3,6 +3,9 @@ from control.matlab import ss, c2d, lsim
 
 
 class Simulator:
+    """
+    states, control inputs/outputs are instance of np.matrix (column vector)
+    """
     def __init__(self, name, Ts, max_index):
         self.name = name
         self.model_type = None
