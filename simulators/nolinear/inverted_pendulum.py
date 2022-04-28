@@ -5,38 +5,52 @@ from scipy.linalg import solve_continuous_are, inv
 from utils import Simulator
 
 # parameters
-m = 1     # mass of rob
-M = 5     # mass of cart
-L = 2     # length of rob
+m = 1  # mass of rob
+M = 5  # mass of cart
+L = 2  # length of rob
 g = -10
-d = 1     # dumping (friction)
-b = 1     # pendulum up (b=1)
+d = 1  # dumping (friction)
+b = 1  # pendulum up (b=1)
+
 
 def inverted_pendulum(t, x, u, params={}):
     Sx = np.sin(x[2])
     Cx = np.cos(x[2])
-    D = m*L*L*(M+m*(1-Cx*Cx))
+    D = m * L * L * (M + m * (1 - Cx * Cx))
 
     dx = np.zeros((4,))
     dx[0] = x[1]
-    dx[1] = (1/D)*(-m*m*L*L*g*Cx*Sx + m*L*L*(m*L*x[3]*x[3]*Sx - d*x[1])) + m*L*L*(1/D)*u
+    dx[1] = (1 / D) * (-m * m * L * L * g * Cx * Sx + m * L * L * (m * L * x[3] * x[3] * Sx - d * x[1])) + m * L * L * (
+                1 / D) * u
     dx[2] = x[3]
-    dx[3] = (1/D)*((m+M)*m*g*L*Sx - m*L*Cx*(m*L*x[3]*x[3]*Sx - d*x[1])) - m*L*Cx*(1/D)*u
+    dx[3] = (1 / D) * ((m + M) * m * g * L * Sx - m * L * Cx * (m * L * x[3] * x[3] * Sx - d * x[1])) - m * L * Cx * (
+                1 / D) * u
     return dx
 
 
+x_0 = np.array([-1, 0, np.pi + 0.1, 0])
+
 # control parameters
 A = np.array([[0, 1, 0, 0],
-              [0, -d/M, b*m*g/M, 0],
+              [0, -d / M, b * m * g / M, 0],
               [0, 0, 0, 1],
-              [0, -b*d/(M*L), -b*(m+M)*g/(M*L), 0]])
-B = np.array([[0], [1/M], [0], [b*1/(M*L)]])
+              [0, -b * d / (M * L), -b * (m + M) * g / (M * L), 0]])
+B = np.array([[0], [1 / M], [0], [b * 1 / (M * L)]])
 
 R = np.array([[0.0001]])
 Q = np.eye(4)
 
 P = np.matrix(solve_continuous_are(A, B, Q, R))
 K = np.matrix(inv(R) * (B.T * P))
+
+
+class Controller:
+    def __init__(self, dt):
+        self.K = K
+
+    def update(self, ref, feedback_value, current_time):
+        cin = -K @ (feedback_value - ref)
+        return cin
 
 
 class InvertedPendulum(Simulator):
@@ -52,10 +66,17 @@ class InvertedPendulum(Simulator):
         State Feedback
     Controller: LQR
     """
-    def __init__(self):
-        pass
 
+    def __init__(self, name, dt, max_index):
+        super().__init__('Inverted Pendulum ' + name, dt, max_index)
+        self.nonlinear(ode=inverted_pendulum, n=4, m=1, p=4)
+        controller = Controller(dt)
+        settings = {
+            'init_state': x_0,
+            'feedback_type': 'state',
+            'controller': controller
+        }
+        self.sim_init(settings)
 
-
-
-
+if __name__ == "__main__":
+    pass

@@ -38,7 +38,7 @@ class Simulator:
         if C is None:
             C = np.eye(len(A))
         if D is None:
-            D = 0
+            D = np.zeros((len(C), len(B[0])))
         self.sysc = StateSpace(A, B, C, D)
         self.sysd = self.sysc.to_discrete(self.dt)
         self.n = self.sysc.A.shape[1]
@@ -49,6 +49,15 @@ class Simulator:
         def fprime(t, x, u):
             return self.sysc.A @ x + self.sysc.B @ u
         self.ode = fprime
+
+    def nonlinear(self, ode, n, m, p, C=None, D=None):
+        self.model_type = 'nonlinear'
+        self.C = np.eye(n) if C is None else np.array(C)
+        self.D = np.zeros((p, m)) if D is None else np.array(D)
+        self.n = n
+        self.m = m
+        self.p = p
+        self.ode = ode
 
     def sim_init(self, settings):
         self.set_feedback_type(settings['feedback_type'])
