@@ -4,7 +4,7 @@ from control.matlab import ss, c2d, lsim
 
 class Simulator:
     """
-    states, control inputs/outputs are instance of np.matrix (column vector)
+    states, control inputs/outputs are instance of np.array with shape (n,) (m,) (p,)
     """
     def __init__(self, name, Ts, max_index):
         self.name = name
@@ -13,6 +13,9 @@ class Simulator:
         self.sysc = None
         self.sysd = None
         self.max_index = max_index
+        self.n = None  # number of states
+        self.m = None  # number of control inputs
+        self.p = None  # number of sensor measurements
         # values under self.cur_index
         self.cur_x = None
         self.cur_y = None
@@ -35,6 +38,9 @@ class Simulator:
             D = 0
         self.sysc = ss(A, B, C, D)
         self.sysd = c2d(self.sysc, self.dt)
+        self.n = self.sysc.A.shape[1]
+        self.m = self.sysc.B.shape[1]
+        self.p = self.sysc.C.shape[0]
 
     def sim_init(self, settings):
         self.set_feedback_type(settings['feedback_type'])
@@ -43,7 +49,7 @@ class Simulator:
 
     def set_init_state(self, x):
         self.cur_x = x
-        self.cur_y = self.sysd.C @ self.cur_x
+        self.cur_y = np.asarray(self.sysd.C) @ self.cur_x
         self.outputs[0] = self.cur_y
         self.states[0] = self.cur_x
         if self.feedback_type:
@@ -74,13 +80,16 @@ class Simulator:
             self.cur_u = self.controller.update(self.cur_ref, self.cur_feedback, self.dt * self.cur_index)
         else:
             self.cur_u = u
+        assert self.cur_u.shape == (self.m,)
         self.inputs[self.cur_index] = self.cur_u
 
         # implement control input
         self.cur_index += 1
         if self.model_type == 'linear':
-            self.cur_x = self.sysd.A @ self.cur_x + self.sysd.B @ self.cur_u
-            self.cur_y = self.sysd.C @ self.cur_x + self.sysd.D @ self.cur_u
+            self.cur_x = np.asarray(self.sysd.A) @ self.cur_x + np.asarray(self.sysd.B) @ self.cur_u
+            self.cur_y = np.asarray(self.sysd.C) @ self.cur_x + np.asarray(self.sysd.D) @ self.cur_u
+            assert self.cur_x.shape == (self.n,)
+            assert self.cur_y.shape == (self.p,)
             self.states[self.cur_index] = self.cur_x
             self.outputs[self.cur_index] = self.cur_y
 

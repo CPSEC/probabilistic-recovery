@@ -60,7 +60,7 @@ C = [[kc, 0, 0, 0],
 
 D = [[0, 0], [0, 0]]
 
-x_0 = np.matrix([[0], [0], [0], [0]])
+x_0 = np.array([0, 0, 0, 0])
 
 # control parameters
 Kp1 = 3.0
@@ -83,11 +83,11 @@ class Controller:
         self.pid2.setSampleTime(dt)
 
     def update(self, ref, feedback_value, current_time):
-        self.pid1.SetPoint = ref[0, 0]
-        self.pid1.update(feedback_value[0, 0], current_time)
-        self.pid2.SetPoint = ref[1, 0]
-        self.pid2.update(feedback_value[1, 0], current_time)
-        return np.matrix([[self.pid1.output], [self.pid2.output]])
+        self.pid1.SetPoint = ref[0]
+        self.pid1.update(feedback_value[0], current_time)
+        self.pid2.SetPoint = ref[1]
+        self.pid2.update(feedback_value[1], current_time)
+        return np.array([self.pid1.output, self.pid2.output])
 
 
 class QuadrupleTank(Simulator):
@@ -106,7 +106,7 @@ class QuadrupleTank(Simulator):
 if __name__ == "__main__":
     max_index = 2000
     dt = 0.1
-    ref = [np.matrix([[7], [7]])]*1001 + [np.matrix([[14], [12]])]*1000
+    ref = [np.array([7, 7])]*1001 + [np.array([14, 12])]*1000
     quadruple_tank = QuadrupleTank('test', dt, max_index)
     for i in range(0, max_index + 1):
         assert quadruple_tank.cur_index == i
@@ -119,12 +119,12 @@ if __name__ == "__main__":
     ax1 = ax[0]
     ax2 = ax[1]
     t_arr = np.linspace(0, 10, max_index + 1)
-    ref1 = [x[0, 0] for x in quadruple_tank.refs[:max_index + 1]]
-    y1_arr = [x[0, 0] for x in quadruple_tank.outputs[:max_index + 1]]
+    ref1 = [x[0] for x in quadruple_tank.refs[:max_index + 1]]
+    y1_arr = [x[0] for x in quadruple_tank.outputs[:max_index + 1]]
     ax1.set_title('x1')
     ax1.plot(t_arr, y1_arr, t_arr, ref1)
-    ref2 = [x[1, 0] for x in quadruple_tank.refs[:max_index + 1]]
-    y2_arr = [x[1, 0] for x in quadruple_tank.outputs[:max_index + 1]]
+    ref2 = [x[1] for x in quadruple_tank.refs[:max_index + 1]]
+    y2_arr = [x[1] for x in quadruple_tank.outputs[:max_index + 1]]
     ax2.set_title('x2')
     ax2.plot(t_arr, y2_arr, t_arr, ref2)
     plt.show()
