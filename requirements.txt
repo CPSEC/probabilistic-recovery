@@ -1,2 +1,2 @@
-slycot
-control
+scipy
+numpy
