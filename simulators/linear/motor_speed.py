@@ -1,7 +1,6 @@
 import numpy as np
 
-from utils.Simulator import Simulator
-from utils.PID import PID
+from utils import PID, Simulator
 
 # system dynamics
 J = 0.01

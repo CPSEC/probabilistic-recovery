@@ -6,8 +6,7 @@
 
 import numpy as np
 import math
-from utils.Simulator import Simulator
-from utils.PID import PID
+from utils import Simulator, PID
 
 # two operating points
 op = True  # True: have minimum phase characteristics
