@@ -21,14 +21,18 @@ def inverted_pendulum(t, x, u, params={}):
     dx = np.zeros((4,))
     dx[0] = x[1]
     dx[1] = (1 / D) * (-m * m * L * L * g * Cx * Sx + m * L * L * (m * L * x[3] * x[3] * Sx - d * x[1])) + m * L * L * (
-                1 / D) * u
+            1 / D) * u
     dx[2] = x[3]
     dx[3] = (1 / D) * ((m + M) * m * g * L * Sx - m * L * Cx * (m * L * x[3] * x[3] * Sx - d * x[1])) - m * L * Cx * (
-                1 / D) * u
+            1 / D) * u
     return dx
 
 
 x_0 = np.array([-1, 0, np.pi + 0.1, 0])
+control_limit = {
+    'lo': np.array([-50]),
+    'up': np.array([50])
+}
 
 # control parameters
 A = np.array([[0, 1, 0, 0],
@@ -40,18 +44,21 @@ B = np.array([[0], [1 / M], [0], [b * 1 / (M * L)]])
 R = np.array([[0.0001]])
 Q = np.eye(4)
 
-P = np.matrix(solve_continuous_are(A, B, Q, R))
-K = np.matrix(inv(R) * (B.T * P))
+P = solve_continuous_are(A, B, Q, R)
+K = inv(R) @ (B.T @ P)
 
 
 class Controller:
-    def __init__(self, dt):
+    def __init__(self, dt, control_limit=None):
         self.K = K
+        self.control_limit = control_limit
 
     def update(self, ref, feedback_value, current_time):
         cin = -K @ (feedback_value - ref)
+        if self.control_limit:
+            for i in range(len(cin)):
+                cin[i] = np.clip(cin[i], self.control_limit['lo'][i], self.control_limit['up'][i])
         return cin
-
 
 class InvertedPendulum(Simulator):
     """
@@ -60,7 +67,7 @@ class InvertedPendulum(Simulator):
         x[1]: dx[0]
         x[2]: pendulum angle  (down:0, up:pi)
         x[3]: dx[1]
-    Control Input: (1,)
+    Control Input: (1,)  [control_limit]
         u[0]: force on the cart
     Output: (4,)
         State Feedback
@@ -70,7 +77,7 @@ class InvertedPendulum(Simulator):
     def __init__(self, name, dt, max_index):
         super().__init__('Inverted Pendulum ' + name, dt, max_index)
         self.nonlinear(ode=inverted_pendulum, n=4, m=1, p=4)
-        controller = Controller(dt)
+        controller = Controller(dt, control_limit)
         settings = {
             'init_state': x_0,
             'feedback_type': 'state',
@@ -78,5 +85,32 @@ class InvertedPendulum(Simulator):
         }
         self.sim_init(settings)
 
+
 if __name__ == "__main__":
-    pass
+    max_index = 500
+    dt = 0.02
+    ref = [np.array([1, 0, np.pi, 0])] * 501
+    ip = InvertedPendulum('test', dt, max_index)
+    for i in range(0, max_index + 1):
+        assert ip.cur_index == i
+        ip.update_current_ref(ref[i])
+        # attack here
+        ip.evolve()
+    # print results
+    import matplotlib.pyplot as plt
+
+    fig, ax = plt.subplots(3, 1)
+    ax1, ax2, ax3 = ax
+    t_arr = np.linspace(0, 10, max_index + 1)
+    ref1 = [x[0] for x in ip.refs[:max_index + 1]]
+    y1_arr = [x[0] for x in ip.outputs[:max_index + 1]]
+    ax1.set_title('x0-location')
+    ax1.plot(t_arr, y1_arr, t_arr, ref1)
+    ref2 = [x[2] for x in ip.refs[:max_index + 1]]
+    y2_arr = [x[2] for x in ip.outputs[:max_index + 1]]
+    ax2.set_title('x2-angle')
+    ax2.plot(t_arr, y2_arr, t_arr, ref2)
+    u_arr = [x[0] for x in ip.inputs[:max_index + 1]]
+    ax3.set_title('u-force')
+    ax3.plot(t_arr, u_arr)
+    plt.show()

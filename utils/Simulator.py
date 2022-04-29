@@ -66,7 +66,7 @@ class Simulator:
 
     def set_init_state(self, x):
         self.cur_x = x
-        self.cur_y = self.sysd.C @ self.cur_x
+        self.cur_y = self.C @ self.cur_x
         self.outputs[0] = self.cur_y
         self.states[0] = self.cur_x
         if self.feedback_type:
