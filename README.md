@@ -1,12 +1,15 @@
 # Probabilistic Recovery
 
 ## Get started
-This project is run on deepnote.
 install the dependencies
 ```
 pip install -r requirements.txt
 ```
 
 ## System models
-1. quadruple_tank
-
++ Linear:
+  1. motor_speed [PID]
+  2. quadruple_tank [PID, MIMO]
+  
++ Nonlinear:
+  1. inverted pendulum [LQR, Control_limit]
