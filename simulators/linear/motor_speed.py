@@ -14,7 +14,7 @@ L = 0.5    # electric inductance
 
 A = [[-b / J, Kt / J], [-Ke / L, -R / L]]
 B = [[0], [1 / L]]
-C = [1, 0]
+C = [[1, 0]]
 
 x_0 = np.array([0, 0])
 
@@ -33,9 +33,9 @@ class Controller:
         # self.pid.setControlLimit()
 
     def update(self, ref, feedback_value, current_time):
-        self.pid.SetPoint = ref[0]
-        self.pid.update(feedback_value[0], current_time)
-        return np.array([self.pid.output])
+        self.pid.set_reference(ref[0])
+        cin = self.pid.update(feedback_value[0], current_time)
+        return np.array([cin])
 
 
 class MotorSpeed(Simulator):

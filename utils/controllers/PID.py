@@ -31,9 +31,11 @@
 """Ivmech PID Controller is simple implementation of a Proportional-Integral-Derivative (PID) Controller in the Python Programming Language.
 More information about PID Controller: http://en.wikipedia.org/wiki/PID_controller
 """
+from .controller_base import Controller
 import time
 
-class PID:
+
+class PID(Controller):
     """PID Controller
     """
 
@@ -111,6 +113,10 @@ class PID:
                 self.output = self.control_up
             elif self.control_lo and self.control_lo > self.output:
                 self.output = self.control_lo
+        return self.output
+
+    def set_reference(self, ref):
+        self.SetPoint = ref
 
     def setKp(self, proportional_gain):
         """Determines how aggressively the PID reacts to the current error with setting Proportional Gain"""
@@ -142,6 +148,6 @@ class PID:
         """
         self.sample_time = sample_time
 
-    def setControlLimit(self, control_lo, control_up):
+    def set_control_limit(self, control_lo, control_up):
         self.control_lo = control_lo
         self.control_up = control_up

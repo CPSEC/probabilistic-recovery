@@ -2,7 +2,7 @@
 
 import numpy as np
 from scipy.linalg import solve_continuous_are, inv
-from utils import Simulator
+from utils import Simulator, LQR
 
 # parameters
 m = 1  # mass of rob
@@ -44,21 +44,17 @@ B = np.array([[0], [1 / M], [0], [b * 1 / (M * L)]])
 R = np.array([[0.0001]])
 Q = np.eye(4)
 
-P = solve_continuous_are(A, B, Q, R)
-K = inv(R) @ (B.T @ P)
-
 
 class Controller:
     def __init__(self, dt, control_limit=None):
-        self.K = K
-        self.control_limit = control_limit
+        self.lqr = LQR(A, B, Q, R)
+        self.lqr.set_control_limit(control_limit['lo'], control_limit['up'])
 
     def update(self, ref, feedback_value, current_time):
-        cin = -K @ (feedback_value - ref)
-        if self.control_limit:
-            for i in range(len(cin)):
-                cin[i] = np.clip(cin[i], self.control_limit['lo'][i], self.control_limit['up'][i])
+        self.lqr.set_reference(ref)
+        cin = self.lqr.update(feedback_value, current_time)
         return cin
+
 
 class InvertedPendulum(Simulator):
     """

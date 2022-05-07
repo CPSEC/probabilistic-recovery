@@ -73,11 +73,11 @@ class Controller:
         self.pid2.setSampleTime(dt)
 
     def update(self, ref, feedback_value, current_time):
-        self.pid1.SetPoint = ref[0]
-        self.pid1.update(feedback_value[0], current_time)
-        self.pid2.SetPoint = ref[1]
-        self.pid2.update(feedback_value[1], current_time)
-        return np.array([self.pid1.output, self.pid2.output])
+        self.pid1.set_reference(ref[0])
+        cin1 = self.pid1.update(feedback_value[0], current_time)
+        self.pid2.set_reference(ref[1])
+        cin2 = self.pid2.update(feedback_value[1], current_time)
+        return np.array([cin1, cin2])
 
 
 class QuadrupleTank(Simulator):
