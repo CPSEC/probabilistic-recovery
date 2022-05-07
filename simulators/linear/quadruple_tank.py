@@ -72,7 +72,7 @@ class Controller:
         self.pid2.setWindup(100)
         self.pid2.setSampleTime(dt)
 
-    def update(self, ref, feedback_value, current_time):
+    def update(self, ref: np.ndarray, feedback_value: np.ndarray, current_time) -> np.ndarray:
         self.pid1.set_reference(ref[0])
         cin1 = self.pid1.update(feedback_value[0], current_time)
         self.pid2.set_reference(ref[1])

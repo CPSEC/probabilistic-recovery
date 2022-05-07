@@ -32,7 +32,7 @@ class Controller:
         self.pid.setSampleTime(dt)
         # self.pid.setControlLimit()
 
-    def update(self, ref, feedback_value, current_time):
+    def update(self, ref: np.ndarray, feedback_value: np.ndarray, current_time) -> np.ndarray:
         self.pid.set_reference(ref[0])
         cin = self.pid.update(feedback_value[0], current_time)
         return np.array([cin])

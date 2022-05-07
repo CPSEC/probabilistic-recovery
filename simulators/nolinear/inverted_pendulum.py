@@ -49,7 +49,7 @@ class Controller:
         self.lqr = LQR(A, B, Q, R)
         self.lqr.set_control_limit(control_limit['lo'], control_limit['up'])
 
-    def update(self, ref, feedback_value, current_time):
+    def update(self, ref: np.ndarray, feedback_value: np.ndarray, current_time) -> np.ndarray:
         self.lqr.set_reference(ref)
         cin = self.lqr.update(feedback_value, current_time)
         return cin
