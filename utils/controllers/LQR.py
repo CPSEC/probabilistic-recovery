@@ -1,7 +1,9 @@
 from scipy.linalg import solve_continuous_are, inv
 import numpy as np
+from .controller_base import Controller
 
-class LQR:
+
+class LQR(Controller):
     def __init__(self, A, B, Q, R):
         self.update_gain(A, B, Q, R)
         self.ref = 0
