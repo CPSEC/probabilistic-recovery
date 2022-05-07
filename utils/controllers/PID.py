@@ -69,7 +69,7 @@ class PID(Controller):
 
         self.output = 0.0
 
-    def update(self, feedback_value, current_time=None):
+    def update(self, feedback_value: float, current_time=None) -> float:
         """Calculates PID value for given reference feedback
 
         .. math::
@@ -115,7 +115,7 @@ class PID(Controller):
                 self.output = self.control_lo
         return self.output
 
-    def set_reference(self, ref):
+    def set_reference(self, ref: float):
         self.SetPoint = ref
 
     def setKp(self, proportional_gain):
@@ -148,6 +148,6 @@ class PID(Controller):
         """
         self.sample_time = sample_time
 
-    def set_control_limit(self, control_lo, control_up):
+    def set_control_limit(self, control_lo: float, control_up: float):
         self.control_lo = control_lo
         self.control_up = control_up

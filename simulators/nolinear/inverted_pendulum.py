@@ -1,7 +1,6 @@
 # Ref: Data-Driven Science and Engineering: Machine Learning, Dynamical Systems, and Control (Session 8.7, Page 300)
 
 import numpy as np
-from scipy.linalg import solve_continuous_are, inv
 from utils import Simulator, LQR
 
 # parameters
