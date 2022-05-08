@@ -26,12 +26,17 @@ class Simulator:
         self.cur_feedback = None
         self.cur_ref = None
         self.cur_index = 0
-        # backup all data
-        self.inputs = np.empty(max_index + 2, dtype=object)
-        self.outputs = np.empty(max_index + 2, dtype=object)
-        self.states = np.empty(max_index + 2, dtype=object)
-        self.feedbacks = np.empty(max_index + 2, dtype=object)
-        self.refs = np.empty(max_index + 2, dtype=object)  # reference value
+
+    def data_init(self):
+        self.inputs = np.empty((self.max_index + 2, self.m), dtype=np.float)
+        self.outputs = np.empty((self.max_index + 2, self.p), dtype=np.float)
+        self.states = np.empty((self.max_index + 2, self.n), dtype=np.float)
+        if self.feedback_type == 'output':
+            self.feedbacks = np.empty((self.max_index + 2, self.p), dtype=np.float)
+            self.refs = np.empty((self.max_index + 2, self.p), dtype=object)
+        elif self.feedback_type == 'state':
+            self.feedbacks = np.empty((self.max_index + 2, self.n), dtype=np.float)
+            self.refs = np.empty((self.max_index + 2, self.n), dtype=object)  # reference value
 
     def linear(self, A, B, C=None, D=None):
         self.model_type = 'linear'
@@ -59,10 +64,31 @@ class Simulator:
         self.p = p
         self.ode = ode
 
-    def sim_init(self, settings):
+    def sim_init(self, settings: dict):
+        """
+        keys:
+          'feedback_type': 'state', 'output', None
+          'init_state': np.ndarray   (n,)
+          'controller':  object with update method
+        """
         self.set_feedback_type(settings['feedback_type'])
+        self.data_init()
         self.set_init_state(settings['init_state'])
         self.set_controller(settings['controller'])
+
+
+    def set_noise(self, noise):
+        """
+        Only implement the white noise
+        keys:
+          'process'/'measurement':
+            'enable': True, False
+            'type': 'white'
+            '':
+            'param':
+               [sigma_1, ..., sigma_{m/n}]     for 'white'
+        """
+        pass
 
     def set_init_state(self, x):
         self.cur_x = x
