@@ -69,7 +69,7 @@ class InvertedPendulum(Simulator):
     Controller: LQR
     """
 
-    def __init__(self, name, dt, max_index):
+    def __init__(self, name, dt, max_index, noise=None):
         super().__init__('Inverted Pendulum ' + name, dt, max_index)
         self.nonlinear(ode=inverted_pendulum, n=4, m=1, p=4)
         controller = Controller(dt, control_limit)
@@ -78,6 +78,8 @@ class InvertedPendulum(Simulator):
             'feedback_type': 'state',
             'controller': controller
         }
+        if noise:
+            settings['noise'] = noise
         self.sim_init(settings)
 
 

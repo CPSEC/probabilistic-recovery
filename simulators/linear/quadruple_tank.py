@@ -94,7 +94,7 @@ class QuadrupleTank(Simulator):
         Output Feedback
     Controller: PID
     """
-    def __init__(self, name, dt, max_index):
+    def __init__(self, name, dt, max_index, noise=None):
         super().__init__('Quadruple Tank ' + name, dt, max_index)
         self.linear(A, B, C, D)
         controller = Controller(dt)
@@ -103,6 +103,8 @@ class QuadrupleTank(Simulator):
             'feedback_type': 'output',
             'controller': controller
         }
+        if noise:
+            settings['noise'] = noise
         self.sim_init(settings)
 
 
@@ -110,7 +112,13 @@ if __name__ == "__main__":
     max_index = 2000
     dt = 0.1
     ref = [np.array([7, 7])]*1001 + [np.array([14, 12])]*1000
-    quadruple_tank = QuadrupleTank('test', dt, max_index)
+    noise = {
+        'process': {
+            'type': 'white',
+            'param': np.array([1, 1, 1, 1]) * 0.05
+        }
+    }
+    quadruple_tank = QuadrupleTank('test', dt, max_index, noise)
     for i in range(0, max_index + 1):
         assert quadruple_tank.cur_index == i
         quadruple_tank.update_current_ref(ref[i])

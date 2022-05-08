@@ -16,7 +16,7 @@ A = [[-b / J, Kt / J], [-Ke / L, -R / L]]
 B = [[0], [1 / L]]
 C = [[1, 0]]
 
-x_0 = np.array([0, 0])
+x_0 = np.array([0.0, 0.0])
 
 # control parameters
 P = 19
@@ -50,7 +50,7 @@ class MotorSpeed(Simulator):
         Output Feedback
     Controller: PID
     """
-    def __init__(self, name, dt, max_index):
+    def __init__(self, name, dt, max_index, noise=None):
         super().__init__('Motor Speed ' + name, dt, max_index)
         self.linear(A, B, C)
         controller = Controller(dt)
@@ -59,6 +59,8 @@ class MotorSpeed(Simulator):
             'feedback_type': 'output',
             'controller': controller
         }
+        if noise:
+            settings['noise'] = noise
         self.sim_init(settings)
 
 
@@ -66,7 +68,13 @@ if __name__ == "__main__":
     max_index = 500
     dt = 0.02
     ref = [np.array([5])] * 201 + [np.array([4])] * 200 + [np.array([5])] * 100
-    motor_speed = MotorSpeed('test', dt, max_index)
+    noise = {
+        'measurement': {
+            'type': 'white',
+            'param': np.array([1]) * 0.05
+        }
+    }
+    motor_speed = MotorSpeed('test', dt, max_index, noise)
     for i in range(0, max_index + 1):
         assert motor_speed.cur_index == i
         motor_speed.update_current_ref(ref[i])
