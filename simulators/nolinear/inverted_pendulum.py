@@ -84,14 +84,19 @@ class InvertedPendulum(Simulator):
 
 
 if __name__ == "__main__":
-    max_index = 500
+    max_index = 800
     dt = 0.02
-    ref = [np.array([1, 0, np.pi, 0])] * 501
+    ref = [np.array([1, 0, np.pi, 0])] * (max_index+1)
+    # bias attack example
+    from utils import Attack
+    bias = np.array([-1, 0, 0, 0])
+    bias_attack = Attack('bias', bias, 300)
     ip = InvertedPendulum('test', dt, max_index)
     for i in range(0, max_index + 1):
         assert ip.cur_index == i
         ip.update_current_ref(ref[i])
         # attack here
+        ip.cur_feedback = bias_attack.launch(ip.cur_feedback, ip.cur_index, ip.states)
         ip.evolve()
     # print results
     import matplotlib.pyplot as plt
