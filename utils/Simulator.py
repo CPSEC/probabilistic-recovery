@@ -89,10 +89,9 @@ class Simulator:
         Only implement the white noise
         keys:
           'process'/'measurement':
-            'type': 'white'
-            '':
+            'type': 'white'  todo: 'white_bounded', 'box_uniform', 'ball_uniform'
             'param':
-              np.array([sigma_1, sigma_2, ..., sigma_{n/m}])      for 'white'
+              np.array([sigma_1, sigma_2, ..., sigma_{n/m}])      scale for 'white'
         """
         if 'process' in noise:
             if noise['process']['type'] == 'white':
