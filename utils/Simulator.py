@@ -145,10 +145,10 @@ class Simulator:
         res = solve_ivp(self.ode, ts, self.cur_x, args=(self.cur_u,))
         self.cur_index += 1
         self.cur_x = res.y[:, -1]
-        if self.p_noise is not None:
+        if self.p_noise is not None:  # process noise
             self.cur_x += self.p_noise[self.cur_index]
         self.cur_y = self.C @ self.cur_x + self.D @ self.cur_u
-        if self.m_noise is not None:
+        if self.m_noise is not None:  # measurement noise
             self.cur_y += self.m_noise[self.cur_index]
         assert self.cur_x.shape == (self.n,)
         assert self.cur_y.shape == (self.p,)
