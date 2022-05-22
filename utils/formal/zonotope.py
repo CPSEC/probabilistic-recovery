@@ -1,5 +1,8 @@
 import numpy as np
-
+# for plot
+from itertools import product
+from scipy.spatial import ConvexHull
+import matplotlib.pyplot as plt
 
 class Zonotope:
     """
@@ -72,6 +75,28 @@ class Zonotope:
         vertex = self.c + np.sum(u, axis=1)
         return vertex, u
 
+    # get all vertices in order
+    def to_V(self):
+        # get all vertices
+        n = self.g.shape[1]    # number of generators
+        alpha = np.array(list(product(*list(zip([-1]*n, [1]*n))))).T
+        v = self.c.reshape((-1, 1)) + self.g @ alpha  # all possible vertices for each column
+        v = v.T  # one possible vertex per row
+        v = v[ConvexHull(v).vertices, :]  # one vertex per row
+        return v
+
+    def plot(self, fig=None):
+        v = z5.to_V()
+        if v.shape[1] != 2:  # only 2-d
+            return NotImplemented
+        v = np.vstack((v, v[0]))  # close the polygon
+        if fig is None:
+            fig = plt.figure()
+            plt.plot(v[:, 0], v[:, 1])
+            plt.show()
+        else:
+            plt.plot(v[:, 0], v[:, 1])
+
 
 if __name__ == '__main__':
     c1 = np.array([1, 2, 3], dtype=float)
@@ -114,6 +139,8 @@ if __name__ == '__main__':
     print('support function along l:', z5.support(l))
     print('generators to farthest  vertex along l', z5.vertex_with_max_support(l))
 
+    # plot zonotope
+    v = z5.plot()
 
 
 
