@@ -3,6 +3,7 @@ import numpy as np
 from itertools import product
 from scipy.spatial import ConvexHull
 import matplotlib.pyplot as plt
+from half_space import HalfSpace
 
 class Zonotope:
     """
@@ -75,6 +76,12 @@ class Zonotope:
         vertex = self.c + np.sum(u, axis=1)
         return vertex, u
 
+    # check if intersect with a half space
+    def is_intersected(self, hs):
+        if not isinstance(hs, HalfSpace):
+            return NotImplemented
+        return self.support(hs.l) >= hs.b
+
     # get all vertices in order
     def to_V(self):
         # get all vertices
@@ -138,6 +145,13 @@ if __name__ == '__main__':
     print('l=', l)
     print('support function along l:', z5.support(l))
     print('generators to farthest  vertex along l', z5.vertex_with_max_support(l))
+
+    # check intersection
+    l = np.array([-1, -1])
+    bs = [4, 2, -2, -10]
+    hss = [HalfSpace(l, b) for b in bs]
+    res = [z5.is_intersected(hs) for hs in hss]
+    print('check intersection', res)
 
     # plot zonotope
     v = z5.plot()
