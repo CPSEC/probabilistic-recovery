@@ -69,7 +69,8 @@ class Zonotope:
         for i in range(len(self)):
             if self[i]@l < 0:
                 u[:, i] *= -1
-        return u
+        vertex = self.c + np.sum(u, axis=1)
+        return vertex, u
 
 
 if __name__ == '__main__':
