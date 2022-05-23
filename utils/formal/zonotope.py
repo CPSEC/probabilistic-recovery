@@ -27,10 +27,20 @@ class Zonotope:
 
     # '+' overload, Minkowski sum of two zonotopes
     def __add__(self, other):
-        assert self.dim == other.dim
-        c = self.c + other.c
-        g = np.block([self.g, other.g])
-        return Zonotope(c, g)
+        if isinstance(other, Zonotope):
+            assert self.dim == other.dim
+            c = self.c + other.c
+            g = np.block([self.g, other.g])
+            return Zonotope(c, g)
+        if isinstance(other, np.ndarray):
+            assert self.dim == other.shape[0]
+            c = self.c + other
+            return Zonotope(c, self.g)
+        return NotImplemented
+
+    # np.array + zonotope
+    def __radd__(self, other):
+        return self.__add__(other)
 
     # '+=' overload
     def __iadd__(self, other):
@@ -93,7 +103,7 @@ class Zonotope:
         return v
 
     def plot(self, fig=None):
-        v = z5.to_V()
+        v = self.to_V()
         if v.shape[1] != 2:  # only 2-d
             return NotImplemented
         v = np.vstack((v, v[0]))  # close the polygon
@@ -103,6 +113,18 @@ class Zonotope:
             plt.show()
         else:
             plt.plot(v[:, 0], v[:, 1])
+
+    @classmethod
+    def from_box(cls, lo: np.ndarray, up: np.ndarray):
+        """
+        initiate a zonotope from box
+        lo: lower bound of the box
+        up: upper bound of the box
+        """
+        c = (lo + up) / 2
+        g_range = (up - lo) / 2
+        g = np.diag(g_range)
+        return cls(c, g)
 
 
 if __name__ == '__main__':
