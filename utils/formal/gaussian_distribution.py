@@ -1,6 +1,8 @@
 import numpy as np
 from scipy.stats import multivariate_normal
+from scipy.linalg import sqrtm
 import matplotlib.pyplot as plt
+
 
 class GaussianDistribution:
     def __init__(self, miu: np.ndarray, sigma: np.ndarray):
@@ -40,6 +42,13 @@ class GaussianDistribution:
         string += '\n  sigma:' + str(self.sigma)
         return string
 
+    def transformation_from_standard(self):
+        return sqrtm(self.sigma)
+
+    # generate points from this distribution
+    def random(self, *size):
+        return sqrtm(self.sigma) @ np.random.randn(size) + self.miu
+
     def plot(self, x1, x2, y1, y2, fig=None):
         if self.dim != 2:
             return NotImplemented
@@ -66,10 +75,9 @@ if __name__ == "__main__":
     # linear transformation
     A = np.array([[1, 2], [3, 4]])
     b = np.array([-1, -1])
-    g2 = A@g1 + b
+    g2 = A @ g1 + b
     print('A@g1+b =', g2)
 
     # sum of two independent ones
     g3 = g1 + g2
     print('g1+g2 =', g3)
-
