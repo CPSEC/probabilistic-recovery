@@ -3,7 +3,7 @@ import numpy as np
 from itertools import product
 from scipy.spatial import ConvexHull
 import matplotlib.pyplot as plt
-from half_space import HalfSpace
+from .half_space import HalfSpace
 
 class Zonotope:
     """
