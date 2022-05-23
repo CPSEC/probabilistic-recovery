@@ -1,3 +1,4 @@
+import matplotlib.pyplot as plt
 import numpy as np
 from zonotope import Zonotope
 from gaussian_distribution import GaussianDistribution
@@ -26,12 +27,12 @@ class ReachableSet:
         self.x_0 = x_0
         self.hs = hs
 
-    def reachable_set_wo_noise(self, k):
+    def reachable_set_wo_noise(self, k: int) -> Zonotope:
         x_0 = self.x_0.miu
         X_k = self.A_k[k]@x_0 + self.bar_u_k[k]
         return X_k
 
-    def first_intersection(self):
+    def first_intersection(self) -> ([int, None], Zonotope):
         for i in range(1, self.max_step):
             X_k = self.reachable_set_wo_noise(i)
             if X_k.is_intersected(self.hs):
@@ -52,15 +53,33 @@ if __name__ == '__main__':
     W = GaussianDistribution(np.array([0, 0]), np.eye(2))
     reach = ReachableSet(A, B, U, W, max_step=5)
     x_0 = GaussianDistribution(np.array([5, 5]), np.eye(2))
-    hs = HalfSpace(np.array([-1, -1]), 5)
+    hs = HalfSpace(np.array([1, 1]), 100)
     reach.init(x_0, hs)
     X_1 = reach.reachable_set_wo_noise(1)
     print(X_1)
-    X_1.plot()
+    # X_1.plot()
 
     X_2 = reach.reachable_set_wo_noise(2)
     print(X_2)
-    X_2.plot()
+    # X_2.plot()
+
+    X_3 = reach.reachable_set_wo_noise(3)
+    # X_3.plot()
+
+    k, X_k = reach.first_intersection()
+    print('k =', k)
+    vertex, alpha, gs_l = X_k.vertex_with_max_support(hs.l)
+    fig = plt.figure()
+    X_k.show_routine(gs_l, fig)
+    hs.plot(30, 80, fig)
+    plt.show()
+
+    vertex, alpha, gs_l = X_2.vertex_with_max_support(hs.l)
+    fig = plt.figure()
+    # X_2.show_routine(gs_l, fig)
+    X_2.plot(fig)
+    hs.plot(30, 80, fig)
+    plt.show()
 
     # # print(reach.A_k)
     # for val in reach.A_k_B_U:
