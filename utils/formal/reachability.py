@@ -7,9 +7,10 @@ from half_space import HalfSpace
 
 class ReachableSet:
     """
-    get the Reachable set
+    get the Reachable set + Distribution
     A, B - from discrete-time system
     """
+
     def __init__(self, A, B, U: Zonotope, W: GaussianDistribution, max_step=50):
         self.max_step = max_step
         self.A_k = [np.eye(A.shape[0])]
@@ -20,8 +21,8 @@ class ReachableSet:
         self.bar_u_k = [U, self.A_k_B_U[0]]
         self.bar_w_k = [W, self.A_k_W[0]]
         for i in range(1, max_step):
-            self.bar_u_k.append(self.A_k_B_U[i]+self.bar_u_k[-1])
-            self.bar_w_k.append(self.A_k_W[i]+self.bar_w_k[-1])
+            self.bar_u_k.append(self.A_k_B_U[i] + self.bar_u_k[-1])
+            self.bar_w_k.append(self.A_k_W[i] + self.bar_w_k[-1])
 
     def init(self, x_0: GaussianDistribution, hs: HalfSpace):
         self.x_0 = x_0
@@ -29,7 +30,7 @@ class ReachableSet:
 
     def reachable_set_wo_noise(self, k: int) -> Zonotope:
         x_0 = self.x_0.miu
-        X_k = self.A_k[k]@x_0 + self.bar_u_k[k]
+        X_k = self.A_k[k] @ x_0 + self.bar_u_k[k]
         return X_k
 
     def first_intersection(self) -> ([int, None], Zonotope):
@@ -39,6 +40,8 @@ class ReachableSet:
                 return i, X_k
         return None, X_k
 
+    def distribution(self, vertex: np.ndarray, k: int):
+        return vertex + self.bar_w_k[k]
 
 
 if __name__ == '__main__':
@@ -66,6 +69,13 @@ if __name__ == '__main__':
     X_3 = reach.reachable_set_wo_noise(3)
     # X_3.plot()
 
+    vertex, alpha, gs_l = X_2.vertex_with_max_support(hs.l)
+    fig = plt.figure()
+    # X_2.show_routine(gs_l, fig)
+    X_2.plot(fig)
+    hs.plot(30, 80, fig)
+    plt.show()
+
     k, X_k = reach.first_intersection()
     print('k =', k)
     vertex, alpha, gs_l = X_k.vertex_with_max_support(hs.l)
@@ -74,13 +84,14 @@ if __name__ == '__main__':
     hs.plot(30, 80, fig)
     plt.show()
 
-    vertex, alpha, gs_l = X_2.vertex_with_max_support(hs.l)
+    D_3 = reach.distribution(vertex, k)
+    print(D_3)
     fig = plt.figure()
-    # X_2.show_routine(gs_l, fig)
-    X_2.plot(fig)
+    D_3.plot(10, 80, 10, 70, fig=fig)
+    X_k.show_routine(gs_l, fig)
     hs.plot(30, 80, fig)
-    plt.show()
 
+    plt.show()
     # # print(reach.A_k)
     # for val in reach.A_k_B_U:
     #     print(val)
