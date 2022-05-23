@@ -31,6 +31,9 @@ class GaussianDistribution:
             return GaussianDistribution(miu, sigma)
         return NotImplemented
 
+    def __radd__(self, other):
+        return self.__add__(other)
+
     def __str__(self):
         string = 'Gaussian Distribution:\n  miu:' + str(self.miu)
         string += '\n  sigma:' + str(self.sigma)
