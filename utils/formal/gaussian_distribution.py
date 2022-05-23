@@ -1,5 +1,6 @@
 import numpy as np
-
+from scipy.stats import multivariate_normal
+import matplotlib.pyplot as plt
 
 class GaussianDistribution:
     def __init__(self, miu: np.ndarray, sigma: np.ndarray):
@@ -38,6 +39,22 @@ class GaussianDistribution:
         string = 'Gaussian Distribution:\n  miu:' + str(self.miu)
         string += '\n  sigma:' + str(self.sigma)
         return string
+
+    def plot(self, x1, x2, y1, y2, fig=None):
+        if self.dim != 2:
+            return NotImplemented
+        x, y = np.mgrid[x1:x2:.1, y1:y2:.1]
+        pos = np.empty(x.shape + (2,))
+        pos[:, :, 0] = x
+        pos[:, :, 1] = y
+        rv = multivariate_normal(self.miu, self.sigma)
+        z = rv.pdf(pos)
+        if fig is None:
+            fig = plt.figure()
+        plt.contourf(x, y, z, levels=10, alpha=1)
+        if fig is None:
+            plt.show()
+        return fig
 
 
 if __name__ == "__main__":
