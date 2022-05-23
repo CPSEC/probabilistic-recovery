@@ -78,13 +78,19 @@ class Zonotope:
 
     # all generators contributing to the farther vertex along l
     def vertex_with_max_support(self, l: np.ndarray):
+        """
+        Return:
+            vertex - farthest vertex coordinate
+            alpha  - direction (1/-1) for each generators
+            gs_l   - generators to vertex
+        """
         assert l.shape == (self.dim,)
-        u = self.g.copy()
+        alpha = np.empty((len(self),))
         for i in range(len(self)):
-            if self[i]@l < 0:
-                u[:, i] *= -1
-        vertex = self.c + np.sum(u, axis=1)
-        return vertex, u
+            alpha[i] = -1 if self[i]@l < 0 else 1
+        gs_l = self.g @ np.diag(alpha)
+        vertex = self.c + np.sum(gs_l, axis=1)
+        return vertex, alpha, gs_l
 
     # check if intersect with a half space
     def is_intersected(self, hs):
@@ -113,6 +119,26 @@ class Zonotope:
             plt.show()
         else:
             plt.plot(v[:, 0], v[:, 1])
+        return fig
+
+    def show_routine(self, gs_l, fig=None):
+        if self.dim != 2:
+            return NotImplemented
+        routine = np.empty((len(self)+1, self.dim), dtype=float)
+        routine[0] = self.c
+        for i in range(len(self)):
+            routine[i+1] = routine[i] + gs_l[:, i]
+        if fig is None:
+            fig = plt.figure()
+        self.plot(fig)
+        X = routine[:, 0]
+        Y = routine[:, 1]
+        for i in range(len(X)-1):
+            plt.arrow(X[i], Y[i], X[i+1]-X[i], Y[i+1]-Y[i], head_width=1.5, width=0.1, length_includes_head=True, ec='g')
+        if fig is None:
+            plt.show()
+        return fig
+
 
     @classmethod
     def from_box(cls, lo: np.ndarray, up: np.ndarray):
@@ -161,11 +187,11 @@ if __name__ == '__main__':
     print('z5 =', z5)
     l = np.array([-1, -1])
     print('l=', l)
-    print('support function along l:', z5.support(l))
+    print('support function along l:', z5.support(l))   #2
     print('generators to farthest  vertex along l', z5.vertex_with_max_support(l))
     l = np.array([-1, 2])
     print('l=', l)
-    print('support function along l:', z5.support(l))
+    print('support function along l:', z5.support(l))   #5
     print('generators to farthest  vertex along l', z5.vertex_with_max_support(l))
 
     # check intersection
