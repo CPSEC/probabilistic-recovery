@@ -46,8 +46,9 @@ class GaussianDistribution:
         return sqrtm(self.sigma)
 
     # generate points from this distribution
-    def random(self, *size):
-        return sqrtm(self.sigma) @ np.random.randn(size) + self.miu
+    # each column is a point
+    def random(self, size):
+        return sqrtm(self.sigma) @ np.random.randn(self.dim, size) + self.miu.reshape((-1, 1))
 
     def plot(self, x1, x2, y1, y2, fig=None):
         if self.dim != 2:
@@ -81,3 +82,6 @@ if __name__ == "__main__":
     # sum of two independent ones
     g3 = g1 + g2
     print('g1+g2 =', g3)
+
+    points = g3.random(4)
+    print(points)
