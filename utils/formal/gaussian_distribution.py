@@ -2,7 +2,8 @@ import numpy as np
 from scipy.stats import multivariate_normal
 from scipy.linalg import sqrtm
 import matplotlib.pyplot as plt
-
+from utils.formal.half_space import HalfSpace
+from statistics import NormalDist
 
 class GaussianDistribution:
     def __init__(self, miu: np.ndarray, sigma: np.ndarray):
@@ -57,6 +58,16 @@ class GaussianDistribution:
     # each column is a point
     def random(self, size):
         return sqrtm(self.sigma) @ np.random.randn(self.dim, size) + self.miu.reshape((-1, 1))
+
+    def prob_in_half_space(self, hs: HalfSpace):
+        l = hs.l
+        miu = l @ self.miu
+        sigma = l @ self.sigma @ l
+        # print(l, miu, sigma, hs.b)
+        norm_dist = NormalDist(miu, sigma)
+        P = 1-norm_dist.cdf(hs.b)
+        # print(P)
+        return P
 
     def plot(self, x1, x2, y1, y2, fig=None):
         if self.dim != 2:

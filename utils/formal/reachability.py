@@ -53,7 +53,7 @@ if __name__ == '__main__':
 
     A = np.array([[1, 1], [0, 2]])
     B = np.array([[2, 0], [0, 1]])
-    W = GaussianDistribution(np.array([0, 0]), np.eye(2))
+    W = GaussianDistribution(np.array([0, 0]), 0.3 * np.eye(2))
     reach = ReachableSet(A, B, U, W, max_step=5)
     x_0 = GaussianDistribution(np.array([5, 5]), np.eye(2))
     hs = HalfSpace(np.array([1, 1]), 100)
@@ -97,3 +97,16 @@ if __name__ == '__main__':
     # for val in reach.A_k_B_U:
     #     print(val)
     # print(reach.A_k_B_U)
+
+    vertex, alpha, gs_l = X_2.vertex_with_max_support(hs.l)
+    D_2 = reach.distribution(vertex, 4)
+    p_2 = D_2.prob_in_half_space(hs)
+    print('p_2 =', p_2)
+
+    p_3 = D_3.prob_in_half_space(hs)
+    print('p_3 =', p_3)
+    X_4 = reach.reachable_set_wo_noise(4)
+    vertex, alpha, gs_l = X_4.vertex_with_max_support(hs.l)
+    D_4 = reach.distribution(vertex, 4)
+    p_4 = D_4.prob_in_half_space(hs)
+    print('p_4 =', p_4)
