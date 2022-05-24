@@ -3,7 +3,7 @@ import numpy as np
 from itertools import product
 from scipy.spatial import ConvexHull
 import matplotlib.pyplot as plt
-from .half_space import HalfSpace
+from utils.formal.half_space import HalfSpace
 
 class Zonotope:
     """
@@ -121,6 +121,7 @@ class Zonotope:
             plt.plot(v[:, 0], v[:, 1])
         return fig
 
+    # display routine by generators
     def show_routine(self, gs_l, fig=None):
         if self.dim != 2:
             return NotImplemented
@@ -139,6 +140,28 @@ class Zonotope:
             plt.show()
         return fig
 
+    # display routine by control inputs
+    def show_control_effect(self, gs_l, u_dim: int, fig=None):
+        if self.dim != 2:
+            return NotImplemented
+        # print(len(self), u_dim)
+        routine_num = len(self)//u_dim
+        routine = np.empty((routine_num+1, self.dim), dtype=float)
+        routine[0] = self.c
+        for i in range(routine_num):
+            # print(gs_l[:, i*u_dim:(i+1)*u_dim], np.sum(gs_l[:, i*u_dim:(i+1)*u_dim], axis=0))
+            u_effect = np.sum(gs_l[:, i*u_dim:(i+1)*u_dim], axis=1)
+            routine[i+1] = routine[i] + u_effect
+        if fig is None:
+            fig = plt.figure()
+        self.plot(fig)
+        X = routine[:, 0]
+        Y = routine[:, 1]
+        for i in range(len(X)-1):
+            plt.arrow(X[i], Y[i], X[i+1]-X[i], Y[i+1]-Y[i], head_width=1.5, width=0.1, length_includes_head=True, ec='g')
+        if fig is None:
+            plt.show()
+        return fig
 
     @classmethod
     def from_box(cls, lo: np.ndarray, up: np.ndarray):
