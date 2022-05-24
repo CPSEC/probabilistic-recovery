@@ -23,6 +23,11 @@ P = 19
 I = 37
 D = 0.1
 
+control_limit = {
+    'lo': np.array([0]),
+    'up': np.array([80])
+}
+
 
 class Controller:
     def __init__(self, dt):
@@ -30,7 +35,7 @@ class Controller:
         self.pid.clear()
         self.pid.setWindup(100)
         self.pid.setSampleTime(dt)
-        # self.pid.setControlLimit()
+        self.pid.set_control_limit(control_limit['lo'][0], control_limit['up'][0])
 
     def update(self, ref: np.ndarray, feedback_value: np.ndarray, current_time) -> np.ndarray:
         self.pid.set_reference(ref[0])
@@ -88,4 +93,8 @@ if __name__ == "__main__":
     y_arr = [x[0] for x in motor_speed.outputs[:max_index + 1]]
 
     plt.plot(t_arr, y_arr, t_arr, ref)
+    plt.show()
+
+    u_arr = [x[0] for x in motor_speed.inputs[:max_index + 1]]
+    plt.plot(t_arr, u_arr)
     plt.show()
