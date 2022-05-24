@@ -12,7 +12,7 @@ class GaussianDistribution:
 
     # create from a standard normal distribution
     @classmethod
-    def from_standard(cls, miu: np.ndarry, C: np.ndarray):
+    def from_standard(cls, miu: np.ndarray, C: np.ndarray):
         sigma = C @ C.T
         return cls(miu, sigma)
 

@@ -2,7 +2,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from zonotope import Zonotope
 from gaussian_distribution import GaussianDistribution
-from half_space import HalfSpace
+from utils.formal.half_space import HalfSpace
 
 
 class ReachableSet:
@@ -88,7 +88,8 @@ if __name__ == '__main__':
     print(D_3)
     fig = plt.figure()
     D_3.plot(10, 80, 10, 70, fig=fig)
-    X_k.show_routine(gs_l, fig)
+    # X_k.show_routine(gs_l, fig)
+    X_k.show_control_effect(gs_l, 2, fig)
     hs.plot(30, 80, fig)
 
     plt.show()
