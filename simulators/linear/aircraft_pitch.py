@@ -13,9 +13,9 @@ D = [[0]]
 x_0 = np.array([0.0, 0.0, 0.0])
 
 # control parameters
-KP = 14
-KI = 0.8
-KD = 5.7
+KP = 1.13
+KI = 0.0263
+KD = 0
 # KP = 20
 # KI = 0.1
 # KD = 1
@@ -48,13 +48,13 @@ class AircraftPitch(Simulator):
           self.sim_init(settings)
 
 if __name__ == "__main__":
-    max_index = 500
+    max_index = 1500
     dt = 0.02
-    ref = [np.array([0.5])] * 201 + [np.array([0.7])] * 200 + [np.array([0.5])] * 100
+    ref = [np.array([0.2])] * 1501
     noise = {
         'measurement': {
             'type': 'white',
-            'param': np.array([1]) * 0.05
+            'param': np.array([1]) * 0.005
         }
     }
     aircraft_pitch = AircraftPitch('test', dt, max_index, noise)
