@@ -10,6 +10,12 @@ class GaussianDistribution:
         self.sigma = sigma
         self.dim = miu.shape[0]
 
+    # create from a standard normal distribution
+    @classmethod
+    def from_standard(cls, miu: np.ndarry, C: np.ndarray):
+        sigma = C @ C.T
+        return cls(miu, sigma)
+
     # mask method in numpy
     __array_ufunc__ = None
 
@@ -42,6 +48,8 @@ class GaussianDistribution:
         string += '\n  sigma:' + str(self.sigma)
         return string
 
+    # the distribution can be transformed from standard normal distribution
+    # this method returns the transformation matrix
     def transformation_from_standard(self):
         return sqrtm(self.sigma)
 
