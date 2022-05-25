@@ -99,14 +99,15 @@ class Zonotope:
     # algorithm 1
     def point_closest_to_hyperplane(self, hp: Hyperplane):
         z_star = self.c
+        l = hp.l
         g_num = len(self)
         alpha = np.zeros((g_num,))
         for i in range(g_num):
             alpha[i] = -1 if self[i] @ l < 0 else 1
             z_star_next = z_star+alpha[i]*self[i]
             if z_star_next @ l > hp.b:
-                z_star = hp.b
                 alpha[i] = (hp.b-z_star@l)/(self[i]@l)
+                z_star = z_star+alpha[i]*self[i]
                 break
             else:
                 z_star = z_star_next
@@ -170,10 +171,11 @@ class Zonotope:
         return fig
 
     # display routine by control inputs
-    def show_control_effect(self, gs_l, u_dim: int, fig=None):
+    def show_control_effect(self, alpha, u_dim: int, fig=None):
         if self.dim != 2:
             raise NotImplemented
         # print(len(self), u_dim)
+        gs_l = self.g @ np.diag(alpha)
         routine_num = len(self) // u_dim
         routine = np.empty((routine_num + 1, self.dim), dtype=float)
         routine[0] = self.c

@@ -3,6 +3,7 @@ import numpy as np
 from zonotope import Zonotope
 from gaussian_distribution import GaussianDistribution
 from utils.formal.half_space import HalfSpace
+from utils.formal.strip import Strip
 
 
 class ReachableSet:
@@ -13,6 +14,7 @@ class ReachableSet:
 
     def __init__(self, A, B, U: Zonotope, W: GaussianDistribution, max_step=50):
         self.max_step = max_step
+        self.u_dim = len(U)
         self.A_k = [np.eye(A.shape[0])]
         for i in range(max_step):
             self.A_k.append(A @ self.A_k[-1])
@@ -24,13 +26,16 @@ class ReachableSet:
             self.bar_u_k.append(self.A_k_B_U[i] + self.bar_u_k[-1])
             self.bar_w_k.append(self.A_k_W[i] + self.bar_w_k[-1])
 
-    def init(self, x_0: GaussianDistribution, hs: HalfSpace):
+    def init(self, x_0: GaussianDistribution, s: Strip):
         self.x_0 = x_0
-        self.hs = hs
+        self.s = s
+        self.hp = s.center()
 
     def reachable_set_wo_noise(self, k: int) -> Zonotope:
         x_0 = self.x_0.miu
         X_k = self.A_k[k] @ x_0 + self.bar_u_k[k]
+        if self.s.point_to_strip(X_k.c):
+            self.hp = s.center()
         return X_k
 
     def first_intersection(self) -> ([int, None], Zonotope):
@@ -42,6 +47,18 @@ class ReachableSet:
 
     def distribution(self, vertex: np.ndarray, k: int):
         return vertex + self.bar_w_k[k]
+
+    def reachable_set_k(self, k: int, fig_setting=None):
+        X_k = self.reachable_set_wo_noise(k)
+        z_star, alpha = X_k.point_closest_to_hyperplane(reach.hp)
+        D_k = self.distribution(z_star, k)
+        if not fig_setting is None:
+            fig = plt.figure()
+            X_k.plot(fig)
+            s.plot(fig_setting['x1'], fig_setting['x2'], fig)
+            X_k.show_control_effect(alpha, self.u_dim, fig)
+            plt.show()
+        return X_k, D_k, z_star, alpha
 
 
 if __name__ == '__main__':
@@ -56,57 +73,13 @@ if __name__ == '__main__':
     W = GaussianDistribution(np.array([0, 0]), 0.3 * np.eye(2))
     reach = ReachableSet(A, B, U, W, max_step=5)
     x_0 = GaussianDistribution(np.array([5, 5]), np.eye(2))
-    hs = HalfSpace(np.array([1, 1]), 100)
-    reach.init(x_0, hs)
-    X_1 = reach.reachable_set_wo_noise(1)
-    print(X_1)
-    # X_1.plot()
 
-    X_2 = reach.reachable_set_wo_noise(2)
-    print(X_2)
-    # X_2.plot()
+    s = Strip(np.array([1, 1]), a=100, b=120)
+    reach.init(x_0, s)
 
-    X_3 = reach.reachable_set_wo_noise(3)
-    # X_3.plot()
+    fig_setting = {'x1': 30, 'x2': 80}
+    X_k, D_k, z_star, alpha = reach.reachable_set_k(1, fig_setting)
 
-    vertex, alpha, gs_l = X_2.vertex_with_max_support(hs.l)
-    fig = plt.figure()
-    # X_2.show_routine(gs_l, fig)
-    X_2.plot(fig)
-    hs.plot(30, 80, fig)
-    plt.show()
+    X_k, D_k, z_star, alpha = reach.reachable_set_k(2, fig_setting)
 
-    k, X_k = reach.first_intersection()
-    print('k =', k)
-    vertex, alpha, gs_l = X_k.vertex_with_max_support(hs.l)
-    fig = plt.figure()
-    X_k.show_routine(gs_l, fig)
-    hs.plot(30, 80, fig)
-    plt.show()
-
-    D_3 = reach.distribution(vertex, k)
-    print(D_3)
-    fig = plt.figure()
-    D_3.plot(10, 80, 10, 70, fig=fig)
-    # X_k.show_routine(gs_l, fig)
-    X_k.show_control_effect(gs_l, 2, fig)
-    hs.plot(30, 80, fig)
-
-    plt.show()
-    # # print(reach.A_k)
-    # for val in reach.A_k_B_U:
-    #     print(val)
-    # print(reach.A_k_B_U)
-
-    vertex, alpha, gs_l = X_2.vertex_with_max_support(hs.l)
-    D_2 = reach.distribution(vertex, 4)
-    p_2 = D_2.prob_in_half_space(hs)
-    print('p_2 =', p_2)
-
-    p_3 = D_3.prob_in_half_space(hs)
-    print('p_3 =', p_3)
-    X_4 = reach.reachable_set_wo_noise(4)
-    vertex, alpha, gs_l = X_4.vertex_with_max_support(hs.l)
-    D_4 = reach.distribution(vertex, 4)
-    p_4 = D_4.prob_in_half_space(hs)
-    print('p_4 =', p_4)
+    X_k, D_k, z_star, alpha = reach.reachable_set_k(3, fig_setting)

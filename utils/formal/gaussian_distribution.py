@@ -3,6 +3,7 @@ from scipy.stats import multivariate_normal
 from scipy.linalg import sqrtm
 import matplotlib.pyplot as plt
 from utils.formal.half_space import HalfSpace
+from utils.formal.strip import Strip
 from statistics import NormalDist
 
 class GaussianDistribution:
@@ -67,6 +68,14 @@ class GaussianDistribution:
         norm_dist = NormalDist(miu, sigma)
         P = 1-norm_dist.cdf(hs.b)
         # print(P)
+        return P
+
+    def prob_in_strip(self, s: Strip):
+        l = s.l
+        miu = l @ self.miu
+        sigma = l @ self.sigma @ l
+        norm_dist = NormalDist(miu, sigma)
+        P = abs(norm_dist.cdf(s.b) - norm_dist.cdf(s.a))
         return P
 
     def plot(self, x1, x2, y1, y2, fig=None):
