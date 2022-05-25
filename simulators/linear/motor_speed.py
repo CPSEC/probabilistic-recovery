@@ -46,6 +46,17 @@ class Controller:
 
 
 class MotorSpeed(Simulator):
+    """
+            States: (2,)
+                x[0]: the rotational speed of the shaft
+                x[1]: electric current
+            Control Input: (1,)
+                u[0]: voltage source
+            Output:  (1,)
+                y[0]: the rotational speed of the shaft
+                Output Feedback
+            Controller: PID
+            """
     def __init__(self, name, dt, max_index, noise=None):
         super().__init__('Motor Speed ' + name, dt, max_index)
         self.linear(A, B, C)

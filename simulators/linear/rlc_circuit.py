@@ -18,15 +18,16 @@ x_0 = np.array([0.0, 0.0])
 KP = 5
 KI = 5
 KD = 0
-
+control_limit = {'lo': [-15], 'up': [15]}
 
 class Controller:
+
     def __init__(self, dt):
         self.pid = PID(KP, KI, KD, current_time=-dt)
         self.pid.clear()
         self.pid.setWindup(100)
         self.pid.setSampleTime(dt)
-        # self.pid.setControlLimit()
+        self.pid.set_control_limit(control_limit['lo'], control_limit['up'])
 
     def update(self, ref: np.ndarray, feedback_value: np.ndarray, current_time) -> np.ndarray:
         self.pid.set_reference(ref[0])
