@@ -68,7 +68,11 @@ class ReachableSet:
         if fig_setting['strip'] and 'x1' in fig_setting and 'x2' in fig_setting:
             self.s.plot(fig_setting['x1'], fig_setting['x2'], fig)
         if fig_setting['routine']:
-            X_k.show_control_effect(alpha, self.u_dim, fig)
+            head_width = line_width = None
+            if 'head_width' in fig_setting:
+                head_width = fig_setting['head_width']
+                line_width = fig_setting['width']
+            X_k.show_control_effect(alpha, self.u_dim, head_width, line_width, fig)
         if 'x1' in fig_setting and 'x2' in fig_setting:
             plt.xlim((fig_setting['x1'], fig_setting['x2']))
         if 'y1' in fig_setting and 'y2' in fig_setting:

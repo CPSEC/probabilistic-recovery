@@ -173,7 +173,7 @@ class Zonotope:
         return fig
 
     # display routine by control inputs
-    def show_control_effect(self, alpha, u_dim: int, fig=None):
+    def show_control_effect(self, alpha, u_dim: int, head_width, line_width, fig=None):
         if self.dim != 2:
             raise NotImplemented
         # print(len(self), u_dim)
@@ -190,8 +190,11 @@ class Zonotope:
         self.plot(fig)
         X = routine[:, 0]
         Y = routine[:, 1]
+        if head_width is None:
+            head_width = 1.5
+            line_width = 0.1
         for i in range(len(X) - 1):
-            plt.arrow(X[i], Y[i], X[i + 1] - X[i], Y[i + 1] - Y[i], head_width=1.5, width=0.1,
+            plt.arrow(X[i], Y[i], X[i + 1] - X[i], Y[i + 1] - Y[i], head_width=head_width, width=line_width,
                       length_includes_head=True, ec='g')
         if fig is None:
             plt.show()
