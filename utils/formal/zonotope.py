@@ -96,6 +96,7 @@ class Zonotope:
         vertex = self.c + np.sum(gs_l, axis=1)
         return vertex, alpha, gs_l
 
+    # algorithm 1
     def point_closest_to_hyperplane(self, hp: Hyperplane):
         z_star = self.c
         g_num = len(self)
