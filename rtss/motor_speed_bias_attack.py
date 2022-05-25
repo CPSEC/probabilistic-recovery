@@ -1,21 +1,38 @@
 from simulators import MotorSpeed
 import numpy as np
+from utils.attack import Attack
 
+# --------------- parameters  -----------------------------
+np.random.seed(0)
 max_index = 500
 dt = 0.02
 ref = [np.array([4])] * 501
 noise = {
-    'measurement': {
+    'process': {
         'type': 'white',
-        'param': np.array([1]) * 0.05
+        'param': {'C': np.array([[0.08, 0], [0, 0.001]])}
     }
 }
 motor_speed = MotorSpeed('test', dt, max_index, noise)
+attack_start_index = 150
+bias = np.array([-1.0])
+bias_attack = Attack('bias', bias, attack_start_index)
+recovery_index = 200
+# --------------- end of parameters -------------------------
+
+
+
 for i in range(0, max_index + 1):
     assert motor_speed.cur_index == i
     motor_speed.update_current_ref(ref[i])
     # attack here
+    motor_speed.cur_feedback = bias_attack.launch(motor_speed.cur_feedback, i, motor_speed.states)
+    if i == recovery_index:
+        print('recovery_start_state=', motor_speed.cur_x)
     motor_speed.evolve()
+
+
+
 # print results
 import matplotlib.pyplot as plt
 
@@ -29,3 +46,8 @@ plt.show()
 u_arr = [x[0] for x in motor_speed.inputs[:max_index + 1]]
 plt.plot(t_arr, u_arr)
 plt.show()
+
+
+
+# -----------         output -------------------------
+# recovery_start_state= [ 5.09613504 48.77378581]
