@@ -3,7 +3,7 @@ import numpy as np
 from .controller_base import Controller
 
 
-class LQR(Controller):
+class LQRSSE(Controller):
     def __init__(self, A: np.ndarray, B: np.ndarray, Q: np.ndarray, R: np.ndarray):
         self.update_gain(A, B, Q, R)
         self.ref = 0

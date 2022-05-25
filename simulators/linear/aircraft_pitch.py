@@ -16,6 +16,8 @@ x_0 = np.array([0.0, 0.0, 0.0])
 KP = 1.13
 KI = 0.0263
 KD = 0
+
+
 # KP = 20
 # KI = 0.1
 # KD = 1
@@ -33,19 +35,21 @@ class Controller:
         cin = self.pid.update(feedback_value[0], current_time)
         return np.array([cin])
 
+
 class AircraftPitch(Simulator):
-     def __init__(self, name, dt, max_index, noise=None):
-          super().__init__('Aircraft Pitch ' + name, dt, max_index)
-          self.linear(A, B, C)
-          controller = Controller(dt)
-          settings = {
-               'init_state': x_0,
-               'feedback_type': 'output',
-               'controller': controller
-          }
-          if noise:
-               settings['noise'] = noise
-          self.sim_init(settings)
+    def __init__(self, name, dt, max_index, noise=None):
+        super().__init__('Aircraft Pitch ' + name, dt, max_index)
+        self.linear(A, B, C)
+        controller = Controller(dt)
+        settings = {
+            'init_state': x_0,
+            'feedback_type': 'output',
+            'controller': controller
+        }
+        if noise:
+            settings['noise'] = noise
+        self.sim_init(settings)
+
 
 if __name__ == "__main__":
     max_index = 1500

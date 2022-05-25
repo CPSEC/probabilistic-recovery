@@ -1,41 +1,33 @@
 # Ref: https://ctms.engin.umich.edu/CTMS/index.php?example=MotorSpeed&section=SystemModeling
 
 import numpy as np
-
+import math
 from utils import PID, Simulator
 
 # system dynamics
-J = 0.01   # moment of inertia of the rotor
-b = 0.1    # motor viscous friction constant
-Ke = 0.01  # electromotive force constant
-Kt = 0.01  # motor torque constant
-R = 1      # electric resistance
-L = 0.5    # electric inductance
+A = np.array([[-1.93*math.pow(10, -2), 8.82, -32.2, -0.48],
+              [-2.54 * math.pow(10, -4), -1.02, 0, 0.91],
+              [0, 0, 0, 1],
+              [2.95 * math.pow(10, -12), 0.82, 0, -1.08]])
+B = np.array([[0.17], [-2.15 * math.pow(10, -3)], [0], [-0.18]])
+C = np.array([0, 0, 57.3, 0]).reshape((4,))
+D = np.array([0.0])
 
-A = [[-b / J, Kt / J], [-Ke / L, -R / L]]
-B = [[0], [1 / L]]
-C = [[1, 0]]
-
-x_0 = np.array([0.0, 0.0])
+x_0 = np.array([[0.0], [0.0], [0.0], [0.0]]).reshape((4,))
 
 # control parameters
-P = 19
-I = 37
-D = 0.1
-
-control_limit = {
-    'lo': np.array([0]),
-    'up': np.array([80])
-}
+KP = -2
+KI = 0
+KD = 0.1
 
 
 class Controller:
     def __init__(self, dt):
-        self.pid = PID(P, I, D, current_time=-dt)
+        self.pid = PID(KP, KI, KD, current_time=-dt)
         self.pid.clear()
         self.pid.setWindup(100)
         self.pid.setSampleTime(dt)
-        self.pid.set_control_limit(control_limit['lo'][0], control_limit['up'][0])
+        # self.pid.setControlLimit()
 
     def update(self, ref: np.ndarray, feedback_value: np.ndarray, current_time) -> np.ndarray:
         self.pid.set_reference(ref[0])
@@ -43,10 +35,10 @@ class Controller:
         return np.array([cin])
 
 
-class MotorSpeed(Simulator):
+class F16(Simulator):
     def __init__(self, name, dt, max_index, noise=None):
-        super().__init__('Motor Speed ' + name, dt, max_index)
-        self.linear(A, B, C)
+        super().__init__('F16 ' + name, dt, max_index)
+        self.linear(A, B, C, D)
         controller = Controller(dt)
         settings = {
             'init_state': x_0,
@@ -65,25 +57,21 @@ if __name__ == "__main__":
     noise = {
         'measurement': {
             'type': 'white',
-            'param': {'C': np.array([[1]]) * 0.08}
+            'param': np.array([1]) * 0.05
         }
     }
-    motor_speed = MotorSpeed('test', dt, max_index, noise)
+    f16 = F16('test', dt, max_index, None)
     for i in range(0, max_index + 1):
-        assert motor_speed.cur_index == i
-        motor_speed.update_current_ref(ref[i])
+        assert f16.cur_index == i
+        f16.update_current_ref(ref[i])
         # attack here
-        motor_speed.evolve()
+        f16.evolve()
     # print results
     import matplotlib.pyplot as plt
 
     t_arr = np.linspace(0, 10, max_index + 1)
-    ref = [x[0] for x in motor_speed.refs[:max_index + 1]]
-    y_arr = [x[0] for x in motor_speed.outputs[:max_index + 1]]
+    ref = [x[0] for x in f16.refs[:max_index + 1]]
+    y_arr = [x[0] for x in f16.outputs[:max_index + 1]]
 
     plt.plot(t_arr, y_arr, t_arr, ref)
-    plt.show()
-
-    u_arr = [x[0] for x in motor_speed.inputs[:max_index + 1]]
-    plt.plot(t_arr, u_arr)
     plt.show()

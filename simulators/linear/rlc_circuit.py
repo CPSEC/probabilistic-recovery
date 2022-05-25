@@ -33,7 +33,7 @@ class Controller:
         cin = self.pid.update(feedback_value[0], current_time)
         return np.array([cin])
 
-class AircraftPitch(Simulator):
+class RlcCircuit(Simulator):
      def __init__(self, name, dt, max_index, noise=None):
           super().__init__('Aircraft Pitch ' + name, dt, max_index)
           self.linear(A, B, C)
@@ -57,18 +57,18 @@ if __name__ == "__main__":
             'param': np.array([1]) * 0.05
         }
     }
-    aircraft_pitch = AircraftPitch('test', dt, max_index, noise)
+    rlc_circuit = RlcCircuit('test', dt, max_index, noise)
     for i in range(0, max_index + 1):
-        assert aircraft_pitch.cur_index == i
-        aircraft_pitch.update_current_ref(ref[i])
+        assert rlc_circuit.cur_index == i
+        rlc_circuit.update_current_ref(ref[i])
         # attack here
-        aircraft_pitch.evolve()
+        rlc_circuit.evolve()
     # print results
     import matplotlib.pyplot as plt
 
     t_arr = np.linspace(0, 10, max_index + 1)
-    ref = [x[0] for x in aircraft_pitch.refs[:max_index + 1]]
-    y_arr = [x[0] for x in aircraft_pitch.outputs[:max_index + 1]]
+    ref = [x[0] for x in rlc_circuit.refs[:max_index + 1]]
+    y_arr = [x[0] for x in rlc_circuit.outputs[:max_index + 1]]
 
     plt.plot(t_arr, y_arr, t_arr, ref)
     plt.show()
