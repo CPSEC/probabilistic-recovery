@@ -1,7 +1,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
-from zonotope import Zonotope
-from gaussian_distribution import GaussianDistribution
+from utils.formal.zonotope import Zonotope
+from utils.formal.gaussian_distribution import GaussianDistribution
 from utils.formal.half_space import HalfSpace
 from utils.formal.strip import Strip
 
