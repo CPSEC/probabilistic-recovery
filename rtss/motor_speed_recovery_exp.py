@@ -45,7 +45,7 @@ reach.init(x_0, s)
 fig_setting = {
                'strip': False, 'routine': True,
                'zonotope': True, 'distribution': False,
-               'head_width': 0.004, 'width': 0.001}
+               'head_width': 0.05, 'width': 0.01}
 X_k, D_k, z_star, alpha, P, arrive = reach.reachable_set_k(2)
 # reach.plot(X_k, D_k, alpha, fig_setting)
 
