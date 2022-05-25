@@ -16,11 +16,7 @@ x_0 = np.array([0.0, 0.0, 0.0])
 KP = 1.13
 KI = 0.0253
 KD = 0.0
-
-
-# KP = 20
-# KI = 0.1
-# KD = 1
+control_limit = {'lo': [-20], 'up': [20]}
 
 class Controller:
     def __init__(self, dt):
@@ -28,7 +24,7 @@ class Controller:
         self.pid.clear()
         self.pid.setWindup(100)
         self.pid.setSampleTime(dt)
-        # self.pid.setControlLimit()
+        self.pid.set_control_limit(control_limit['lo'], control_limit['up'])
 
     def update(self, ref: np.ndarray, feedback_value: np.ndarray, current_time) -> np.ndarray:
         self.pid.set_reference(ref[0])
@@ -37,6 +33,18 @@ class Controller:
 
 
 class AircraftPitch(Simulator):
+    """
+      States: (3,)
+          x[0]: Angle of attack
+          x[1]: Pitch rate
+          x[2]: Pitch angle
+      Control Input: (1,)
+          u[0]: the elecator deflection angle
+      Output:  (1,)
+          y[0]: the pitch angle of the aircraft
+          Output Feedback
+      Controller: PID
+      """
     def __init__(self, name, dt, max_index, noise=None):
         super().__init__('Aircraft Pitch ' + name, dt, max_index)
         self.linear(A, B, C)
