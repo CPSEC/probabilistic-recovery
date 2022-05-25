@@ -1,7 +1,7 @@
 import numpy as np
 from scipy.signal import StateSpace
 from scipy.integrate import solve_ivp
-
+from utils.formal.gaussian_distribution import GaussianDistribution
 
 class Simulator:
     """
@@ -28,6 +28,7 @@ class Simulator:
         self.cur_feedback = None
         self.cur_ref = None
         self.cur_index = 0
+        self.noise_setting = None
         self.m_noise = None
         self.p_noise = None
 
@@ -91,16 +92,20 @@ class Simulator:
           'process'/'measurement':
             'type': 'white'  todo: 'white_bounded', 'box_uniform', 'ball_uniform'
             'param':
-              np.array([sigma_1, sigma_2, ..., sigma_{n/m}])      scale for 'white'
+              'C': linear transformation matrix from standard normal distribution      scale for 'white'
         """
         if 'process' in noise:
             if noise['process']['type'] == 'white':
-                scale = noise['process']['param'].reshape((1, -1))
-                self.p_noise = np.random.normal(0, 1, (self.max_index + 2, self.n)) * scale
+                miu = np.zeros((self.n,))
+                C = noise['process']['param']['C']
+                p_noise_dist = GaussianDistribution.from_standard(miu, C)
+                self.p_noise = p_noise_dist.random(self.max_index + 2).T
         if 'measurement' in noise:
             if noise['measurement']['type'] == 'white':
-                scale = noise['measurement']['param'].reshape((-1, 1))
-                self.m_noise = np.random.normal(0, 1, (self.max_index + 2, self.p)) * scale
+                miu = np.zeros((self.p,))
+                C = noise['measurement']['param']['C']
+                m_noise_dist = GaussianDistribution.from_standard(miu, C)
+                self.m_noise = m_noise_dist.random(self.max_index + 2).T
 
     def set_init_state(self, x):
         self.cur_x = x
@@ -145,6 +150,8 @@ class Simulator:
         res = solve_ivp(self.ode, ts, self.cur_x, args=(self.cur_u,))
         self.cur_index += 1
         self.cur_x = res.y[:, -1]
+        if self.model_type == 'linear':
+            self.cur_x = self.sysd.A @ self.cur_x + self.sysd.B @ self.cur_u
         if self.p_noise is not None:  # process noise
             self.cur_x += self.p_noise[self.cur_index]
         self.cur_y = self.C @ self.cur_x + self.D @ self.cur_u

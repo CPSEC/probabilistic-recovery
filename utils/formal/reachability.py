@@ -2,7 +2,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 from zonotope import Zonotope
 from gaussian_distribution import GaussianDistribution
-from half_space import HalfSpace
+from utils.formal.half_space import HalfSpace
+from utils.formal.strip import Strip
 
 
 class ReachableSet:
@@ -12,7 +13,9 @@ class ReachableSet:
     """
 
     def __init__(self, A, B, U: Zonotope, W: GaussianDistribution, max_step=50):
+        self.ready = False
         self.max_step = max_step
+        self.u_dim = len(U)
         self.A_k = [np.eye(A.shape[0])]
         for i in range(max_step):
             self.A_k.append(A @ self.A_k[-1])
@@ -24,13 +27,17 @@ class ReachableSet:
             self.bar_u_k.append(self.A_k_B_U[i] + self.bar_u_k[-1])
             self.bar_w_k.append(self.A_k_W[i] + self.bar_w_k[-1])
 
-    def init(self, x_0: GaussianDistribution, hs: HalfSpace):
+    def init(self, x_0: GaussianDistribution, s: Strip):
         self.x_0 = x_0
-        self.hs = hs
+        self.s = s
+        self.hp = s.center()
+        self.ready = True
 
     def reachable_set_wo_noise(self, k: int) -> Zonotope:
         x_0 = self.x_0.miu
         X_k = self.A_k[k] @ x_0 + self.bar_u_k[k]
+        if self.s.point_to_strip(X_k.c):
+            self.hp = s.center()
         return X_k
 
     def first_intersection(self) -> ([int, None], Zonotope):
@@ -43,6 +50,47 @@ class ReachableSet:
     def distribution(self, vertex: np.ndarray, k: int):
         return vertex + self.bar_w_k[k]
 
+    def reachable_set_k(self, k: int):
+        X_k = self.reachable_set_wo_noise(k)
+        z_star, alpha, arrive = X_k.point_closest_to_hyperplane(self.hp)
+        D_k = self.distribution(z_star, k)
+        P = D_k.prob_in_strip(self.s)
+        return X_k, D_k, z_star, alpha, P, arrive
+
+    def plot(self, X_k: Zonotope, D_k: GaussianDistribution, alpha, fig_setting):
+        fig = plt.figure()
+        if fig_setting['distribution'] and 'x1' in fig_setting and 'x2' in fig_setting and 'y1' in fig_setting and \
+                'y2' in fig_setting:
+            x1, x2, y1, y2 = fig_setting['x1'], fig_setting['x2'], fig_setting['y1'], fig_setting['y2']
+            D_k.plot(x1, x2, y1, y2, fig)
+        if fig_setting['zonotope']:
+            X_k.plot(fig)
+        if fig_setting['strip'] and 'x1' in fig_setting and 'x2' in fig_setting:
+            self.s.plot(fig_setting['x1'], fig_setting['x2'], fig)
+        if fig_setting['routine']:
+            X_k.show_control_effect(alpha, self.u_dim, fig)
+        if 'x1' in fig_setting and 'x2' in fig_setting:
+            plt.xlim((fig_setting['x1'], fig_setting['x2']))
+        if 'y1' in fig_setting and 'y2' in fig_setting:
+            plt.ylim((fig_setting['y1'], fig_setting['y2']))
+        plt.show()
+
+    def given_P(self, P_given: float, max_k: int):
+        if not self.ready:
+            print('Init before recovery!')
+            raise RuntimeError
+        satisfy = False
+        i = 0
+        X_k = D_k = z_star = alpha = P = arrive = None
+        for i in range(1, max_k+1):
+            X_k, D_k, z_star, alpha, P, arrive = self.reachable_set_k(i)
+            if P > P_given:
+                satisfy = True
+                break
+            if arrive == True:
+                break
+        return i, satisfy, X_k, D_k, z_star, alpha, P, arrive
+
 
 if __name__ == '__main__':
     u_lo = np.array([-1, -4])
@@ -53,46 +101,28 @@ if __name__ == '__main__':
 
     A = np.array([[1, 1], [0, 2]])
     B = np.array([[2, 0], [0, 1]])
-    W = GaussianDistribution(np.array([0, 0]), np.eye(2))
+    W = GaussianDistribution.from_standard(miu=np.array([0, 0]), C=np.diag([0.3, 0.3]))
     reach = ReachableSet(A, B, U, W, max_step=5)
     x_0 = GaussianDistribution(np.array([5, 5]), np.eye(2))
-    hs = HalfSpace(np.array([1, 1]), 100)
-    reach.init(x_0, hs)
-    X_1 = reach.reachable_set_wo_noise(1)
-    print(X_1)
-    # X_1.plot()
 
-    X_2 = reach.reachable_set_wo_noise(2)
-    print(X_2)
-    # X_2.plot()
+    s = Strip(np.array([1, 1]), a=100, b=120)
+    reach.init(x_0, s)
 
-    X_3 = reach.reachable_set_wo_noise(3)
-    # X_3.plot()
+    fig_setting = {'x1': 0, 'x2': 80, 'y1': 0, 'y2': 90,
+                   'strip': True, 'routine': True,
+                   'zonotope': True, 'distribution': True}
+    X_k, D_k, z_star, alpha, P, arrive = reach.reachable_set_k(1)
+    # reach.plot(X_k, D_k, alpha, fig_setting)
+    print('k=', 1, 'P=', P, arrive)
 
-    vertex, alpha, gs_l = X_2.vertex_with_max_support(hs.l)
-    fig = plt.figure()
-    # X_2.show_routine(gs_l, fig)
-    X_2.plot(fig)
-    hs.plot(30, 80, fig)
-    plt.show()
+    X_k, D_k, z_star, alpha, P, arrive = reach.reachable_set_k(2)
+    # reach.plot(X_k, D_k, alpha, fig_setting)
+    print('k=', 2, 'P=', P, arrive)
 
-    k, X_k = reach.first_intersection()
-    print('k =', k)
-    vertex, alpha, gs_l = X_k.vertex_with_max_support(hs.l)
-    fig = plt.figure()
-    X_k.show_routine(gs_l, fig)
-    hs.plot(30, 80, fig)
-    plt.show()
+    X_k, D_k, z_star, alpha, P, arrive = reach.reachable_set_k(3)
+    # reach.plot(X_k, D_k, alpha,fig_setting)
+    print('k=', 3, 'P=', P, arrive)
 
-    D_3 = reach.distribution(vertex, k)
-    print(D_3)
-    fig = plt.figure()
-    D_3.plot(10, 80, 10, 70, fig=fig)
-    X_k.show_routine(gs_l, fig)
-    hs.plot(30, 80, fig)
-
-    plt.show()
-    # # print(reach.A_k)
-    # for val in reach.A_k_B_U:
-    #     print(val)
-    # print(reach.A_k_B_U)
+    i, satisfy, X_k, D_k, z_star, alpha, P, arrive = reach.given_P(P_given=0.9, max_k=10)
+    print('i=', i, 'found=', satisfy)
+    reach.plot(X_k, D_k, alpha, fig_setting)

@@ -2,9 +2,12 @@ import numpy as np
 from scipy.stats import multivariate_normal
 from scipy.linalg import sqrtm
 import matplotlib.pyplot as plt
-
+from utils.formal.half_space import HalfSpace
+from utils.formal.strip import Strip
+from statistics import NormalDist
 
 class GaussianDistribution:
+    # only keep miu and sigma in __init__ for efficiency
     def __init__(self, miu: np.ndarray, sigma: np.ndarray):
         self.miu = miu
         self.sigma = sigma
@@ -12,7 +15,7 @@ class GaussianDistribution:
 
     # create from a standard normal distribution
     @classmethod
-    def from_standard(cls, miu: np.ndarry, C: np.ndarray):
+    def from_standard(cls, miu: np.ndarray, C: np.ndarray):
         sigma = C @ C.T
         return cls(miu, sigma)
 
@@ -38,7 +41,7 @@ class GaussianDistribution:
             miu = self.miu + other.miu
             sigma = self.sigma + other.sigma
             return GaussianDistribution(miu, sigma)
-        return NotImplemented
+        raise NotImplemented
 
     def __radd__(self, other):
         return self.__add__(other)
@@ -50,7 +53,7 @@ class GaussianDistribution:
 
     # the distribution can be transformed from standard normal distribution
     # this method returns the transformation matrix
-    def transformation_from_standard(self):
+    def transformation_matrix_from_standard(self):
         return sqrtm(self.sigma)
 
     # generate points from this distribution
@@ -58,9 +61,27 @@ class GaussianDistribution:
     def random(self, size):
         return sqrtm(self.sigma) @ np.random.randn(self.dim, size) + self.miu.reshape((-1, 1))
 
+    def prob_in_half_space(self, hs: HalfSpace):
+        l = hs.l
+        miu = l @ self.miu
+        sigma = l @ self.sigma @ l
+        # print(l, miu, sigma, hs.b)
+        norm_dist = NormalDist(miu, sigma)
+        P = 1-norm_dist.cdf(hs.b)
+        # print(P)
+        return P
+
+    def prob_in_strip(self, s: Strip):
+        l = s.l
+        miu = l @ self.miu
+        sigma = l @ self.sigma @ l
+        norm_dist = NormalDist(miu, sigma)
+        P = abs(norm_dist.cdf(s.b) - norm_dist.cdf(s.a))
+        return P
+
     def plot(self, x1, x2, y1, y2, fig=None):
         if self.dim != 2:
-            return NotImplemented
+            raise NotImplemented
         x, y = np.mgrid[x1:x2:.1, y1:y2:.1]
         pos = np.empty(x.shape + (2,))
         pos[:, :, 0] = x
