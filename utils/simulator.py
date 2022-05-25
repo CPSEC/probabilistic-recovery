@@ -31,6 +31,8 @@ class Simulator:
         self.noise_setting = None
         self.m_noise = None
         self.p_noise = None
+        self.m_noise_dist = None
+        self.p_noise_dist = None
 
     def data_init(self):
         self.inputs = np.empty((self.max_index + 2, self.m), dtype=np.float)
@@ -98,14 +100,14 @@ class Simulator:
             if noise['process']['type'] == 'white':
                 miu = np.zeros((self.n,))
                 C = noise['process']['param']['C']
-                p_noise_dist = GaussianDistribution.from_standard(miu, C)
-                self.p_noise = p_noise_dist.random(self.max_index + 2).T
+                self.p_noise_dist = GaussianDistribution.from_standard(miu, C)
+                self.p_noise = self.p_noise_dist.random(self.max_index + 2).T
         if 'measurement' in noise:
             if noise['measurement']['type'] == 'white':
                 miu = np.zeros((self.p,))
                 C = noise['measurement']['param']['C']
-                m_noise_dist = GaussianDistribution.from_standard(miu, C)
-                self.m_noise = m_noise_dist.random(self.max_index + 2).T
+                self.m_noise_dist = GaussianDistribution.from_standard(miu, C)
+                self.m_noise = self.m_noise_dist.random(self.max_index + 2).T
 
     def set_init_state(self, x):
         self.cur_x = x
