@@ -35,7 +35,9 @@ class Controller:
         self.pid.clear()
         self.pid.setWindup(100)
         self.pid.setSampleTime(dt)
-        self.pid.set_control_limit(control_limit['lo'][0], control_limit['up'][0])
+        self.control_lo = control_limit['lo']
+        self.control_up = control_limit['up']
+        self.pid.set_control_limit(self.control_lo[0], self.control_up[0])
 
     def update(self, ref: np.ndarray, feedback_value: np.ndarray, current_time) -> np.ndarray:
         self.pid.set_reference(ref[0])
