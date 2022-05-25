@@ -45,7 +45,17 @@ reach.init(x_0, s)
 fig_setting = {
                'strip': False, 'routine': True,
                'zonotope': True, 'distribution': False,
-               'head_width': 0.1, 'width': 0.02}
+               'head_width': 0.004, 'width': 0.001}
 X_k, D_k, z_star, alpha, P, arrive = reach.reachable_set_k(2)
+# reach.plot(X_k, D_k, alpha, fig_setting)
+
+X_k, D_k, z_star, alpha, P, arrive = reach.reachable_set_k(10)
+# reach.plot(X_k, D_k, alpha, fig_setting)
+print(P)
+
+i, satisfy, X_k, D_k, z_star, alpha, P, arrive = reach.given_P(P_given=0.9, max_k=40)
+print('i=', i, 'found=', satisfy, 'P=', P)
 reach.plot(X_k, D_k, alpha, fig_setting)
+
+
 
