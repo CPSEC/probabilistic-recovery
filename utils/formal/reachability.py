@@ -59,16 +59,16 @@ class ReachableSet:
 
     def plot(self, X_k: Zonotope, D_k: GaussianDistribution, alpha, fig_setting):
         fig = plt.figure()
+        if fig_setting['distribution'] and 'x1' in fig_setting and 'x2' in fig_setting and 'y1' in fig_setting and \
+                'y2' in fig_setting:
+            x1, x2, y1, y2 = fig_setting['x1'], fig_setting['x2'], fig_setting['y1'], fig_setting['y2']
+            D_k.plot(x1, x2, y1, y2, fig)
         if fig_setting['zonotope']:
             X_k.plot(fig)
         if fig_setting['strip'] and 'x1' in fig_setting and 'x2' in fig_setting:
             self.s.plot(fig_setting['x1'], fig_setting['x2'], fig)
         if fig_setting['routine']:
             X_k.show_control_effect(alpha, self.u_dim, fig)
-        if fig_setting['distribution'] and 'x1' in fig_setting and 'x2' in fig_setting and 'y1' in fig_setting and \
-                'y2' in fig_setting:
-            x1, x2, y1, y2 = fig_setting['x1'], fig_setting['x2'], fig_setting['y1'], fig_setting['y2']
-            D_k.plot(x1, x2, y1, y2, fig)
         if 'x1' in fig_setting and 'x2' in fig_setting:
             plt.xlim((fig_setting['x1'], fig_setting['x2']))
         if 'y1' in fig_setting and 'y2' in fig_setting:
