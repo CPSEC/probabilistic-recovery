@@ -16,9 +16,9 @@ D = np.array([0.0])
 x_0 = np.array([[0.0], [0.0], [0.0], [0.0]]).reshape((4,))
 
 # control parameters
-KP = -2
+KP = -1.5
 KI = 0
-KD = 0.1
+KD = 0.2
 
 
 class Controller:
@@ -55,12 +55,12 @@ if __name__ == "__main__":
     dt = 0.02
     ref = [np.array([5])] * 201 + [np.array([4])] * 200 + [np.array([5])] * 100
     noise = {
-        'measurement': {
+        'process': {
             'type': 'white',
-            'param': np.array([1]) * 0.05
+            'param': {'C': np.eye(4) * 0.001}
         }
     }
-    f16 = F16('test', dt, max_index, None)
+    f16 = F16('test', dt, max_index, noise)
     for i in range(0, max_index + 1):
         assert f16.cur_index == i
         f16.update_current_ref(ref[i])

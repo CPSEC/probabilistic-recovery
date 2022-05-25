@@ -50,7 +50,7 @@ class Boeing(Simulator):
         controller = Controller(dt)
         settings = {
             'init_state': x_0,
-            'feedback_type': 'state',
+            'feedback_type': 'output',
             'controller': controller
         }
         if noise:
@@ -63,9 +63,9 @@ if __name__ == "__main__":
     dt = 0.02
     ref = [np.array([1])] * 301 + [np.array([2])] * 300 + [np.array([1])] * 200
     noise = {
-        'measurement': {
+        'process': {
             'type': 'white',
-            'param': np.array([1]) * 0.05
+            'param': {'C': np.eye(5) * 0.1}
         }
     }
     boeing = Boeing('test', dt, max_index, noise)

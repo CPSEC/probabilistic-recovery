@@ -20,7 +20,7 @@ B = np.concatenate((np.zeros((4, 3)), np.eye(4)), axis=1).T
 x_0 = np.array([0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
 
 # control parameters
-R = np.eye(4) * 0.01
+R = np.eye(4) * 0.001
 Q = np.eye(7)
 
 
@@ -56,9 +56,9 @@ if __name__ == "__main__":
     dt = 0.02
     ref = [np.array([1])] * 301 + [np.array([2])] * 300 + [np.array([1])] * 200
     noise = {
-        'measurement': {
+        'process': {
             'type': 'white',
-            'param': np.array([1]) * 0.05
+            'param': {'C': np.eye(7) * 0.01}
         }
     }
     platoon = Platoon('test', dt, max_index, noise)

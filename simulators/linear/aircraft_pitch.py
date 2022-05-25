@@ -14,8 +14,8 @@ x_0 = np.array([0.0, 0.0, 0.0])
 
 # control parameters
 KP = 1.13
-KI = 0.0263
-KD = 0
+KI = 0.0253
+KD = 0.0
 
 
 # KP = 20
@@ -56,9 +56,9 @@ if __name__ == "__main__":
     dt = 0.02
     ref = [np.array([0.2])] * 1501
     noise = {
-        'measurement': {
+        'process': {
             'type': 'white',
-            'param': np.array([1]) * 0.005
+            'param': {'C': np.eye(3) * 0.0001}
         }
     }
     aircraft_pitch = AircraftPitch('test', dt, max_index, noise)

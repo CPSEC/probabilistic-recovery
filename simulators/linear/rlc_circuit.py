@@ -52,9 +52,9 @@ if __name__ == "__main__":
     dt = 0.02
     ref = [np.array([2])] * 201 + [np.array([3])] * 200 + [np.array([2])] * 100
     noise = {
-        'measurement': {
+        'process': {
             'type': 'white',
-            'param': np.array([1]) * 0.05
+            'param': {'C': np.eye(2) * 0.01}
         }
     }
     rlc_circuit = RlcCircuit('test', dt, max_index, noise)
