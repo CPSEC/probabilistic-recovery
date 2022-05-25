@@ -13,6 +13,7 @@ class ReachableSet:
     """
 
     def __init__(self, A, B, U: Zonotope, W: GaussianDistribution, max_step=50):
+        self.ready = False
         self.max_step = max_step
         self.u_dim = len(U)
         self.A_k = [np.eye(A.shape[0])]
@@ -30,6 +31,7 @@ class ReachableSet:
         self.x_0 = x_0
         self.s = s
         self.hp = s.center()
+        self.ready = True
 
     def reachable_set_wo_noise(self, k: int) -> Zonotope:
         x_0 = self.x_0.miu
@@ -48,17 +50,46 @@ class ReachableSet:
     def distribution(self, vertex: np.ndarray, k: int):
         return vertex + self.bar_w_k[k]
 
-    def reachable_set_k(self, k: int, fig_setting=None):
+    def reachable_set_k(self, k: int):
         X_k = self.reachable_set_wo_noise(k)
-        z_star, alpha = X_k.point_closest_to_hyperplane(reach.hp)
+        z_star, alpha, arrive = X_k.point_closest_to_hyperplane(self.hp)
         D_k = self.distribution(z_star, k)
-        if not fig_setting is None:
-            fig = plt.figure()
+        P = D_k.prob_in_strip(self.s)
+        return X_k, D_k, z_star, alpha, P, arrive
+
+    def plot(self, X_k: Zonotope, D_k: GaussianDistribution, alpha, fig_setting):
+        fig = plt.figure()
+        if fig_setting['zonotope']:
             X_k.plot(fig)
-            s.plot(fig_setting['x1'], fig_setting['x2'], fig)
+        if fig_setting['strip'] and 'x1' in fig_setting and 'x2' in fig_setting:
+            self.s.plot(fig_setting['x1'], fig_setting['x2'], fig)
+        if fig_setting['routine']:
             X_k.show_control_effect(alpha, self.u_dim, fig)
-            plt.show()
-        return X_k, D_k, z_star, alpha
+        if fig_setting['distribution'] and 'x1' in fig_setting and 'x2' in fig_setting and 'y1' in fig_setting and \
+                'y2' in fig_setting:
+            x1, x2, y1, y2 = fig_setting['x1'], fig_setting['x2'], fig_setting['y1'], fig_setting['y2']
+            D_k.plot(x1, x2, y1, y2, fig)
+        if 'x1' in fig_setting and 'x2' in fig_setting:
+            plt.xlim((fig_setting['x1'], fig_setting['x2']))
+        if 'y1' in fig_setting and 'y2' in fig_setting:
+            plt.ylim((fig_setting['y1'], fig_setting['y2']))
+        plt.show()
+
+    def given_P(self, P_given: float, max_k: int):
+        if not self.ready:
+            print('Init before recovery!')
+            raise RuntimeError
+        satisfy = False
+        i = 0
+        X_k = D_k = z_star = alpha = P = arrive = None
+        for i in range(1, max_k+1):
+            X_k, D_k, z_star, alpha, P, arrive = self.reachable_set_k(i)
+            if P > P_given:
+                satisfy = True
+                break
+            if arrive == True:
+                break
+        return i, satisfy, X_k, D_k, z_star, alpha, P, arrive
 
 
 if __name__ == '__main__':
@@ -70,16 +101,28 @@ if __name__ == '__main__':
 
     A = np.array([[1, 1], [0, 2]])
     B = np.array([[2, 0], [0, 1]])
-    W = GaussianDistribution(np.array([0, 0]), 0.3 * np.eye(2))
+    W = GaussianDistribution.from_standard(miu=np.array([0, 0]), C=np.diag([0.3, 0.3]))
     reach = ReachableSet(A, B, U, W, max_step=5)
     x_0 = GaussianDistribution(np.array([5, 5]), np.eye(2))
 
     s = Strip(np.array([1, 1]), a=100, b=120)
     reach.init(x_0, s)
 
-    fig_setting = {'x1': 30, 'x2': 80}
-    X_k, D_k, z_star, alpha = reach.reachable_set_k(1, fig_setting)
+    fig_setting = {'x1': 0, 'x2': 80, 'y1': 0, 'y2': 90,
+                   'strip': True, 'routine': True,
+                   'zonotope': True, 'distribution': True}
+    X_k, D_k, z_star, alpha, P, arrive = reach.reachable_set_k(1)
+    # reach.plot(X_k, D_k, alpha, fig_setting)
+    print('k=', 1, 'P=', P, arrive)
 
-    X_k, D_k, z_star, alpha = reach.reachable_set_k(2, fig_setting)
+    X_k, D_k, z_star, alpha, P, arrive = reach.reachable_set_k(2)
+    # reach.plot(X_k, D_k, alpha, fig_setting)
+    print('k=', 2, 'P=', P, arrive)
 
-    X_k, D_k, z_star, alpha = reach.reachable_set_k(3, fig_setting)
+    X_k, D_k, z_star, alpha, P, arrive = reach.reachable_set_k(3)
+    # reach.plot(X_k, D_k, alpha,fig_setting)
+    print('k=', 3, 'P=', P, arrive)
+
+    i, satisfy, X_k, D_k, z_star, alpha, P, arrive = reach.given_P(P_given=0.9, max_k=10)
+    print('i=', i, 'found=', satisfy)
+    reach.plot(X_k, D_k, alpha, fig_setting)

@@ -100,18 +100,20 @@ class Zonotope:
     def point_closest_to_hyperplane(self, hp: Hyperplane):
         z_star = self.c
         l = hp.l
+        arrive = False
         g_num = len(self)
         alpha = np.zeros((g_num,))
         for i in range(g_num):
             alpha[i] = -1 if self[i] @ l < 0 else 1
             z_star_next = z_star+alpha[i]*self[i]
-            if z_star_next @ l > hp.b:
+            if z_star_next @ l >= hp.b:
                 alpha[i] = (hp.b-z_star@l)/(self[i]@l)
                 z_star = z_star+alpha[i]*self[i]
+                arrive = True
                 break
             else:
                 z_star = z_star_next
-        return z_star, alpha
+        return z_star, alpha, arrive
 
     # check if intersect with a half space
     def is_intersected(self, hs):
