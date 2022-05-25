@@ -76,7 +76,7 @@ if __name__ == "__main__":
     noise = {
         'measurement': {
             'type': 'white',
-            'param': np.array([1]) * 0.05
+            'param': {'C': np.array([[1]]) * 0.08}
         }
     }
     motor_speed = MotorSpeed('test', dt, max_index, noise)

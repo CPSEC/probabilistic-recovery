@@ -115,7 +115,7 @@ if __name__ == "__main__":
     noise = {
         'process': {
             'type': 'white',
-            'param': np.array([1, 1, 1, 1]) * 0.05
+            'param': {'C': np.eye(4) * 0.1}
         }
     }
     quadruple_tank = QuadrupleTank('test', dt, max_index, noise)

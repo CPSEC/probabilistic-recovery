@@ -7,6 +7,7 @@ from utils.formal.strip import Strip
 from statistics import NormalDist
 
 class GaussianDistribution:
+    # only keep miu and sigma in __init__ for efficiency
     def __init__(self, miu: np.ndarray, sigma: np.ndarray):
         self.miu = miu
         self.sigma = sigma
@@ -52,7 +53,7 @@ class GaussianDistribution:
 
     # the distribution can be transformed from standard normal distribution
     # this method returns the transformation matrix
-    def transformation_from_standard(self):
+    def transformation_matrix_from_standard(self):
         return sqrtm(self.sigma)
 
     # generate points from this distribution
