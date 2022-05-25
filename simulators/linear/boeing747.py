@@ -43,7 +43,20 @@ class Controller:
 #         return cin
 
 class Boeing(Simulator):
-
+    """
+              States: (4,)
+                  x[0]: side-slip angle
+                  x[1]: Yaw rate
+                  x[2]: roll rate
+                  x[3]: roll angle
+              Control Input: (2,)
+                  u[0]: Rudder
+                  u[1]: Aileron
+              Output:  (1,)
+                  y[0]: Yaw rate
+                  Output Feedback
+              Controller: PID
+              """
     def __init__(self, name, dt, max_index, noise=None):
         super().__init__('Boeing' + name, dt, max_index)
         self.linear(A, B, C)

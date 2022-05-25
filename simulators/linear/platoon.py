@@ -3,10 +3,10 @@ import numpy as np
 from utils import PID, Simulator, LQRSSE, LQR
 
 # system dynamics
-kp = 2
-kd = 1.5
-beta = -0.1
-d_star = 2
+kp = 2     # proportional gains of an on-board PD controller
+kd = 1.5   # derivative gains of an on-board PD controller
+beta = -0.1 # characterizes the loss of velocity as a result of friction
+d_star = 2 # desired distance
 A = np.array([[0, 0, 0, -1, 1, 0, 0],
               [0, 0, 0, 0, -1, 1, 0],
               [0, 0, 0, 0, 0, -1, 1],
@@ -36,7 +36,23 @@ class Controller:
 
 
 class Platoon(Simulator):
-
+    """
+              States: (7,)
+                  x[0]: e12 relative distance error with car 1 and 2
+                  x[1]: e23 relative distance error with car 2 and 3
+                  x[2]: e34 relative distance error with car 3 and 4
+                  x[3]: velocity of car 1
+                  x[4]: velocity of car 2
+                  x[5]: velocity of car 3
+                  x[6]: velocity of car 4
+              Control Input: (1,)
+                  u[0]: acceleration of car 1
+                  u[1]: acceleration of car 2
+                  u[2]: acceleration of car 3
+                  u[3]: acceleration of car 4
+                  State Feedback
+              Controller: PID
+              """
     def __init__(self, name, dt, max_index, noise=None):
         super().__init__('Platoon' + name, dt, max_index)
         self.linear(A, B)

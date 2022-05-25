@@ -21,17 +21,7 @@ KD = 0
 control_limit = {'lo': [-15], 'up': [15]}
 
 class Controller:
-    """
-        States: (2,)
-            x[0]: the rotational speed of the shaft
-            x[1]: electric current
-        Control Input: (1,)
-            u[0]: voltage source
-        Output:  (1,)
-            y[0]: the rotational speed of the shaft
-            Output Feedback
-        Controller: PID
-        """
+
     def __init__(self, dt):
         self.pid = PID(KP, KI, KD, current_time=-dt)
         self.pid.clear()

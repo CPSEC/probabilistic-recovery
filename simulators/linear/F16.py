@@ -36,6 +36,19 @@ class Controller:
 
 
 class F16(Simulator):
+    """
+            States: (4,)
+                x[0]: velocity V[ft/sec]
+                x[1]: angle of attack [rad]
+                x[2]: pitch angle [rad]
+                x[3]: pitch rate [rad/sec]
+            Control Input: (1,)
+                u[0]: elevator deflection [deg]
+            Output:  (1,)
+                y[0]: pitch angle * 57.3
+                Output Feedback
+            Controller: PID
+            """
     def __init__(self, name, dt, max_index, noise=None):
         super().__init__('F16 ' + name, dt, max_index)
         self.linear(A, B, C, D)
