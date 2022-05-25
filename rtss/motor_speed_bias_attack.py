@@ -15,7 +15,7 @@ noise = {
 }
 motor_speed = MotorSpeed('test', dt, max_index, noise)
 attack_start_index = 150
-bias = np.array([-1.0])
+bias = np.array([-0.3])
 bias_attack = Attack('bias', bias, attack_start_index)
 recovery_index = 200
 # --------------- end of parameters -------------------------
@@ -50,4 +50,4 @@ plt.show()
 
 
 # -----------         output -------------------------
-# recovery_start_state= [ 5.09613504 48.77378581]
+# recovery_start_state= [ 4.4392062  42.17318198]

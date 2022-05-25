@@ -35,17 +35,17 @@ B = motor_speed.sysd.B
 W = motor_speed.p_noise_dist
 reach = ReachableSet(A, B, U, W, max_step=50)
 
-x_0 = GaussianDistribution(np.array([5.09613504, 48.77378581]), np.zeros((2, 2)))
+x_0 = GaussianDistribution(np.array([4.4392062,  42.17318198]), np.zeros((2, 2)))
 s = Strip(np.array([-1, 0]), a=-4.2, b=-3.8)
 reach.init(x_0, s)
 
 # fig_setting = {'x1': 0, 'x2': 80, 'y1': 0, 'y2': 90,
 #                'strip': True, 'routine': True,
 #                'zonotope': True, 'distribution': True}
-fig_setting = {
+fig_setting = {'x1': 3.5, 'x2': 4.5, 'y1': 30, 'y2': 48,
                'strip': False, 'routine': True,
-               'zonotope': True, 'distribution': False,
-               'head_width': 0.05, 'width': 0.01}
+               'zonotope': True, 'distribution': True,
+               'head_width': 0.01, 'width': 0.002}
 X_k, D_k, z_star, alpha, P, arrive = reach.reachable_set_k(2)
 # reach.plot(X_k, D_k, alpha, fig_setting)
 
@@ -53,9 +53,10 @@ X_k, D_k, z_star, alpha, P, arrive = reach.reachable_set_k(10)
 # reach.plot(X_k, D_k, alpha, fig_setting)
 print(P)
 
-i, satisfy, X_k, D_k, z_star, alpha, P, arrive = reach.given_P(P_given=0.9, max_k=40)
+i, satisfy, X_k, D_k, z_star, alpha, P, arrive = reach.given_P(P_given=0.95, max_k=40)
 print('i=', i, 'found=', satisfy, 'P=', P)
 reach.plot(X_k, D_k, alpha, fig_setting)
+
 
 
 

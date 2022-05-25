@@ -200,6 +200,14 @@ class Zonotope:
             plt.show()
         return fig
 
+    # call from one-step control input zonotope
+    def alpha_to_control(self, alpha):
+        gs_l = self.g @ np.diag(alpha)
+        u_num = len(self) // u_dim
+        u = np.empty((u_num, self.dim), dtype=float)
+        for i in range(u_num):
+            pass
+
     @classmethod
     def from_box(cls, lo: np.ndarray, up: np.ndarray):
         """

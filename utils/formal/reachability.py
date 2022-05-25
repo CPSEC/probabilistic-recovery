@@ -79,6 +79,19 @@ class ReachableSet:
             plt.ylim((fig_setting['y1'], fig_setting['y2']))
         plt.show()
 
+    def given_k(self, max_k: int):
+        max_P = 0
+        reach_res = []
+        k = 0
+        for i in range(1, max_k+1):
+            res = self.reachable_set_k(i)
+            reach_res.append(res)
+            X_k, D_k, z_star, alpha, P, arrive = res
+            if P > max_P:
+                max_P = P
+                k = i
+        return k, *reach_res[k-1]
+
     def given_P(self, P_given: float, max_k: int):
         if not self.ready:
             print('Init before recovery!')
@@ -129,4 +142,11 @@ if __name__ == '__main__':
 
     i, satisfy, X_k, D_k, z_star, alpha, P, arrive = reach.given_P(P_given=0.9, max_k=10)
     print('i=', i, 'found=', satisfy)
+    # reach.plot(X_k, D_k, alpha, fig_setting)
+
+
+    k, X_k, D_k, z_star, alpha, P, arrive = reach.given_k(5)
+    print('i=', i, 'P=', P)
     reach.plot(X_k, D_k, alpha, fig_setting)
+
+
