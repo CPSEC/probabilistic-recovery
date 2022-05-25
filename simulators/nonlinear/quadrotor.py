@@ -32,19 +32,26 @@ control_limit = {
     'lo': np.array([-50]),
     'up': np.array([50])
 }
-R = np.array([0.001])
-Q = np.eye(12)
+
+KP = 5
+KI = 0
+KD = 0
 
 
 class Controller:
     def __init__(self, dt, control_limit=None):
-        self.lqr = LQR(A, B, Q, R)
-        self.lqr.set_control_limit(control_limit['lo'], control_limit['up'])
+        self.pid = PID(KP, KI, KD, current_time=-dt)
+        self.pid.clear()
+        self.pid.setWindup(100)
+        self.pid.setSampleTime(dt)
+        self.control_lo = control_limit['lo']
+        self.control_up = control_limit['up']
+        self.pid.set_control_limit(self.control_lo[0], self.control_up[0])
 
     def update(self, ref: np.ndarray, feedback_value: np.ndarray, current_time) -> np.ndarray:
-        self.lqr.set_reference(ref)
-        cin = self.lqr.update(feedback_value, current_time)
-        return cin
+        self.pid.set_reference(ref[0])
+        cin = self.pid.update(feedback_value[0], current_time)
+        return np.array([cin])
 
 
 class Quadrotor(Simulator):
@@ -65,14 +72,14 @@ class Quadrotor(Simulator):
 if __name__ == "__main__":
     max_index = 600
     dt = 0.02
-    ref = [np.array([[2], [0], [0], [0], [0], [0], [0], [0], [0], [0], [0], [0]])] * (max_index + 1)
+    ref = [np.array([2])] * (max_index + 1)
     noise = {
-        'measurement': {
+        'process': {
             'type': 'white',
-            'param': np.array([1]) * 0.05
+            'param': {'C': np.eye(12) * 0.001}
         }
     }
-    quadrotor = Quadrotor('test', dt, max_index, None)
+    quadrotor = Quadrotor('test', dt, max_index, noise)
     for i in range(0, max_index + 1):
         assert quadrotor.cur_index == i
         quadrotor.update_current_ref(ref[i])

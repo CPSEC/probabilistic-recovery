@@ -65,9 +65,9 @@ if __name__ == "__main__":
     dt = 0.02
     ref = [np.array([5])] * 201 + [np.array([4])] * 200 + [np.array([5])] * 100
     noise = {
-        'measurement': {
+        'process': {
             'type': 'white',
-            'param': {'C': np.array([[1]]) * 0.08}
+            'param': {'C': np.eye(2) * 0.1}
         }
     }
     motor_speed = MotorSpeed('test', dt, max_index, noise)
