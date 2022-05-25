@@ -4,6 +4,9 @@ from itertools import product
 from scipy.spatial import ConvexHull
 import matplotlib.pyplot as plt
 from utils.formal.half_space import HalfSpace
+from utils.formal.strip import Strip
+from utils.formal.hyperplane import Hyperplane
+
 
 class Zonotope:
     """
@@ -12,10 +15,11 @@ class Zonotope:
         c: center
         g: [g_0, g_1, ...]  generators
     """
+
     def __init__(self, c: np.ndarray, g: np.ndarray):
         self.c = c
         self.g = g
-        self.dim = c.shape[0]   # dimensions
+        self.dim = c.shape[0]  # dimensions
         assert self.g.shape[0] == self.dim
 
     def __str__(self):
@@ -36,7 +40,7 @@ class Zonotope:
             assert self.dim == other.shape[0]
             c = self.c + other
             return Zonotope(c, self.g)
-        return NotImplemented
+        raise NotImplemented
 
     # np.array + zonotope
     def __radd__(self, other):
@@ -87,22 +91,45 @@ class Zonotope:
         assert l.shape == (self.dim,)
         alpha = np.empty((len(self),))
         for i in range(len(self)):
-            alpha[i] = -1 if self[i]@l < 0 else 1
+            alpha[i] = -1 if self[i] @ l < 0 else 1
         gs_l = self.g @ np.diag(alpha)
         vertex = self.c + np.sum(gs_l, axis=1)
         return vertex, alpha, gs_l
 
+    def point_closest_to_hyperplane(self, hp: Hyperplane):
+        z_star = self.c
+        g_num = len(self)
+        alpha = np.zeros((g_num,))
+        for i in range(g_num):
+            alpha[i] = -1 if self[i] @ l < 0 else 1
+            z_star_next = z_star+alpha[i]*self[i]
+            if z_star_next @ l > hp.b:
+                z_star = hp.b
+                alpha[i] = (hp.b-z_star@l)/(self[i]@l)
+                break
+            else:
+                z_star = z_star_next
+        return z_star, alpha
+
     # check if intersect with a half space
     def is_intersected(self, hs):
-        if not isinstance(hs, HalfSpace):
-            return NotImplemented
-        return self.support(hs.l) >= hs.b
+        if isinstance(hs, HalfSpace):
+            return self.support(hs.l) >= hs.b
+        if isinstance(hs, Strip):
+            s1 = self.support(hs.l)
+            s2 = self.support(-hs.l)
+            return s1 >= hs.a and s2 <= hs.b
+        if isinstance(hs, Hyperplane):
+            s1 = self.support(hs.l)
+            s2 = self.support(-hs.l)
+            return s2 <= hs.b <= s1
+        raise NotImplemented
 
     # get all vertices in order
     def to_V(self):
         # get all vertices
-        n = self.g.shape[1]    # number of generators
-        alpha = np.array(list(product(*list(zip([-1]*n, [1]*n))))).T
+        n = self.g.shape[1]  # number of generators
+        alpha = np.array(list(product(*list(zip([-1] * n, [1] * n))))).T
         v = self.c.reshape((-1, 1)) + self.g @ alpha  # all possible vertices for each column
         v = v.T  # one possible vertex per row
         v = v[ConvexHull(v).vertices, :]  # one vertex per row
@@ -111,7 +138,7 @@ class Zonotope:
     def plot(self, fig=None):
         v = self.to_V()
         if v.shape[1] != 2:  # only 2-d
-            return NotImplemented
+            raise NotImplemented
         v = np.vstack((v, v[0]))  # close the polygon
         if fig is None:
             fig = plt.figure()
@@ -124,18 +151,19 @@ class Zonotope:
     # display routine by generators
     def show_routine(self, gs_l, fig=None):
         if self.dim != 2:
-            return NotImplemented
-        routine = np.empty((len(self)+1, self.dim), dtype=float)
+            raise NotImplemented
+        routine = np.empty((len(self) + 1, self.dim), dtype=float)
         routine[0] = self.c
         for i in range(len(self)):
-            routine[i+1] = routine[i] + gs_l[:, i]
+            routine[i + 1] = routine[i] + gs_l[:, i]
         if fig is None:
             fig = plt.figure()
         self.plot(fig)
         X = routine[:, 0]
         Y = routine[:, 1]
-        for i in range(len(X)-1):
-            plt.arrow(X[i], Y[i], X[i+1]-X[i], Y[i+1]-Y[i], head_width=1.5, width=0.1, length_includes_head=True, ec='g')
+        for i in range(len(X) - 1):
+            plt.arrow(X[i], Y[i], X[i + 1] - X[i], Y[i + 1] - Y[i], head_width=1.5, width=0.1,
+                      length_includes_head=True, ec='g')
         if fig is None:
             plt.show()
         return fig
@@ -143,22 +171,23 @@ class Zonotope:
     # display routine by control inputs
     def show_control_effect(self, gs_l, u_dim: int, fig=None):
         if self.dim != 2:
-            return NotImplemented
+            raise NotImplemented
         # print(len(self), u_dim)
-        routine_num = len(self)//u_dim
-        routine = np.empty((routine_num+1, self.dim), dtype=float)
+        routine_num = len(self) // u_dim
+        routine = np.empty((routine_num + 1, self.dim), dtype=float)
         routine[0] = self.c
         for i in range(routine_num):
             # print(gs_l[:, i*u_dim:(i+1)*u_dim], np.sum(gs_l[:, i*u_dim:(i+1)*u_dim], axis=0))
-            u_effect = np.sum(gs_l[:, i*u_dim:(i+1)*u_dim], axis=1)
-            routine[i+1] = routine[i] + u_effect
+            u_effect = np.sum(gs_l[:, i * u_dim:(i + 1) * u_dim], axis=1)
+            routine[i + 1] = routine[i] + u_effect
         if fig is None:
             fig = plt.figure()
         self.plot(fig)
         X = routine[:, 0]
         Y = routine[:, 1]
-        for i in range(len(X)-1):
-            plt.arrow(X[i], Y[i], X[i+1]-X[i], Y[i+1]-Y[i], head_width=1.5, width=0.1, length_includes_head=True, ec='g')
+        for i in range(len(X) - 1):
+            plt.arrow(X[i], Y[i], X[i + 1] - X[i], Y[i + 1] - Y[i], head_width=1.5, width=0.1,
+                      length_includes_head=True, ec='g')
         if fig is None:
             plt.show()
         return fig
@@ -210,11 +239,11 @@ if __name__ == '__main__':
     print('z5 =', z5)
     l = np.array([-1, -1])
     print('l=', l)
-    print('support function along l:', z5.support(l))   #2
+    print('support function along l:', z5.support(l))  # 2
     print('generators to farthest  vertex along l', z5.vertex_with_max_support(l))
     l = np.array([-1, 2])
     print('l=', l)
-    print('support function along l:', z5.support(l))   #5
+    print('support function along l:', z5.support(l))  # 5
     print('generators to farthest  vertex along l', z5.vertex_with_max_support(l))
 
     # check intersection
@@ -226,10 +255,3 @@ if __name__ == '__main__':
 
     # plot zonotope
     v = z5.plot()
-
-
-
-
-
-
-

@@ -39,7 +39,7 @@ class GaussianDistribution:
             miu = self.miu + other.miu
             sigma = self.sigma + other.sigma
             return GaussianDistribution(miu, sigma)
-        return NotImplemented
+        raise NotImplemented
 
     def __radd__(self, other):
         return self.__add__(other)
@@ -71,7 +71,7 @@ class GaussianDistribution:
 
     def plot(self, x1, x2, y1, y2, fig=None):
         if self.dim != 2:
-            return NotImplemented
+            raise NotImplemented
         x, y = np.mgrid[x1:x2:.1, y1:y2:.1]
         pos = np.empty(x.shape + (2,))
         pos[:, :, 0] = x
