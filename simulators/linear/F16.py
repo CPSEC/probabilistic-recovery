@@ -16,9 +16,12 @@ D = np.array([0.0])
 x_0 = np.array([[500.0], [0.0393], [0.0], [0.0393]]).reshape((4,))
 
 # control parameters
-KP = -1
-KI = 1.1
-KD = 0.00594
+# KP = -1
+# KI = 1.1
+# KD = 0.00594
+KP = -15
+KI = -5
+KD = 0.5
 control_limit = {'lo': [-2], 'up': [2]}
 
 
