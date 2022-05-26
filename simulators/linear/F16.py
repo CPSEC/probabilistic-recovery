@@ -20,15 +20,15 @@ x_0 = np.array([[500.0], [0.0393], [0.0], [0.0393]]).reshape((4,))
 # KI = 1.1
 # KD = 0.00594
 KP = -15
-KI = -5
+KI = -4
 KD = 0.5
 control_limit = {'lo': [-2], 'up': [2]}
 
 
 class Controller:
     def __init__(self, dt):
+        self.dt = dt
         self.pid = PID(KP, KI, KD, current_time=-dt)
-        self.pid.clear()
         self.pid.setWindup(100)
         self.pid.setSampleTime(dt)
         self.set_control_limit(control_limit['lo'], control_limit['up'])
@@ -42,6 +42,9 @@ class Controller:
         self.control_lo = control_lo
         self.control_up = control_up
         self.pid.set_control_limit(self.control_lo[0], self.control_up[0])
+
+    def clear(self):
+        self.pid.clear(current_time=-self.dt)
 
 
 class F16(Simulator):
@@ -80,10 +83,10 @@ if __name__ == "__main__":
     noise = {
         'process': {
             'type': 'white',
-            'param': {'C': np.eye(4) * 0.001}
+            'param': {'C': np.eye(4) * 0.00001}
         }
     }
-    f16 = F16('test', dt, max_index, None)
+    f16 = F16('test', dt, max_index, noise)
     for i in range(0, max_index + 1):
         assert f16.cur_index == i
         f16.update_current_ref(ref[i])

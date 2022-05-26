@@ -39,10 +39,9 @@ control_limit = {'lo': [-0.5], 'up': [50]}
 
 
 class Controller:
-
     def __init__(self, dt):
+        self.dt = dt
         self.pid = PID(KP, KI, KD, current_time=-dt)
-        self.pid.clear()
         self.pid.setWindup(100)
         self.pid.setSampleTime(dt)
         self.set_control_limit(control_limit['lo'], control_limit['up'])
@@ -56,6 +55,9 @@ class Controller:
         self.control_lo = control_lo
         self.control_up = control_up
         self.pid.set_control_limit(self.control_lo[0], self.control_up[0])
+
+    def clear(self):
+        self.pid.clear(current_time=-self.dt)
 
 
 class Heat(Simulator):
