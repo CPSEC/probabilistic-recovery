@@ -1,6 +1,7 @@
 import numpy as np
 from simulators.linear.motor_speed import MotorSpeed
 from simulators.linear.quadruple_tank import QuadrupleTank
+from simulators.linear.F16 import F16
 from utils.attack import Attack
 from utils.formal.strip import Strip
 
@@ -36,7 +37,7 @@ class motor_speed_bias:
     output_index = 0
 
 
-# -------------------- quadruple_tank.py ----------------------------
+# -------------------- quadruple tank ----------------------------
 class quadruple_tank_bias:
     # needed by 0_attack_no_recovery
     name = 'quadruple_tank_bias'
@@ -60,6 +61,37 @@ class quadruple_tank_bias:
 
     # needed by 1_recovery_given_p
     s = Strip(np.array([-1, 0, 0, 0]), a=-15, b=-14.6)
+    P_given = 0.95
+    max_recovery_step = 40
+    # plot
+    ref_index = 0
+    output_index = 0
+
+
+# -------------------- f16 ----------------------------
+class f16_bias:
+    # needed by 0_attack_no_recovery
+    name = 'f16_bias'
+    max_index = 800
+    dt = 0.02
+    ref = [np.array([0.0872665 * 57.3])] * 801
+    noise = {
+        'process': {
+            'type': 'white',
+            'param': {'C': np.eye(4) * 0.00001}
+        }
+    }
+    model = F16('test', dt, max_index, noise)
+    control_lo = np.array([-2])
+    control_up = np.array([2])
+    model.controller.set_control_limit(control_lo, control_up)
+    attack_start_index = 400
+    bias = np.array([-1])
+    attack = Attack('bias', bias, attack_start_index)
+    recovery_index = 600
+
+    # needed by 1_recovery_given_p
+    s = Strip(np.array([0, 0, -1, 0]), a=-8.76e-02, b=8.75e-02)
     P_given = 0.95
     max_recovery_step = 40
     # plot

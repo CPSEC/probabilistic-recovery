@@ -5,10 +5,12 @@ from utils.formal.reachability import ReachableSet
 from utils.formal.gaussian_distribution import GaussianDistribution
 from rtss.settings import motor_speed_bias as msb
 from rtss.settings import quadruple_tank_bias as qtb
+from rtss.settings import f16_bias as f16b
 np.random.seed(0)
 
 exps = [msb]
 exps = [qtb]
+exps = [f16b]
 
 for exp in exps:
     print('=' * 20, exp.name, '=' * 20)
@@ -48,7 +50,7 @@ for exp in exps:
             rec_u_index = i-exp.recovery_index
             u = rec_u[rec_u_index]
             exp.model.evolve(u)
-            print(exp.model.cur_x)
+            print('index =', i+1, 'cur_x =', exp.model.cur_x)
         else:
             exp.model.evolve()
 
