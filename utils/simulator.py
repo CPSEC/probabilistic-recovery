@@ -21,6 +21,7 @@ class Simulator:
         self.m = None  # number of control inputs
         self.p = None  # number of sensor measurements
         self.ode = None  # ode function
+        self.init_state = None
         # values under self.cur_index
         self.cur_x = None
         self.cur_y = None
@@ -44,6 +45,12 @@ class Simulator:
         elif self.feedback_type == 'state':
             self.feedbacks = np.empty((self.max_index + 2, self.n), dtype=np.float)
             self.refs = np.empty((self.max_index + 2, self.n), dtype=np.float)  # reference value
+
+    def reset(self):
+        self.data_init()
+        self.cur_index = 0
+        self.set_init_state(self.init_state)
+        self.controller.clear()
 
     def linear(self, A, B, C=None, D=None):
         self.model_type = 'linear'
@@ -110,6 +117,7 @@ class Simulator:
                 self.m_noise = self.m_noise_dist.random(self.max_index + 2).T
 
     def set_init_state(self, x):
+        self.init_state = x
         self.cur_x = x
         self.cur_y = self.C @ self.cur_x
         if self.m_noise is not None:
