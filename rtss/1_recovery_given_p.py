@@ -4,9 +4,11 @@ from utils.formal.zonotope import Zonotope
 from utils.formal.reachability import ReachableSet
 from utils.formal.gaussian_distribution import GaussianDistribution
 from rtss.settings import motor_speed_bias as msb
+from rtss.settings import aircraft_pitch_bias as apb
 np.random.seed(0)
 
 exps = [msb]
+exps = [apb]
 
 for exp in exps:
     print('=' * 20, exp.name, '=' * 20)

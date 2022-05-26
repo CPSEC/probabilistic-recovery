@@ -6,11 +6,13 @@ from utils.formal.gaussian_distribution import GaussianDistribution
 from rtss.settings import motor_speed_bias as msb
 from rtss.settings import quadruple_tank_bias as qtb
 from rtss.settings import f16_bias as f16b
+from rtss.settings import aircraft_pitch_bias as apb
 np.random.seed(0)
 
 exps = [msb]
 # exps = [qtb]
 # exps = [f16b]
+exps = [apb]
 
 for exp in exps:
     print('=' * 20, exp.name, '=' * 20)

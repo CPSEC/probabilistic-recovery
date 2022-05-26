@@ -8,9 +8,10 @@ from utils.formal.gaussian_distribution import GaussianDistribution
 from rtss.settings import motor_speed_bias as msb
 from rtss.settings import quadruple_tank_bias as qtb
 from rtss.settings import f16_bias as f16b
+from rtss.settings import aircraft_pitch_bias as apb
 np.random.seed(0)
 
-exps = [msb, qtb, f16b]
+exps = [msb, qtb, f16b, apb]
 # exps = [f16b]
 max_ks = [10, 20, 30]
 result = {}
