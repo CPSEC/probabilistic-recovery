@@ -53,8 +53,11 @@ class PID(Controller):
         self.control_lo = None
         self.control_up = None
 
-    def clear(self):
+    def clear(self, current_time=None):
         """Clears PID computations and coefficients"""
+        self.current_time = current_time if current_time is not None else time.time()
+        self.last_time = self.current_time
+
         self.SetPoint = 0.0
 
         self.PTerm = 0.0

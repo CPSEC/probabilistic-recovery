@@ -67,6 +67,7 @@ control_limit = {
 
 class Controller:
     def __init__(self, dt):
+        self.dt = dt
         self.pid1 = PID(Kp1, Ki1, Kd1, current_time=-dt)
         self.pid1.clear()
         self.pid1.setWindup(100)
@@ -89,6 +90,10 @@ class Controller:
         self.control_up = control_up
         self.pid1.set_control_limit(control_lo[0], control_up[0])
         self.pid2.set_control_limit(control_lo[1], control_up[1])
+
+    def clear(self):
+        self.pid1.clear(-self.dt)
+        self.pid2.clear(-self.dt)
 
 
 class QuadrupleTank(Simulator):

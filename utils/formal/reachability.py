@@ -37,7 +37,7 @@ class ReachableSet:
         x_0 = self.x_0.miu
         X_k = self.A_k[k] @ x_0 + self.bar_u_k[k]
         if self.s.point_to_strip(X_k.c):
-            self.hp = s.center()
+            self.hp = self.s.center()
         return X_k
 
     def first_intersection(self) -> ([int, None], Zonotope):
