@@ -110,7 +110,7 @@ class ReachableSet:
 
 
 if __name__ == '__main__':
-    u_lo = np.array([-1, -4])
+    u_lo = np.array([-1, -2])
     u_up = np.array([3, 4])
     U = Zonotope.from_box(u_lo, u_up)
     print(U)
@@ -130,23 +130,32 @@ if __name__ == '__main__':
                    'zonotope': True, 'distribution': True}
     X_k, D_k, z_star, alpha, P, arrive = reach.reachable_set_k(1)
     # reach.plot(X_k, D_k, alpha, fig_setting)
-    print('k=', 1, 'P=', P, arrive)
+    print('i=', 1, 'P=', P, 'z_star=', z_star, 'arrive=', arrive)
 
     X_k, D_k, z_star, alpha, P, arrive = reach.reachable_set_k(2)
     # reach.plot(X_k, D_k, alpha, fig_setting)
-    print('k=', 2, 'P=', P, arrive)
+    print('i=', 2, 'P=', P, 'z_star=', z_star, 'arrive=', arrive)
 
     X_k, D_k, z_star, alpha, P, arrive = reach.reachable_set_k(3)
     # reach.plot(X_k, D_k, alpha,fig_setting)
-    print('k=', 3, 'P=', P, arrive)
+    print('i=', 3, 'P=', P, 'z_star=', z_star, 'arrive=', arrive)
 
     i, satisfy, X_k, D_k, z_star, alpha, P, arrive = reach.given_P(P_given=0.9, max_k=10)
     print('i=', i, 'found=', satisfy)
+    print('i=', i, 'P=', P, 'z_star=', z_star, 'arrive=', arrive)
+    print('alpha=', alpha)
+    # reach.plot(X_k, D_k, alpha, fig_setting)
+    rec_u = U.alpha_to_control(alpha)
+    print('rec_u =', rec_u)
+
+    x1 = A @ np.array([5, 5]) + B @ rec_u[0]
+    x2 = A @ x1 + B @ rec_u[1]
+    x3 = A @ x2 + B @ rec_u[1]
+    print('x3 =', x3)
+
+    # k, X_k, D_k, z_star, alpha, P, arrive = reach.given_k(5)
+    # print('i=', i, 'P=', P, 'z_star=', z_star, 'arrive=', arrive)
     # reach.plot(X_k, D_k, alpha, fig_setting)
 
-
-    k, X_k, D_k, z_star, alpha, P, arrive = reach.given_k(5)
-    print('i=', i, 'P=', P)
-    reach.plot(X_k, D_k, alpha, fig_setting)
 
 
