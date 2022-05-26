@@ -2,7 +2,7 @@ import numpy as np
 from scipy.signal import StateSpace
 from scipy.integrate import solve_ivp
 from utils.formal.gaussian_distribution import GaussianDistribution
-
+np.random.seed(0)
 
 class Simulator:
     """
