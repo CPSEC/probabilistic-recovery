@@ -32,53 +32,53 @@ x_0 = np.zeros((state_num))
 # KP = 0.00000099 * state_num * state_num * state_num * state_num
 # KI = 0
 # KD = 0
-KP = 0.00000099 * state_num * state_num * state_num * state_num
-KI = 0
+KP = 10
+KI = 0.23
 KD = 0
 control_limit = {'lo': [-0.5], 'up': [50]}
 R = np.eye(1) * 0.0008
 Q = np.eye(state_num)
 
-#
-# class Controller:
-#     def __init__(self, dt):
-#         self.dt = dt
-#         self.pid = PID(KP, KI, KD, current_time=-dt)
-#         self.pid.setWindup(100)
-#         self.pid.setSampleTime(dt)
-#         self.set_control_limit(control_limit['lo'], control_limit['up'])
-#
-#     def update(self, ref: np.ndarray, feedback_value: np.ndarray, current_time) -> np.ndarray:
-#         self.pid.set_reference(ref[0])
-#         cin = self.pid.update(feedback_value[0], current_time)
-#         return np.array([cin])
-#
-#     def set_control_limit(self, control_lo, control_up):
-#         self.control_lo = control_lo
-#         self.control_up = control_up
-#         self.pid.set_control_limit(self.control_lo[0], self.control_up[0])
-#
-#     def clear(self):
-#         self.pid.clear(current_time=-self.dt)
+
 class Controller:
-    def __init__(self, dt, control_limit=None):
-        self.lqr = LQR(A, B, Q, R)
-        # self.lqr.set_control_limit(control_limit['lo'], control_limit['up'])
+    def __init__(self, dt):
+        self.dt = dt
+        self.pid = PID(KP, KI, KD, current_time=-dt)
+        self.pid.setWindup(100)
+        self.pid.setSampleTime(dt)
+        self.set_control_limit(control_limit['lo'], control_limit['up'])
 
     def update(self, ref: np.ndarray, feedback_value: np.ndarray, current_time) -> np.ndarray:
-        self.lqr.set_reference(ref)
-        cin = self.lqr.update(feedback_value, current_time)
-        return cin
+        self.pid.set_reference(ref[0])
+        cin = self.pid.update(feedback_value[0], current_time)
+        return np.array([cin])
+
+    def set_control_limit(self, control_lo, control_up):
+        self.control_lo = control_lo
+        self.control_up = control_up
+        self.pid.set_control_limit(self.control_lo[0], self.control_up[0])
+
+    def clear(self):
+        self.pid.clear(current_time=-self.dt)
+# class Controller:
+#     def __init__(self, dt, control_limit=None):
+#         self.lqr = LQR(A, B, Q, R)
+#         self.lqr.set_control_limit(control_limit['lo'], control_limit['up'])
+#
+#     def update(self, ref: np.ndarray, feedback_value: np.ndarray, current_time) -> np.ndarray:
+#         self.lqr.set_reference(ref)
+#         cin = self.lqr.update(feedback_value, current_time)
+#         return cin
 
 
 class Heat(Simulator):
     def __init__(self, name, dt, max_index, noise=None):
         super().__init__('Aircraft Pitch ' + name, dt, max_index)
-        self.linear(A, B, C)
+        self.linear(A, B)
         controller = Controller(dt)
         settings = {
             'init_state': x_0,
-            'feedback_type': 'output',
+            'feedback_type': 'state',
             'controller': controller
         }
         if noise:
@@ -87,9 +87,9 @@ class Heat(Simulator):
 
 
 if __name__ == "__main__":
-    max_index = 500
-    dt = 0.2
-    ref = [np.array([15])] * 201 + [np.array([15])] * 200 + [np.array([15])] * 100
+    max_index = 1000
+    dt = 1
+    ref = [np.array([15])] * (max_index + 1)
     noise = {
         'process': {
             'type': 'white',
