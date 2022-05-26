@@ -60,6 +60,20 @@ class Controller:
 
 
 class Quadrotor(Simulator):
+    """
+               States: (12,)
+                    x[0], x[1], x[2]: relative position
+                    x[3], x[4], x[5]: angles of pitch
+                    x[6], x[7], x[8]: velocity of the quadrotor
+                    x[9], x[10], x[11]: angular velocity of the quadrotor
+               Control Input: (4,)
+                   u[0]: vertical thrust
+                   u[1], u[2], u[3]:  one for each of the angular motions
+               Output:  (1,)
+                   y[0]: the altitude of the quadrotor
+                   Output Feedback
+               Controller: PID
+               """
     def __init__(self, name, dt, max_index, noise=None):
         super().__init__('Quadrotor ' + name, dt, max_index)
         self.linear(A, B, C)
