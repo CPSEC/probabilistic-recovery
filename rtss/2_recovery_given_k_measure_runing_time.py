@@ -11,6 +11,7 @@ from rtss.settings import f16_bias as f16b
 np.random.seed(0)
 
 exps = [msb, qtb, f16b]
+# exps = [f16b]
 max_ks = [10, 20, 30]
 result = {}
 plot = False
@@ -52,7 +53,7 @@ for exp in exps:
                 tic = perf_counter()
                 k, X_k, D_k, z_star, alpha, P, arrive = reach.given_k(max_k)
                 toc = perf_counter() - tic
-                result[exp.name][max_k]['time'] = toc
+                result[exp.name][max_k]['time'] = toc*1000
                 recovery_complete_index = exp.recovery_index + k
                 print('k=', k, 'P=', P, 'z_star=', z_star, 'arrive=', arrive)
                 result[exp.name][max_k]['k'] = k
