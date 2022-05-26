@@ -25,7 +25,7 @@ D = 0.1
 
 control_limit = {
     'lo': np.array([0]),
-    'up': np.array([80])
+    'up': np.array([60])
 }
 
 
