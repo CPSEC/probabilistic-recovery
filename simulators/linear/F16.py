@@ -16,9 +16,9 @@ D = np.array([0.0])
 x_0 = np.array([[500.0], [0.0393], [0.0], [0.0393]]).reshape((4,))
 
 # control parameters
-KP = -1.5
-KI = 0
-KD = 0.2
+KP = -1
+KI = 1.1
+KD = 0.00594
 control_limit = {'lo': [-2], 'up': [2]}
 
 
@@ -80,7 +80,7 @@ if __name__ == "__main__":
             'param': {'C': np.eye(4) * 0.001}
         }
     }
-    f16 = F16('test', dt, max_index, noise)
+    f16 = F16('test', dt, max_index, None)
     for i in range(0, max_index + 1):
         assert f16.cur_index == i
         f16.update_current_ref(ref[i])
