@@ -46,17 +46,33 @@ fig_setting = {'x1': 3.5, 'x2': 4.5, 'y1': 30, 'y2': 48,
                'strip': False, 'routine': True,
                'zonotope': True, 'distribution': True,
                'head_width': 0.01, 'width': 0.002}
+# X_k, D_k, z_star, alpha, P, arrive = reach.reachable_set_k(2)
+# # reach.plot(X_k, D_k, alpha, fig_setting)
+#
+# X_k, D_k, z_star, alpha, P, arrive = reach.reachable_set_k(10)
+# # reach.plot(X_k, D_k, alpha, fig_setting)
+# print(P)
+#
+# i, satisfy, X_k, D_k, z_star, alpha, P, arrive = reach.given_P(P_given=0.95, max_k=40)
+# print('i=', i, 'found=', satisfy, 'P=', P)
+# reach.plot(X_k, D_k, alpha, fig_setting)
+
+k, X_k, D_k, z_star, alpha, P, arrive = reach.given_k(10)
+print(k, P, arrive)
+
+X_k, D_k, z_star, alpha, P, arrive = reach.reachable_set_k(1)
+print('k=', 1, '   P=', P, '   D_k=', D_k)
+
 X_k, D_k, z_star, alpha, P, arrive = reach.reachable_set_k(2)
-# reach.plot(X_k, D_k, alpha, fig_setting)
+print('k=', 2, '   P=', P, '   D_k=', D_k)
 
-X_k, D_k, z_star, alpha, P, arrive = reach.reachable_set_k(10)
-# reach.plot(X_k, D_k, alpha, fig_setting)
-print(P)
+X_k, D_k, z_star, alpha, P, arrive = reach.reachable_set_k(3)
+print('k=', 3, '   P=', P, '   D_k=', D_k)
 
-i, satisfy, X_k, D_k, z_star, alpha, P, arrive = reach.given_P(P_given=0.95, max_k=40)
-print('i=', i, 'found=', satisfy, 'P=', P)
-reach.plot(X_k, D_k, alpha, fig_setting)
+X_k, D_k, z_star, alpha, P, arrive = reach.reachable_set_k(4)
+print('k=', 4, '   P=', P, '   D_k=', D_k)
 
-
+X_k, D_k, z_star, alpha, P, arrive = reach.reachable_set_k(5)
+print('k=', 5, '   P=', P, '   D_k=', D_k)
 
 
