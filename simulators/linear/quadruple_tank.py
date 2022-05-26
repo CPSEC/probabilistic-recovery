@@ -69,11 +69,9 @@ class Controller:
     def __init__(self, dt):
         self.dt = dt
         self.pid1 = PID(Kp1, Ki1, Kd1, current_time=-dt)
-        self.pid1.clear()
         self.pid1.setWindup(100)
         self.pid1.setSampleTime(dt)
         self.pid2 = PID(Kp2, Ki2, Kd2, current_time=-dt)
-        self.pid2.clear()
         self.pid2.setWindup(100)
         self.pid2.setSampleTime(dt)
         self.set_control_limit(control_limit['lo'], control_limit['up'])
