@@ -20,8 +20,8 @@ B = np.concatenate((np.zeros((4, 3)), np.eye(4)), axis=1).T
 x_0 = np.array([0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
 
 # control parameters
-R = np.eye(4) * 0.001
-Q = np.eye(7)
+R = np.eye(4) * 0.0008
+Q = np.eye(7) * 1.2
 
 
 class Controller:

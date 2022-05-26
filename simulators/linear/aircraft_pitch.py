@@ -24,12 +24,17 @@ class Controller:
         self.pid.clear()
         self.pid.setWindup(100)
         self.pid.setSampleTime(dt)
-        self.pid.set_control_limit(control_limit['lo'], control_limit['up'])
+        self.set_control_limit(control_limit['lo'], control_limit['up'])
 
     def update(self, ref: np.ndarray, feedback_value: np.ndarray, current_time) -> np.ndarray:
         self.pid.set_reference(ref[0])
         cin = self.pid.update(feedback_value[0], current_time)
         return np.array([cin])
+
+    def set_control_limit(self, control_lo, control_up):
+        self.control_lo = control_lo
+        self.control_up = control_up
+        self.pid.set_control_limit(self.control_lo[0], self.control_up[0])
 
 
 class AircraftPitch(Simulator):
@@ -39,7 +44,7 @@ class AircraftPitch(Simulator):
           x[1]: Pitch rate
           x[2]: Pitch angle
       Control Input: (1,)
-          u[0]: the elecator deflection angle
+          u[0]: the elevator deflection angle
       Output:  (1,)
           y[0]: the pitch angle of the aircraft
           Output Feedback
@@ -84,3 +89,6 @@ if __name__ == "__main__":
 
     plt.plot(t_arr, y_arr, t_arr, ref)
     plt.show()
+
+    u_arr = [x[0] for x in aircraft_pitch.inputs[:max_index + 1]]
+    plt.plot(t_arr, u_arr)

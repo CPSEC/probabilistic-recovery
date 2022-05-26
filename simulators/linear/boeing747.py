@@ -4,34 +4,46 @@ from utils import PID, Simulator, LQRSSE, LQR
 
 # system dynamics
 A = np.array([[0, 0, 1, 0, 0],
-     [0, -0.0558, -0.9968, 0.0802, 0.0415],
-     [0, 0.598, -0.115, -0.0318, 0],
-     [0, -3.05, 0.388, -0.4650, 0],
-     [0, 0, 0.0805, 1, 0]])
+              [0, -0.0558, -0.9968, 0.0802, 0.0415],
+              [0, 0.598, -0.115, -0.0318, 0],
+              [0, -3.05, 0.388, -0.4650, 0],
+              [0, 0, 0.0805, 1, 0]])
 B = np.array([[0], [0.00729], [-0.475], [0.153], [0]])
 C = np.array([[1, 0, 0, 0, 0]])
 
-x_0 = np.array([0.0, 0.0, 0.0, 0.0, 0.0])
+x_0 = np.array([10.0, 0.0, 0.0, 0.0, 0.0])
 
 # control parameters
 R = np.array([[10]])
 Q = np.eye(5)
+# KP = 0
+# KI = 0
+# KD = 0
+KP = -10.6
+KI = 0.3
+KD = 3
+control_limit = {'lo': [-25], 'up': [25]}
 
-KP = -10
-KI = 0
-KD = 5
+
 class Controller:
     def __init__(self, dt):
         self.pid = PID(KP, KI, KD, current_time=-dt)
         self.pid.clear()
         self.pid.setWindup(100)
         self.pid.setSampleTime(dt)
-        # self.pid.setControlLimit()
+        self.set_control_limit(control_limit['lo'], control_limit['up'])
 
     def update(self, ref: np.ndarray, feedback_value: np.ndarray, current_time) -> np.ndarray:
         self.pid.set_reference(ref[0])
         cin = self.pid.update(feedback_value[0], current_time)
         return np.array([cin])
+
+    def set_control_limit(self, control_lo, control_up):
+        self.control_lo = control_lo
+        self.control_up = control_up
+        self.pid.set_control_limit(self.control_lo[0], self.control_up[0])
+
+
 # class Controller:
 #     def __init__(self, dt, control_limit=None):
 #         self.lqr = LQR(A, B, Q, R)
@@ -44,19 +56,20 @@ class Controller:
 
 class Boeing(Simulator):
     """
-              States: (4,)
-                  x[0]: side-slip angle
-                  x[1]: Yaw rate
-                  x[2]: roll rate
-                  x[3]: roll angle
-              Control Input: (2,)
+              States: (5,)
+                  x[0]: Yaw angle
+                  x[1]: Side-slip angle
+                  x[2]: Yaw rate
+                  x[3]: roll rate
+                  x[4]: roll angle
+              Control Input: (1,)
                   u[0]: Rudder
-                  u[1]: Aileron
-              Output:  (1,)
+              Output:  (2,)
                   y[0]: Yaw rate
                   Output Feedback
               Controller: PID
               """
+
     def __init__(self, name, dt, max_index, noise=None):
         super().__init__('Boeing' + name, dt, max_index)
         self.linear(A, B, C)
@@ -72,9 +85,9 @@ class Boeing(Simulator):
 
 
 if __name__ == "__main__":
-    max_index = 800
+    max_index = 1000
     dt = 0.02
-    ref = [np.array([1])] * 301 + [np.array([2])] * 300 + [np.array([1])] * 200
+    ref = [np.array([0])] * (max_index + 1)
     noise = {
         'process': {
             'type': 'white',
@@ -95,4 +108,9 @@ if __name__ == "__main__":
     y_arr = [x[0] for x in boeing.outputs[:max_index + 1]]
 
     plt.plot(t_arr, y_arr, t_arr, ref)
+
     plt.show()
+
+    # u_arr = [x[0] for x in boeing.inputs[:max_index + 1]]
+    # plt.plot(t_arr, u_arr)
+    # plt.show()

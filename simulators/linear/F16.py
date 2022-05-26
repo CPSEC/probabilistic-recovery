@@ -5,7 +5,7 @@ import math
 from utils import PID, Simulator
 
 # system dynamics
-A = np.array([[-1.93*math.pow(10, -2), 8.82, -32.2, -0.48],
+A = np.array([[-1.93 * math.pow(10, -2), 8.82, -32.2, -0.48],
               [-2.54 * math.pow(10, -4), -1.02, 0, 0.91],
               [0, 0, 0, 1],
               [2.95 * math.pow(10, -12), 0.82, 0, -1.08]])
@@ -19,6 +19,7 @@ x_0 = np.array([[0.0], [0.0], [0.0], [0.0]]).reshape((4,))
 KP = -1.5
 KI = 0
 KD = 0.2
+control_limit = {'lo': [-2], 'up': [2]}
 
 
 class Controller:
@@ -27,12 +28,17 @@ class Controller:
         self.pid.clear()
         self.pid.setWindup(100)
         self.pid.setSampleTime(dt)
-        # self.pid.setControlLimit()
+        self.set_control_limit(control_limit['lo'], control_limit['up'])
 
     def update(self, ref: np.ndarray, feedback_value: np.ndarray, current_time) -> np.ndarray:
         self.pid.set_reference(ref[0])
         cin = self.pid.update(feedback_value[0], current_time)
         return np.array([cin])
+
+    def set_control_limit(self, control_lo, control_up):
+        self.control_lo = control_lo
+        self.control_up = control_up
+        self.pid.set_control_limit(self.control_lo[0], self.control_up[0])
 
 
 class F16(Simulator):
@@ -49,6 +55,7 @@ class F16(Simulator):
                 Output Feedback
             Controller: PID
             """
+
     def __init__(self, name, dt, max_index, noise=None):
         super().__init__('F16 ' + name, dt, max_index)
         self.linear(A, B, C, D)
@@ -88,3 +95,7 @@ if __name__ == "__main__":
 
     plt.plot(t_arr, y_arr, t_arr, ref)
     plt.show()
+
+    # u_arr = [x[0] for x in f16.inputs[:max_index + 1]]
+    # plt.plot(t_arr, u_arr)
+    # plt.show()
