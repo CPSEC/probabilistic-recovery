@@ -49,7 +49,7 @@ class PID(Controller):
         self.current_time = current_time if current_time is not None else time.time()
         self.last_time = self.current_time
 
-        self.clear()
+        self.clear(current_time)
         self.control_lo = None
         self.control_up = None
 
