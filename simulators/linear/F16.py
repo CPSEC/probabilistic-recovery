@@ -19,9 +19,9 @@ x_0 = np.array([[500.0], [0.0393], [0.0], [0.0393]]).reshape((4,))
 # KP = -1
 # KI = 1.1
 # KD = 0.00594
-KP = -15
-KI = -4
-KD = 0.5
+KP = -1.5
+KI = -0.5
+KD = 0.2
 control_limit = {'lo': [-25], 'up': [25]}
 #Ref: https://archive.siam.org/books/dc11/f16/Model.pdf page 6
 
@@ -83,7 +83,7 @@ if __name__ == "__main__":
     noise = {
         'process': {
             'type': 'white',
-            'param': {'C': np.eye(4) * 0.00001}
+            'param': {'C': np.eye(4) * 0.0001}
         }
     }
     f16 = F16('test', dt, max_index, noise)
