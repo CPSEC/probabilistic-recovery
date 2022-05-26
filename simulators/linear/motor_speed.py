@@ -31,6 +31,7 @@ control_limit = {
 
 class Controller:
     def __init__(self, dt):
+        self.dt = dt
         self.pid = PID(P, I, D, current_time=-dt)
         self.pid.clear()
         self.pid.setWindup(100)
@@ -46,6 +47,9 @@ class Controller:
         self.control_lo = control_lo
         self.control_up = control_up
         self.pid.set_control_limit(self.control_lo[0], self.control_up[0])
+
+    def clear(self):
+        self.pid.clear(current_time=-self.dt)
 
 
 class MotorSpeed(Simulator):
