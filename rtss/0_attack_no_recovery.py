@@ -7,8 +7,8 @@ np.random.seed(0)
 
 exps = [msb, qtb, f16b]
 exps = [msb]
-exps = [qtb]
-exps = [f16b]
+# exps = [qtb]
+# exps = [f16b]
 
 for exp in exps:
     print('='*20, exp.name, '='*20)
