@@ -3,6 +3,7 @@ from scipy.signal import StateSpace
 from scipy.integrate import solve_ivp
 from utils.formal.gaussian_distribution import GaussianDistribution
 
+
 class Simulator:
     """
     states, control inputs/outputs are instance of np.array with shape (n,) (m,) (p,)
@@ -151,6 +152,9 @@ class Simulator:
         if self.feedback_type:
             self.cur_u = self.controller.update(self.cur_ref, self.cur_feedback, self.dt * self.cur_index)
         else:
+            self.cur_u = u
+        # override control input
+        if not (u is None):
             self.cur_u = u
         assert self.cur_u.shape == (self.m,)
         self.inputs[self.cur_index] = self.cur_u
