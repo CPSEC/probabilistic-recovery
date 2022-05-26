@@ -13,3 +13,6 @@ class Controller(ABC):
     @abstractmethod
     def set_reference(self, ref):
         pass
+
+    def clear(self):
+        pass
