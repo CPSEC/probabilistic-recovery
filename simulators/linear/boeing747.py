@@ -20,9 +20,9 @@ Q = np.eye(5)
 # KP = 0
 # KI = 0
 # KD = 0
-KP = -10.6
-KI = 0.3
-KD = 3
+KP = -100
+KI = 0
+KD = 30
 control_limit = {'lo': [-30], 'up': [30]}
 
 
@@ -88,13 +88,13 @@ class Boeing(Simulator):
 
 
 if __name__ == "__main__":
-    max_index = 1000
+    max_index = 2000
     dt = 0.02
     ref = [np.array([1])] * (max_index + 1)
     noise = {
         'process': {
             'type': 'white',
-            'param': {'C': np.eye(5) * 0.1}
+            'param': {'C': np.eye(5) * 0.01}
         }
     }
     boeing = Boeing('test', dt, max_index, noise)
