@@ -163,7 +163,7 @@ class Simulator:
         ts = (self.cur_index * self.dt, (self.cur_index + 1) * self.dt)
         res = solve_ivp(self.ode, ts, self.cur_x, args=(self.cur_u,))
         self.cur_index += 1
-        self.cur_x = res.y[:, -1]
+        # self.cur_x = res.y[:, -1]
         if self.model_type == 'linear':
             self.cur_x = self.sysd.A @ self.cur_x + self.sysd.B @ self.cur_u
         if self.p_noise is not None:  # process noise
