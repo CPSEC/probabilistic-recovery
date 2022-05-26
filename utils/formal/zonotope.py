@@ -201,12 +201,14 @@ class Zonotope:
         return fig
 
     # call from one-step control input zonotope
+    # for u, each row is a control input
     def alpha_to_control(self, alpha):
-        gs_l = self.g @ np.diag(alpha)
-        u_num = len(self) // u_dim
-        u = np.empty((u_num, self.dim), dtype=float)
+        u_dim = len(self)
+        u_num = alpha.shape[0]//u_dim
+        u = np.empty((u_num, u_dim), dtype=float)
         for i in range(u_num):
-            pass
+            u[i] = self.g @ alpha[i*u_dim:(i+1)*u_dim] + self.c
+        return u
 
     @classmethod
     def from_box(cls, lo: np.ndarray, up: np.ndarray):
@@ -271,3 +273,11 @@ if __name__ == '__main__':
 
     # plot zonotope
     v = z5.plot()
+
+    # test alpha to control
+    alpha = np.array([1, 1, -1, 1, -1, -1])
+    u_lo = np.array([-1, -4])
+    u_up = np.array([3, 4])
+    U = Zonotope.from_box(u_lo, u_up)
+    print(U)
+    print(U.alpha_to_control(alpha))
