@@ -23,10 +23,7 @@ x_0 = np.array([0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
 # control parameters
 R = np.eye(4) * 0.0008
 Q = np.eye(7) * 1.2
-control_limit = {
-    'lo': np.array([-4]),
-    'up': np.array([4])
-}
+
 
 class Controller:
     def __init__(self, dt, control_limit=None):
