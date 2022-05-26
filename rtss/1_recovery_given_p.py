@@ -9,6 +9,8 @@ np.random.seed(0)
 exps = [msb]
 
 for exp in exps:
+    print('=' * 20, exp.name, '=' * 20)
+
     # compute offline
     u_lo = exp.model.controller.control_lo
     u_up = exp.model.controller.control_up
@@ -36,7 +38,7 @@ for exp in exps:
             print('k=', k, 'P=', P, 'z_star=', z_star, 'arrive=', arrive)
             print('recovery_complete_index=', recovery_complete_index)
             if not satisfy:
-                print('cannot recovery!')
+                print('>>>> P is less than P_given!')
             rec_u = U.alpha_to_control(alpha)
             print(rec_u)
         if exp.recovery_index <= i < recovery_complete_index:

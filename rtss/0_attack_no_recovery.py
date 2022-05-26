@@ -1,11 +1,15 @@
 import matplotlib.pyplot as plt
 import numpy as np
 from rtss.settings import motor_speed_bias as msb
+from rtss.settings import quadruple_tank_bias as qtb
 np.random.seed(0)
 
+exps = [msb, qtb]
 exps = [msb]
+exps = [qtb]
 
 for exp in exps:
+    print('='*20, exp.name, '='*20)
     for i in range(0, exp.max_index + 1):
         assert exp.model.cur_index == i
         exp.model.update_current_ref(exp.ref[i])
