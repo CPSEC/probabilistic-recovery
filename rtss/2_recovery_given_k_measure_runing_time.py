@@ -7,9 +7,10 @@ from utils.formal.reachability import ReachableSet
 from utils.formal.gaussian_distribution import GaussianDistribution
 from rtss.settings import motor_speed_bias as msb
 from rtss.settings import quadruple_tank_bias as qtb
+from rtss.settings import f16_bias as f16b
 np.random.seed(0)
 
-exps = [msb, qtb]
+exps = [msb, qtb, f16b]
 max_ks = [10, 20, 30]
 result = {}
 plot = False
@@ -31,6 +32,7 @@ for exp in exps:
     recovery_complete_index = None
 
     for max_k in max_ks:
+        result[exp.name][max_k] = {}
         exp.model.reset()
         k = None
         rec_u = None
@@ -50,9 +52,11 @@ for exp in exps:
                 tic = perf_counter()
                 k, X_k, D_k, z_star, alpha, P, arrive = reach.given_k(max_k)
                 toc = perf_counter() - tic
-                result[exp.name][max_k] = toc
+                result[exp.name][max_k]['time'] = toc
                 recovery_complete_index = exp.recovery_index + k
                 print('k=', k, 'P=', P, 'z_star=', z_star, 'arrive=', arrive)
+                result[exp.name][max_k]['k'] = k
+                result[exp.name][max_k]['P'] = P
                 print('recovery_complete_index=', recovery_complete_index)
                 rec_u = U.alpha_to_control(alpha)
                 print(rec_u)

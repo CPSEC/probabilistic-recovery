@@ -9,8 +9,8 @@ from rtss.settings import f16_bias as f16b
 np.random.seed(0)
 
 exps = [msb]
-exps = [qtb]
-exps = [f16b]
+# exps = [qtb]
+# exps = [f16b]
 
 for exp in exps:
     print('=' * 20, exp.name, '=' * 20)
