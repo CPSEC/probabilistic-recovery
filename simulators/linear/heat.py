@@ -1,8 +1,8 @@
-#Ref:
+# Ref:
 
 import numpy as np
 import math
-from utils import PID, Simulator
+from utils import PID, Simulator, LQR
 
 # system dynamics
 state_num = 45
@@ -36,28 +36,39 @@ KP = 0.00000099 * state_num * state_num * state_num * state_num
 KI = 0
 KD = 0
 control_limit = {'lo': [-0.5], 'up': [50]}
+R = np.eye(1) * 0.0008
+Q = np.eye(state_num)
 
-
+#
+# class Controller:
+#     def __init__(self, dt):
+#         self.dt = dt
+#         self.pid = PID(KP, KI, KD, current_time=-dt)
+#         self.pid.setWindup(100)
+#         self.pid.setSampleTime(dt)
+#         self.set_control_limit(control_limit['lo'], control_limit['up'])
+#
+#     def update(self, ref: np.ndarray, feedback_value: np.ndarray, current_time) -> np.ndarray:
+#         self.pid.set_reference(ref[0])
+#         cin = self.pid.update(feedback_value[0], current_time)
+#         return np.array([cin])
+#
+#     def set_control_limit(self, control_lo, control_up):
+#         self.control_lo = control_lo
+#         self.control_up = control_up
+#         self.pid.set_control_limit(self.control_lo[0], self.control_up[0])
+#
+#     def clear(self):
+#         self.pid.clear(current_time=-self.dt)
 class Controller:
-    def __init__(self, dt):
-        self.dt = dt
-        self.pid = PID(KP, KI, KD, current_time=-dt)
-        self.pid.setWindup(100)
-        self.pid.setSampleTime(dt)
-        self.set_control_limit(control_limit['lo'], control_limit['up'])
+    def __init__(self, dt, control_limit=None):
+        self.lqr = LQR(A, B, Q, R)
+        # self.lqr.set_control_limit(control_limit['lo'], control_limit['up'])
 
     def update(self, ref: np.ndarray, feedback_value: np.ndarray, current_time) -> np.ndarray:
-        self.pid.set_reference(ref[0])
-        cin = self.pid.update(feedback_value[0], current_time)
-        return np.array([cin])
-
-    def set_control_limit(self, control_lo, control_up):
-        self.control_lo = control_lo
-        self.control_up = control_up
-        self.pid.set_control_limit(self.control_lo[0], self.control_up[0])
-
-    def clear(self):
-        self.pid.clear(current_time=-self.dt)
+        self.lqr.set_reference(ref)
+        cin = self.lqr.update(feedback_value, current_time)
+        return cin
 
 
 class Heat(Simulator):
