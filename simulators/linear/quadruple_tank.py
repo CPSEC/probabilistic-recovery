@@ -60,6 +60,10 @@ Kp2 = 2.7
 Ki2 = 1/40
 Kd2 = 0
 
+control_limit = {
+    'lo': np.array([0, 0]),
+    'up': np.array([10, 10])
+}
 
 class Controller:
     def __init__(self, dt):
@@ -71,6 +75,7 @@ class Controller:
         self.pid2.clear()
         self.pid2.setWindup(100)
         self.pid2.setSampleTime(dt)
+        self.set_control_limit(control_limit['lo'], control_limit['up'])
 
     def update(self, ref: np.ndarray, feedback_value: np.ndarray, current_time) -> np.ndarray:
         self.pid1.set_reference(ref[0])
@@ -78,6 +83,12 @@ class Controller:
         self.pid2.set_reference(ref[1])
         cin2 = self.pid2.update(feedback_value[1], current_time)
         return np.array([cin1, cin2])
+
+    def set_control_limit(self, control_lo, control_up):
+        self.control_lo = control_lo
+        self.control_up = control_up
+        self.pid1.set_control_limit(control_lo[0], control_up[0])
+        self.pid2.set_control_limit(control_lo[1], control_up[1])
 
 
 class QuadrupleTank(Simulator):

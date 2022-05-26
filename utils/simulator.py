@@ -3,6 +3,7 @@ from scipy.signal import StateSpace
 from scipy.integrate import solve_ivp
 from utils.formal.gaussian_distribution import GaussianDistribution
 
+
 class Simulator:
     """
     states, control inputs/outputs are instance of np.array with shape (n,) (m,) (p,)
@@ -21,6 +22,7 @@ class Simulator:
         self.m = None  # number of control inputs
         self.p = None  # number of sensor measurements
         self.ode = None  # ode function
+        self.init_state = None
         # values under self.cur_index
         self.cur_x = None
         self.cur_y = None
@@ -44,6 +46,12 @@ class Simulator:
         elif self.feedback_type == 'state':
             self.feedbacks = np.empty((self.max_index + 2, self.n), dtype=np.float)
             self.refs = np.empty((self.max_index + 2, self.n), dtype=np.float)  # reference value
+
+    def reset(self):
+        self.data_init()
+        self.cur_index = 0
+        self.set_init_state(self.init_state)
+        self.controller.clear()
 
     def linear(self, A, B, C=None, D=None):
         self.model_type = 'linear'
@@ -110,6 +118,7 @@ class Simulator:
                 self.m_noise = self.m_noise_dist.random(self.max_index + 2).T
 
     def set_init_state(self, x):
+        self.init_state = x
         self.cur_x = x
         self.cur_y = self.C @ self.cur_x
         if self.m_noise is not None:
@@ -144,6 +153,9 @@ class Simulator:
             self.cur_u = self.controller.update(self.cur_ref, self.cur_feedback, self.dt * self.cur_index)
         else:
             self.cur_u = u
+        # override control input
+        if not (u is None):
+            self.cur_u = u
         assert self.cur_u.shape == (self.m,)
         self.inputs[self.cur_index] = self.cur_u
 
@@ -151,7 +163,7 @@ class Simulator:
         ts = (self.cur_index * self.dt, (self.cur_index + 1) * self.dt)
         res = solve_ivp(self.ode, ts, self.cur_x, args=(self.cur_u,))
         self.cur_index += 1
-        self.cur_x = res.y[:, -1]
+        # self.cur_x = res.y[:, -1]
         if self.model_type == 'linear':
             self.cur_x = self.sysd.A @ self.cur_x + self.sysd.B @ self.cur_u
         if self.p_noise is not None:  # process noise
