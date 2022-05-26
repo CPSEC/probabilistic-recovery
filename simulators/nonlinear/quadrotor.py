@@ -35,9 +35,9 @@ control_limit = {
     'up': np.array([50])
 }
 
-KP = 0.1
+KP = 15
 KI = 0
-KD = 0.6
+KD = -4
 
 
 class Controller:
@@ -50,7 +50,7 @@ class Controller:
 
     def update(self, ref: np.ndarray, feedback_value: np.ndarray, current_time) -> np.ndarray:
         self.pid.set_reference(ref[0])
-        cin = self.pid.update(feedback_value[0], current_time)
+        cin = self.pid.update(feedback_value[5], current_time)
         return np.array([cin])
 
     def set_control_limit(self, control_lo, control_up):
@@ -65,10 +65,8 @@ class Controller:
 class Quadrotor(Simulator):
     """
                States: (12,)
-                    x[0], x[1], x[2]: relative position
-                    x[3], x[4], x[5]: angles of pitch
-                    x[6], x[7], x[8]: velocity of the quadrotor
-                    x[9], x[10], x[11]: angular velocity of the quadrotor
+                    x[9], x[10], x[11]: relative position
+                    x[11]: altitude
                Control Input: (4,)
                    u[0]: vertical thrust
                    u[1], u[2], u[3]:  one for each of the angular motions
