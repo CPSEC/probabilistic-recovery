@@ -1,4 +1,4 @@
-# Ref: https://ctms.engin.umich.edu/CTMS/index.php?example=MotorSpeed&section=SystemModeling
+# Ref: https://apps.dtic.mil/sti/pdfs/ADA339188.pdf page 26
 
 import numpy as np
 import math
