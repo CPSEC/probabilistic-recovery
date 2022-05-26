@@ -1,3 +1,4 @@
+#Ref: https://web.stanford.edu/class/archive/ee/ee392m/ee392m.1056/Lecture2_LinearSystems.pdf page 6
 import numpy as np
 
 from utils import PID, Simulator, LQRSSE, LQR

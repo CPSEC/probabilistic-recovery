@@ -1,3 +1,4 @@
+#Ref: https://ctms.engin.umich.edu/CTMS/index.php?example=AircraftPitch&section=ControlPID
 import numpy as np
 
 from utils import PID, Simulator

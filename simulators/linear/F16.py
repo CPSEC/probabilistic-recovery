@@ -13,7 +13,7 @@ B = np.array([[0.17], [-2.15 * math.pow(10, -3)], [0], [-0.18]])
 C = np.array([0, 0, 57.3, 0]).reshape((4,))
 D = np.array([0.0])
 
-x_0 = np.array([[0.0], [0.0], [0.0], [0.0]]).reshape((4,))
+x_0 = np.array([[500.0], [0.0393], [0.0], [0.0393]]).reshape((4,))
 
 # control parameters
 KP = -1.5
@@ -73,7 +73,7 @@ class F16(Simulator):
 if __name__ == "__main__":
     max_index = 500
     dt = 0.02
-    ref = [np.array([5])] * 201 + [np.array([4])] * 200 + [np.array([5])] * 100
+    ref = [np.array([0.0872665])] * 501
     noise = {
         'process': {
             'type': 'white',
