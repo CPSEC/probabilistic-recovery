@@ -72,6 +72,16 @@ class Controller:
 
 
 class Heat(Simulator):
+    """
+                States: (N,)
+                   x[i]: temperature on the i'th field
+                Control Input: (1,)
+                    heat source to heat the a point of the rod located at 1/3 of the length
+                Output:  (1,)
+                    record the temperature at 2/3 of the length
+                    Output Feedback
+                Controller: PID
+                """
     def __init__(self, name, dt, max_index, noise=None):
         super().__init__('Aircraft Pitch ' + name, dt, max_index)
         self.linear(A, B)
@@ -111,3 +121,7 @@ if __name__ == "__main__":
 
     plt.plot(t_arr, y_arr, t_arr, ref)
     plt.show()
+
+    # u_arr = [x[0] for x in heat.inputs[:max_index + 1]]
+    # plt.plot(t_arr, u_arr)
+    # plt.show()
