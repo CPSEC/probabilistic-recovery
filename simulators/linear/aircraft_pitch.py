@@ -75,7 +75,7 @@ if __name__ == "__main__":
     noise = {
         'process': {
             'type': 'white',
-            'param': {'C': np.eye(3) * 0.0001}
+            'param': {'C': np.eye(3) * 0.00001}
         }
     }
     aircraft_pitch = AircraftPitch('test', dt, max_index, noise)

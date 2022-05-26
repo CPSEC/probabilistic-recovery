@@ -22,8 +22,8 @@ x_0 = np.array([[500.0], [0.0393], [0.0], [0.0393]]).reshape((4,))
 KP = -15
 KI = -4
 KD = 0.5
-control_limit = {'lo': [-2], 'up': [2]}
-
+control_limit = {'lo': [-25], 'up': [25]}
+#Ref: https://archive.siam.org/books/dc11/f16/Model.pdf page 6
 
 class Controller:
     def __init__(self, dt):
@@ -79,7 +79,7 @@ class F16(Simulator):
 if __name__ == "__main__":
     max_index = 500
     dt = 0.02
-    ref = [np.array([0.0872665])] * 501
+    ref = [np.array([0.0872665 * 57.3])] * 501
     noise = {
         'process': {
             'type': 'white',
