@@ -14,8 +14,8 @@ np.random.seed(0)
 
 exps = [msb]
 exps = [apb]
-exps = [boeb]
-exps = [hb]
+# exps = [boeb]
+# exps = [hb]
 # exps = [pltb]
 # exps = [rcb]
 # exps = [qdb]
@@ -67,16 +67,26 @@ for exp in exps:
 
     ref = [x[exp.ref_index] for x in exp.model.refs[:recovery_complete_index + 1]]
     y_arr = [x[exp.output_index] for x in exp.model.outputs[:recovery_complete_index + 1]]
-    fig = plt.figure()
-    plt.title(exp.name+' y_'+str(exp.output_index))
-    plt.plot(t_arr, ref, t_arr, y_arr)
+    plt.rcParams.update({'font.size': 18})  # front sizw
+    fig = plt.figure(figsize=(8, 4))
+    # plt.title(exp.name+' y_'+str(exp.output_index))
+    plt.ylabel(exp.y_label)
+    plt.plot(t_arr, ref, color='black', linestyle='dashed')
+    plt.plot(t_arr, y_arr)
+    plt.vlines(exp.attack_start_index*exp.dt, exp.y_lim[0], exp.y_lim[1], colors='red', linestyle='dashed')
+    plt.vlines(exp.recovery_index*exp.dt, exp.y_lim[0], exp.y_lim[1], colors='green', linestyle='dotted', linewidth=2.5)
+    plt.hlines(exp.strip[0], exp.x_lim, recovery_complete_index*exp.dt, colors='grey')
+    plt.hlines(exp.strip[1], exp.x_lim, recovery_complete_index * exp.dt, colors='grey')
+    plt.ylim(exp.y_lim)
+    plt.xlim(exp.x_lim, recovery_complete_index*exp.dt)
+    plt.savefig('./fig/'+exp.name+'.pdf', format='pdf', bbox_inches='tight')
     plt.show()
 
     # control input
-    for i in range(exp.model.m):
-        u_arr = [x[i] for x in exp.model.inputs[:recovery_complete_index + 1]]
-        fig = plt.figure()
-        plt.title(exp.name+' u_'+str(i))
-        plt.plot(t_arr, u_arr)
-        plt.show()
+    # for i in range(exp.model.m):
+    #     u_arr = [x[i] for x in exp.model.inputs[:recovery_complete_index + 1]]
+    #     fig = plt.figure()
+    #     plt.title(exp.name+' u_'+str(i))
+    #     plt.plot(t_arr, u_arr)
+    #     plt.show()
 

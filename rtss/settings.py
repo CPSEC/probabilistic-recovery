@@ -41,6 +41,10 @@ class motor_speed_bias:
     # plot
     ref_index = 0
     output_index = 0
+    x_lim = 2.8
+    y_lim = (3.65, 5.5)
+    y_label = 'rotational speed - rad/sec'
+    strip = (4.3, 3.7)
 
 
 # -------------------- quadruple tank ----------------------------
@@ -72,6 +76,10 @@ class quadruple_tank_bias:
     # plot
     ref_index = 0
     output_index = 0
+    x_lim = 8
+    y_lim = (0, 1.2)
+    y_label = 'rotational speed - rad/sec'
+    strip = (4.3, 3.7)
 
 
 # -------------------- f16 ----------------------------
@@ -134,6 +142,10 @@ class aircraft_pitch_bias:
     # plot
     ref_index = 0
     output_index = 0
+    x_lim = 8
+    y_lim = (0, 1.2)
+    y_label = 'pitch - rad'
+    strip = (0.33, 0.27)
 
 
 # -------------------- boeing747 ----------------------------

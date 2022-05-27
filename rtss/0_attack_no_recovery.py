@@ -33,7 +33,8 @@ for exp in exps:
         y_arr = [x[i] for x in exp.model.outputs[:exp.max_index + 1]]
         fig = plt.figure()
         plt.title(exp.name+' y_'+str(i))
-        plt.plot(t_arr, ref, t_arr, y_arr)
+        plt.plot(t_arr, ref, color='black', linestyle='dashed')
+        plt.plot(t_arr, y_arr)
         plt.show()
     # control input
     for i in range(exp.model.m):
