@@ -76,10 +76,10 @@ class quadruple_tank_bias:
     # plot
     ref_index = 0
     output_index = 0
-    x_lim = 8
-    y_lim = (0, 1.2)
-    y_label = 'rotational speed - rad/sec'
-    strip = (4.3, 3.7)
+    x_lim = 75
+    y_lim = (6, 10)
+    y_label = 'water level - cm'
+    strip = (7.3, 6.7)
 
 
 # -------------------- f16 ----------------------------
@@ -111,7 +111,10 @@ class f16_bias:
     # plot
     ref_index = 0
     output_index = 0
-
+    x_lim = 7.5
+    y_lim = (4.5, 7)
+    y_label = 'pitch angle - rad'
+    strip = (8.76e-02*57.3, 8.75e-02*57.3)
 
 # -------------------- aircraft_pitch ----------------------------
 class aircraft_pitch_bias:
@@ -177,7 +180,10 @@ class boeing747_bias:
     # plot
     ref_index = 0
     output_index = 0
-
+    x_lim = 7.5
+    y_lim = (0.4, 2.2)
+    y_label = 'Yaw angle - rad'
+    strip = (0.7, 1.3)
 
 # -------------------- heat ----------------------------
 class heat_bias:
@@ -272,7 +278,10 @@ class rlc_circuit_bias:
     # plot
     ref_index = 0
     output_index = 0
-
+    x_lim = 7.7
+    y_lim = (2.6, 4.1)
+    y_label = 'Capacitor Voltage - V'
+    strip = (2.7, 3.3)
 
 # -------------------- quadrotor ----------------------------
 class quadrotor_bias:
@@ -303,3 +312,7 @@ class quadrotor_bias:
     # plot
     ref_index = 0
     output_index = 5
+    x_lim = 7.7
+    y_lim = (3.6, 5.2)
+    y_label = 'Altitude - m'
+    strip = (4.3, 3.7)

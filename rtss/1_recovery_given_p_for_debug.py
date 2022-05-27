@@ -10,15 +10,19 @@ from rtss.settings import heat_bias as hb
 from rtss.settings import platoon_bias as pltb
 from rtss.settings import rlc_circuit_bias as rcb
 from rtss.settings import quadrotor_bias as qdb
+from rtss.settings import quadruple_tank_bias as qtb
+from rtss.settings import f16_bias as f16b
 np.random.seed(0)
 
 exps = [msb]
 exps = [apb]
-# exps = [boeb]
+exps = [boeb]
 # exps = [hb]
 # exps = [pltb]
-# exps = [rcb]
-# exps = [qdb]
+exps = [rcb]
+exps = [qdb]
+exps = [qtb]
+exps = [f16b]
 
 for exp in exps:
     print('=' * 20, exp.name, '=' * 20)
