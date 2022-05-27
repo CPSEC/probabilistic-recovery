@@ -16,7 +16,7 @@ np.random.seed(0)
 
 exps = [msb, qtb, f16b, apb, boeb, rcb, qdb]
 # exps = [f16b]
-given_Ps = [0.3, 0.6, 0.9]
+given_Ps = [0.7, 0.8, 0.95]
 result = {}
 plot = False
 
@@ -61,8 +61,9 @@ for exp in exps:
                 recovery_complete_index = exp.recovery_index + k
                 print('k=', k, 'P=', P, 'z_star=', z_star, 'arrive=', arrive)
                 result[exp.name][given_P]['k'] = k
-                result[exp.name][given_P]['P'] = P
-                result[exp.name][given_P]['success'] = satisfy
+                result[exp.name][given_P]['max_k'] = 50
+                # result[exp.name][given_P]['P'] = P
+                # result[exp.name][given_P]['success'] = satisfy
                 print('recovery_complete_index=', recovery_complete_index)
                 rec_u = U.alpha_to_control(alpha)
                 print(rec_u)
