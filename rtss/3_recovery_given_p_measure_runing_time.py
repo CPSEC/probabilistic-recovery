@@ -12,10 +12,12 @@ from rtss.settings import aircraft_pitch_bias as apb
 from rtss.settings import boeing747_bias as boeb
 from rtss.settings import rlc_circuit_bias as rcb
 from rtss.settings import quadrotor_bias as qdb
+from rtss.settings import heat_bias as htb
 np.random.seed(0)
 
-exps = [msb, qtb, f16b, apb, boeb, rcb, qdb]
+# exps = [msb, qtb, f16b, apb, boeb, rcb, qdb]
 # exps = [f16b]
+exps = [htb]
 given_Ps = [0.7, 0.8, 0.95]
 result = {}
 plot = False

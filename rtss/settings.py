@@ -208,12 +208,12 @@ class heat_bias:
     recovery_index = 500
 
     # needed by 1_recovery_given_p
-    C = np.zeros((1, 45))
+    l = np.zeros((45,))
     y_point = (45 + 1) // 3 * 2 - 1
-    C[0, y_point] = -1
-    s = Strip(C, a=-15.3, b=-14.7)
+    l[y_point] = -1
+    s = Strip(l, a=-15.3, b=-14.7)
     P_given = 0.95
-    max_recovery_step = 40
+    max_recovery_step = 60
     # plot
     ref_index = 0
     output_index = 0

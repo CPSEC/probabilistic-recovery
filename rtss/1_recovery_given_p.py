@@ -17,12 +17,12 @@ np.random.seed(0)
 exps = [msb]
 exps = [apb]
 exps = [boeb]
-# exps = [hb]
+exps = [hb]
 # exps = [pltb]
-exps = [rcb]
-exps = [qdb]
-exps = [qtb]
-exps = [f16b]
+# exps = [rcb]
+# exps = [qdb]
+# exps = [qtb]
+# exps = [f16b]
 for exp in exps:
     print('=' * 20, exp.name, '=' * 20)
 
