@@ -68,7 +68,7 @@ class Boeing(Simulator):
               Control Input: (1,)
                   u[0]: Rudder
               Output:  (2,)
-                  y[0]: Yaw rate
+                  y[0]: Yaw angle
                   Output Feedback
               Controller: PID
               """

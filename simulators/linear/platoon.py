@@ -24,17 +24,26 @@ x_0 = np.array([0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
 R = np.eye(4) * 0.0008
 Q = np.eye(7) * 1.2
 
-
+control_limit = {
+    'lo': np.array([-5]),
+    'up': np.array([5])
+}
 class Controller:
     def __init__(self, dt, control_limit=None):
         self.lqr = LQR(A, B, Q, R)
-        # self.lqr.set_control_limit(control_limit['lo'], control_limit['up'])
+        self.set_control_limit(control_lo=control_limit['lo'], control_up=control_limit['up'])
 
     def update(self, ref: np.ndarray, feedback_value: np.ndarray, current_time) -> np.ndarray:
         self.lqr.set_reference(ref)
         cin = self.lqr.update(feedback_value, current_time)
         return cin
+    def set_control_limit(self, control_lo, control_up):
+        self.control_lo = control_lo
+        self.control_up = control_up
+        self.lqr.set_control_limit(self.control_lo[0], self.control_up[0])
 
+    def clear(self):
+        self.pid.clear(current_time=-self.dt)
 
 class Platoon(Simulator):
     """
@@ -57,7 +66,7 @@ class Platoon(Simulator):
     def __init__(self, name, dt, max_index, noise=None):
         super().__init__('Platoon' + name, dt, max_index)
         self.linear(A, B)
-        controller = Controller(dt)
+        controller = Controller(dt, control_limit)
         settings = {
             'init_state': x_0,
             'feedback_type': 'state',

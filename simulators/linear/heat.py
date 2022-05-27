@@ -103,10 +103,10 @@ if __name__ == "__main__":
     noise = {
         'process': {
             'type': 'white',
-            'param': {'C': np.eye(200) * 0.01}
+            'param': {'C': np.eye(state_num) * 0.01}
         }
     }
-    heat = Heat('test', dt, max_index, None)
+    heat = Heat('test', dt, max_index, noise)
     for i in range(0, max_index + 1):
         assert heat.cur_index == i
         heat.update_current_ref(ref[i])

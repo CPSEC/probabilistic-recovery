@@ -18,7 +18,7 @@ class LQR(Controller):
         cin = -self.K @ (feedback_value - self.ref)
         if self.control_lo and self.control_up:
             for i in range(len(cin)):
-                cin[i] = np.clip(cin[i], self.control_lo[i], self.control_up[i])
+                cin[i] = np.clip(cin[i], self.control_lo, self.control_up)
         return cin
 
     def set_control_limit(self, control_lo: np.ndarray, control_up: np.ndarray):

@@ -3,6 +3,11 @@ from simulators.linear.motor_speed import MotorSpeed
 from simulators.linear.quadruple_tank import QuadrupleTank
 from simulators.linear.F16 import F16
 from simulators.linear.aircraft_pitch import AircraftPitch
+from simulators.linear.boeing747 import Boeing
+from simulators.linear.heat import Heat
+from simulators.linear.platoon import Platoon
+from simulators.linear.rlc_circuit import RlcCircuit
+from simulators.nonlinear.quadrotor import Quadrotor
 from utils.attack import Attack
 from utils.formal.strip import Strip
 
@@ -83,8 +88,8 @@ class f16_bias:
         }
     }
     model = F16('test', dt, max_index, noise)
-    control_lo = np.array([-2])
-    control_up = np.array([2])
+    control_lo = np.array([-25])
+    control_up = np.array([25])
     model.controller.set_control_limit(control_lo, control_up)
     attack_start_index = 400
     bias = np.array([-1])
@@ -99,9 +104,10 @@ class f16_bias:
     ref_index = 0
     output_index = 0
 
+
 # -------------------- aircraft_pitch ----------------------------
 class aircraft_pitch_bias:
- # needed by 0_attack_no_recovery
+    # needed by 0_attack_no_recovery
     name = 'aircraft_pitch_bias'
     max_index = 1500
     dt = 0.02
@@ -116,10 +122,10 @@ class aircraft_pitch_bias:
     control_lo = np.array([-20])
     control_up = np.array([20])
     model.controller.set_control_limit(control_lo, control_up)
-    attack_start_index = 600
+    attack_start_index = 500
     bias = np.array([-1])
     attack = Attack('bias', bias, attack_start_index)
-    recovery_index = 800
+    recovery_index = 700
 
     # needed by 1_recovery_given_p
     s = Strip(np.array([0, 0, -1]), a=-0.33, b=--0.27)
@@ -128,3 +134,160 @@ class aircraft_pitch_bias:
     # plot
     ref_index = 0
     output_index = 0
+
+
+# -------------------- boeing747 ----------------------------
+class boeing747_bias:
+    # needed by 0_attack_no_recovery
+    name = 'boeing747'
+    max_index = 800
+    dt = 0.02
+    ref = [np.array([1])] * (max_index + 1)
+    noise = {
+        'process': {
+            'type': 'white',
+            'param': {'C': np.eye(5) * 0.0001}
+        }
+    }
+    model = Boeing('boeing747', dt, max_index, noise)
+    control_lo = np.array([-30])
+    control_up = np.array([30])
+    model.controller.set_control_limit(control_lo, control_up)
+    attack_start_index = 400
+    bias = np.array([-1])
+    attack = Attack('bias', bias, attack_start_index)
+    recovery_index = 500
+
+    # needed by 1_recovery_given_p
+    s = Strip(np.array([-1, 0, 0, 0, 0]), a=-1.3, b=-0.7)
+    P_given = 0.95
+    max_recovery_step = 40
+    # plot
+    ref_index = 0
+    output_index = 0
+
+
+# -------------------- heat ----------------------------
+class heat_bias:
+    # needed by 0_attack_no_recovery
+    name = 'heat'
+    max_index = 1000
+    dt = 1
+    ref = [np.array([15])] * (max_index + 1)
+    noise = {
+        'process': {
+            'type': 'white',
+            'param': {'C': np.eye(45) * 0.0001}
+        }
+    }
+    model = Heat('heat', dt, max_index, noise)
+    control_lo = np.array([-0.5])
+    control_up = np.array([50])
+    model.controller.set_control_limit(control_lo, control_up)
+    attack_start_index = 400
+    bias = np.array([-1])
+    attack = Attack('bias', bias, attack_start_index)
+    recovery_index = 500
+
+    # needed by 1_recovery_given_p
+    C = np.zeros((1, 45))
+    y_point = (45 + 1) // 3 * 2 - 1
+    C[0, y_point] = -1
+    s = Strip(C, a=-15.3, b=-14.7)
+    P_given = 0.95
+    max_recovery_step = 40
+    # plot
+    ref_index = 0
+    output_index = 0
+
+# -------------------- platoon ----------------------------
+class platoon_bias:
+    # needed by 0_attack_no_recovery
+    name = 'platoon'
+    max_index = 800
+    dt = 0.02
+    ref = [np.array([2])] * (max_index + 1)
+    noise = {
+        'process': {
+            'type': 'white',
+            'param': {'C': np.eye(7) * 0.0001}
+        }
+    }
+    model = Platoon('Platoon', dt, max_index, noise)
+    control_lo = np.array([-5])
+    control_up = np.array([5])
+    model.controller.set_control_limit(control_lo, control_up)
+    attack_start_index = 400
+    bias = np.array([-1])
+    attack = Attack('bias', bias, attack_start_index)
+    recovery_index = 500
+
+    # needed by 1_recovery_given_p
+    s = Strip(np.array([-1, 0, 0, 0, 0, 0, 0]), a=-2.3, b=-1.7)
+    P_given = 0.95
+    max_recovery_step = 40
+    # plot
+    ref_index = 0
+    output_index = 0
+
+
+# -------------------- rlc_circuit ----------------------------
+class rlc_circuit_bias:
+    # needed by 0_attack_no_recovery
+    name = 'rlc_circuit'
+    max_index = 600
+    dt = 0.02
+    ref = [np.array([3])] * (max_index + 1)
+    noise = {
+        'process': {
+            'type': 'white',
+            'param': {'C': np.eye(2) * 0.0001}
+        }
+    }
+    model = RlcCircuit('rlc_circuit', dt, max_index, noise)
+    control_lo = np.array([-15])
+    control_up = np.array([15])
+    model.controller.set_control_limit(control_lo, control_up)
+    attack_start_index = 400
+    bias = np.array([-1])
+    attack = Attack('bias', bias, attack_start_index)
+    recovery_index = 500
+
+    # needed by 1_recovery_given_p
+    s = Strip(np.array([-1, 0]), a=-3.3, b=-2.7)
+    P_given = 0.95
+    max_recovery_step = 40
+    # plot
+    ref_index = 0
+    output_index = 0
+
+
+# -------------------- quadrotor ----------------------------
+class quadrotor_bias:
+    # needed by 0_attack_no_recovery
+    name = 'quadrotor'
+    max_index = 600
+    dt = 0.02
+    ref = [np.array([4])] * (max_index + 1)
+    noise = {
+        'process': {
+            'type': 'white',
+            'param': {'C': np.eye(12) * 0.0001}
+        }
+    }
+    model = Quadrotor('quadrotor', dt, max_index, noise)
+    control_lo = np.array([-50])
+    control_up = np.array([50])
+    model.controller.set_control_limit(control_lo, control_up)
+    attack_start_index = 400
+    bias = np.array([-1])
+    attack = Attack('bias', bias, attack_start_index)
+    recovery_index = 500
+
+    # needed by 1_recovery_given_p
+    s = Strip(np.array([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1]), a=-4.3, b=-3.7)
+    P_given = 0.95
+    max_recovery_step = 40
+    # plot
+    ref_index = 0
+    output_index = 5
