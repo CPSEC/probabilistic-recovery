@@ -4,23 +4,13 @@ from rtss.settings import motor_speed_bias as msb
 from rtss.settings import quadruple_tank_bias as qtb
 from rtss.settings import f16_bias as f16b
 from rtss.settings import aircraft_pitch_bias as apb
-from rtss.settings import heat_bias as hb
-from rtss.settings import platoon_bias as pltb
-from rtss.settings import boeing747_bias as boeb
-from rtss.settings import rlc_circuit_bias as rcb
-from rtss.settings import quadrotor_bias as qdb
 np.random.seed(0)
 
 exps = [msb, qtb, f16b]
 exps = [msb]
-exps = [qtb]
+# exps = [qtb]
 # exps = [f16b]
-exps = [apb]
-# exps = [boeb]
-exps = [hb]
-exps = [pltb]
-exps = [rcb]
-exps = [qdb]
+# exps = [apb]
 for exp in exps:
     print('='*20, exp.name, '='*20)
     for i in range(0, exp.max_index + 1):
