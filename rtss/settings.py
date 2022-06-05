@@ -7,7 +7,7 @@ from simulators.linear.boeing747 import Boeing
 from simulators.linear.heat import Heat
 from simulators.linear.platoon import Platoon
 from simulators.linear.rlc_circuit import RlcCircuit
-from simulators.nonlinear.quadrotor import Quadrotor
+from simulators.linear.quadrotor import Quadrotor
 from utils.attack import Attack
 from utils.formal.strip import Strip
 
