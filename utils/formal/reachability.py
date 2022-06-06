@@ -16,9 +16,12 @@ class ReachableSet:
         self.ready = False
         self.max_step = max_step
         self.u_dim = len(U)
+        self.A = A
+        self.B = B
         self.A_k = [np.eye(A.shape[0])]
         for i in range(max_step):
             self.A_k.append(A @ self.A_k[-1])
+        self.A_k_B = [val @ B for val in self.A_k]
         self.A_k_B_U = [val @ B @ U for val in self.A_k]
         self.A_k_W = [val @ W for val in self.A_k]
         self.bar_u_k = [U, self.A_k_B_U[0]]
@@ -40,6 +43,13 @@ class ReachableSet:
             self.hp = self.s.center()
         return X_k
 
+    def state_reconstruction(self, us) -> GaussianDistribution:
+        k = len(us)
+        x = self.x_0.miu
+        for u in us:
+            x = self.A@x + self.B@u
+        return self.distribution(x, k)
+
     def first_intersection(self) -> ([int, None], Zonotope):
         for i in range(1, self.max_step):
             X_k = self.reachable_set_wo_noise(i)
@@ -47,7 +57,7 @@ class ReachableSet:
                 return i, X_k
         return None, X_k
 
-    def distribution(self, vertex: np.ndarray, k: int):
+    def distribution(self, vertex: [np.ndarray, GaussianDistribution], k: int):
         return vertex + self.bar_w_k[k]
 
     def reachable_set_k(self, k: int):

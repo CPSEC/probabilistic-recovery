@@ -38,6 +38,6 @@ class KalmanFilter:
         x_res[0] = x
         P_res[0] = P
         for i in range(length):
-            x_res[i+1], P_res[i+1] = self.one_step(x[i], P[i], us[i], ys[i])
+            x_res[i+1], P_res[i+1] = self.one_step(x_res[i], P_res[i], us[i], ys[i])
         return x_res, P_res
 
