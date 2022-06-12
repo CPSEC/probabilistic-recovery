@@ -17,7 +17,7 @@ class motor_speed_bias:
     noise = {
         'process': {
             'type': 'white',
-            'param': {'C': np.array([[0.05, 0], [0, 0.4]])}
+            'param': {'C': np.array([[0.1, 0], [0, 0.4]])}
         }
     }
     model = MotorSpeed('bias', dt, max_index, noise)
