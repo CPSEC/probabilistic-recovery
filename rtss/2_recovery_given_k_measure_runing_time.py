@@ -13,7 +13,6 @@ from rtss.settings import boeing747_bias as boeb
 from rtss.settings import rlc_circuit_bias as rcb
 from rtss.settings import quadrotor_bias as qdb
 from rtss.settings import heat_bias as htb
-np.random.seed(0)
 
 exps = [msb, qtb, f16b, apb, boeb, rcb, qdb]
 exps = [htb]

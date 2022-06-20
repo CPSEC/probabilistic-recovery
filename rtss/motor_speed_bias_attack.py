@@ -3,7 +3,6 @@ import numpy as np
 from utils.attack import Attack
 
 # --------------- parameters  -----------------------------
-np.random.seed(0)
 max_index = 500
 dt = 0.02
 ref = [np.array([4])] * 501

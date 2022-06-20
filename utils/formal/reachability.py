@@ -97,7 +97,7 @@ class ReachableSet:
             res = self.reachable_set_k(i)
             reach_res.append(res)
             X_k, D_k, z_star, alpha, P, arrive = res
-            if P > max_P or P == 0.0:
+            if P > max_P or P < 1e-7:     # fix bug when P is close to 0
                 max_P = P
                 k = i
         return k, *reach_res[k-1]

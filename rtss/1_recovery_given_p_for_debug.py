@@ -12,7 +12,7 @@ from rtss.settings import rlc_circuit_bias as rcb
 from rtss.settings import quadrotor_bias as qdb
 from rtss.settings import quadruple_tank_bias as qtb
 from rtss.settings import f16_bias as f16b
-np.random.seed(0)
+
 
 exps = [msb]
 exps = [apb]

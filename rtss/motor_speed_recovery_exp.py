@@ -8,7 +8,6 @@ from utils.formal.gaussian_distribution import GaussianDistribution
 from utils.formal.strip import Strip
 
 # --------------- parameters  -----------------------------
-np.random.seed(0)
 max_index = 500
 dt = 0.02
 ref = [np.array([4])] * 501

@@ -3,7 +3,6 @@ from simulators.linear.quadruple_tank import QuadrupleTank
 from utils.attack import Attack
 
 # --------------- parameters  -----------------------------
-np.random.seed(0)
 max_index = 200
 dt = 1
 ref = [np.array([7, 7])] * 1001 + [np.array([7, 7])] * 1000

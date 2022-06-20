@@ -1,8 +1,20 @@
 import numpy as np
+import os, time
 from scipy.signal import StateSpace
 from scipy.integrate import solve_ivp
 from utils.formal.gaussian_distribution import GaussianDistribution
-np.random.seed(0)
+
+rseed_str = os.getenv('RANDOM_SEED')
+if rseed_str is None:
+    rseed = np.uint32(int(time.time()))
+else:
+    try:
+        rseed = np.uint32(rseed_str)
+    except Exception as e:
+        print('rseed read error:', e)
+        rseed = np.uint32(int(time.time()))
+print('rseed=', rseed)
+np.random.seed(rseed)
 
 class Simulator:
     """
@@ -48,6 +60,7 @@ class Simulator:
             self.refs = np.empty((self.max_index + 2, self.n), dtype=np.float)  # reference value
 
     def reset(self):
+        # the noise will not reset!
         self.data_init()
         self.cur_index = 0
         self.set_init_state(self.init_state)
