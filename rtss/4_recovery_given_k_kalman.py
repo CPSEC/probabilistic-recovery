@@ -4,13 +4,14 @@ from copy import deepcopy
 import matplotlib.pyplot as plt
 import numpy as np
 
-from settings_kf import motor_speed_bias
+from settings_kf import motor_speed_bias, quadruple_tank_bias
 from utils.formal.gaussian_distribution import GaussianDistribution
 from utils.formal.reachability import ReachableSet
 from utils.formal.zonotope import Zonotope
 from utils.observers.kalman_filter import KalmanFilter
 
 exps = [motor_speed_bias]
+exps = [quadruple_tank_bias]
 result = {}   # for print or plot
 for exp in exps:
     # ----------------------------------- w/o kalman filter ---------------------------
@@ -55,7 +56,7 @@ for exp in exps:
             reach.init(x_res_point, exp.s)
             # k, satisfy, X_k, D_k, z_star, alpha, P, arrive = reach.given_P(P_given=exp.P_given, max_k=40)
             # k, satisfy, X_k, D_k, z_star, alpha, P, arrive = reach.given_P(P_given=given_P, max_k=50)
-            k, X_k, D_k, z_star, alpha, P, arrive = reach.given_k(max_k=50)
+            k, X_k, D_k, z_star, alpha, P, arrive = reach.given_k(max_k=exp.k_given)
             recovery_complete_index = exp.recovery_index + k
             print('k=', k, 'P=', P, 'z_star=', z_star, 'arrive=', arrive)
             print('D_k=', D_k)
@@ -73,9 +74,11 @@ for exp in exps:
                 print('state after recovery:', exp.model.cur_x)
             exp.model.evolve()
 
-    result['w/'] = {}
-    result['w/']['outputs'] = deepcopy(exp.model.outputs)
-    result['w/']['recovery_complete_index'] = recovery_complete_index
+    result['w/o'] = {}
+    result['w/o']['outputs'] = deepcopy(exp.model.outputs)
+    result['w/o']['recovery_complete_index'] = recovery_complete_index
+    P_final = D_k.prob_in_strip(exp.s)
+    result['w/o']['P_final'] = P_final
 
     # ----------------------------------- w/ kalman filter ---------------------------
     exp.model.reset()
@@ -121,7 +124,7 @@ for exp in exps:
             print('x_cur_real=', exp.model.cur_x)
 
             reach.init(x_cur_update, exp.s)
-            k, X_k, D_k, z_star, alpha, P, arrive = reach.given_k(max_k=50)
+            k, X_k, D_k, z_star, alpha, P, arrive = reach.given_k(max_k=exp.k_given)
             recovery_complete_index = exp.recovery_index + k
             rec_u_temp = U.alpha_to_control(alpha)
             rec_u_index = i - exp.recovery_index
@@ -136,7 +139,8 @@ for exp in exps:
             print('x_cur_real=', exp.model.cur_x)
 
             reach.init(x_cur_update, exp.s)
-            k, X_k, D_k, z_star, alpha, P, arrive = reach.given_k(max_k=50)
+            k, X_k, D_k, z_star, alpha, P, arrive = reach.given_k(max_k=exp.k_given)
+            recovery_complete_index = i + k
             print('k=', k, ' D_k=', D_k)
             rec_u_temp = U.alpha_to_control(alpha)
             rec_u_index = i - exp.recovery_index
@@ -153,9 +157,11 @@ for exp in exps:
                 print('state after recovery:', exp.model.cur_x)
             exp.model.evolve()
 
-    result['w/o'] = {}
-    result['w/o']['outputs'] = deepcopy(exp.model.outputs)
-    result['w/o']['recovery_complete_index'] = recovery_complete_index
+    result['w/'] = {}
+    result['w/']['outputs'] = deepcopy(exp.model.outputs)
+    result['w/']['recovery_complete_index'] = recovery_complete_index
+    P_final = D_k.prob_in_strip(exp.s)
+    result['w/']['P_final'] = P_final
 
     # # plot
     # t_arr = np.linspace(0, exp.dt * exp.max_index, exp.max_index + 1)
@@ -179,8 +185,7 @@ for exp in exps:
     #     plt.plot(t_arr, u_arr)
     #     plt.show()
 
-    P_final = D_k.prob_in_strip(exp.s)
-    print(f'P_final={P_final}')
+    print('P_final_w/o_kf={}\nP_final_w/_kf={}'.format(result['w/o']['P_final'], result['w/']['P_final']))
 
     # plot
     plt.rcParams.update({'font.size': 18})  # front sizw

@@ -32,7 +32,7 @@ class motor_speed_bias:
     attack_start_index = 150
     bias = np.array([-1])
     attack = Attack('bias', bias, attack_start_index)
-    recovery_index = 200
+    recovery_index = 180
 
     # needed by 1_recovery_given_p
     s = Strip(np.array([-1, 0]), a=-4.3, b=-3.7)
@@ -47,7 +47,7 @@ class motor_speed_bias:
     strip = (4.3, 3.7)
 
     kf_C = np.array([[0, 1]])
-
+    k_given = 40    #  new added
 
 # -------------------- quadruple tank ----------------------------
 class quadruple_tank_bias:
@@ -72,7 +72,7 @@ class quadruple_tank_bias:
     recovery_index = 120
 
     # needed by 1_recovery_given_p
-    s = Strip(np.array([-1, 0, 0, 0]), a=-15, b=-14.6)
+    s = Strip(np.array([-1, 0, 0, 0]), a=-14.6, b=-13.4)
     P_given = 0.95
     max_recovery_step = 40
     # plot
@@ -83,7 +83,8 @@ class quadruple_tank_bias:
     y_label = 'water level - cm'
     strip = (7.3, 6.7)
 
-
+    kf_C = np.array([[0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]])
+    k_given = 40
 # -------------------- f16 ----------------------------
 class f16_bias:
     # needed by 0_attack_no_recovery
