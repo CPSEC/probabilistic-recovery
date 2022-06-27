@@ -58,7 +58,9 @@ class ReachableSet:
         return None, X_k
 
     def distribution(self, vertex: [np.ndarray, GaussianDistribution], k: int):
-        return vertex + self.bar_w_k[k]
+        zstar_cov = self.A_k[k] @ self.x_0.sigma @ self.A_k[k].T
+        zstar_distribution = GaussianDistribution(vertex, zstar_cov)
+        return zstar_distribution + self.bar_w_k[k]   # count in x_0 covariance
 
     def reachable_set_k(self, k: int):
         X_k = self.reachable_set_wo_noise(k)
