@@ -77,6 +77,7 @@ for exp in exps:
     result['w/o'] = {}
     result['w/o']['outputs'] = deepcopy(exp.model.outputs)
     result['w/o']['recovery_complete_index'] = recovery_complete_index
+    result['w/o']['k'] = k
     P_final = D_k.prob_in_strip(exp.s)
     result['w/o']['P_final'] = P_final
 
@@ -160,6 +161,7 @@ for exp in exps:
     result['w/'] = {}
     result['w/']['outputs'] = deepcopy(exp.model.outputs)
     result['w/']['recovery_complete_index'] = recovery_complete_index
+    result['w/']['k'] = recovery_complete_index - exp.recovery_index
     P_final = D_k.prob_in_strip(exp.s)
     result['w/']['P_final'] = P_final
 
@@ -185,10 +187,12 @@ for exp in exps:
     #     plt.plot(t_arr, u_arr)
     #     plt.show()
 
-    print('P_final_w/o_kf={}\nP_final_w/_kf={}'.format(result['w/o']['P_final'], result['w/']['P_final']))
+    print('='*20)
+    print('P_final_w/o_kf={} k_w/o_kf={}\nP_final_w/_kf={} k_w/_kf={}'
+          .format(result['w/o']['P_final'], result['w/o']['k'], result['w/']['P_final'], result['w/']['k']))
 
     # plot
-    plt.rcParams.update({'font.size': 18})  # front sizw
+    plt.rcParams.update({'font.size': 18})  # front size
     fig = plt.figure(figsize=(8, 4))
     plt.title(exp.name+' y_'+str(exp.output_index))
     recovery_complete_index = result['w/o']['recovery_complete_index']
