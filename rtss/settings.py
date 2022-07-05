@@ -8,6 +8,7 @@ from simulators.linear.heat import Heat
 from simulators.linear.platoon import Platoon
 from simulators.linear.rlc_circuit import RlcCircuit
 from simulators.linear.quadrotor import Quadrotor
+from simulators.linear.lane_keeping import LaneKeeping
 from utils.attack import Attack
 from utils.formal.strip import Strip
 
@@ -316,3 +317,38 @@ class quadrotor_bias:
     y_lim = (3.6, 5.2)
     y_label = 'Altitude - m'
     strip = (4.3, 3.7)
+
+
+# -------------------- lane keeping ----------------------------
+class lane_keeping:
+    # needed by 0_attack_no_recovery
+    name = 'lane_keeping_bias'
+    max_index = 1000
+    dt = 0.01
+    ref = [np.array([0, 0, 0, 0])] * (max_index + 1)
+    noise = {
+        'process': {
+            'type': 'white',
+            'param': {'C': np.eye(4) * 0.001}
+        }
+    }
+    model = LaneKeeping('test', dt, max_index, noise)
+    control_lo = np.array([-0.261799])
+    control_up = np.array([0.261799])
+    model.controller.set_control_limit(control_lo, control_up)
+    attack_start_index = 500
+    bias = np.array([-0.5, 0, 0, 0])
+    attack = Attack('bias', bias, attack_start_index)
+    recovery_index = 600
+
+    # needed by 1_recovery_given_p
+    s = Strip(np.array([1, 0, 0, 0]), a=-0.05, b=0.05)
+    P_given = 0.95
+    max_recovery_step = 100
+    # plot
+    ref_index = 0
+    output_index = 0
+    x_lim = 4
+    y_lim = (-0.1, 0.5)
+    y_label = 'lateral error - m'
+    strip = (-0.05, 0.05)
