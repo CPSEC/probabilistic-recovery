@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<launch>
+  <rosparam file="$(find recovery)/config/param.yaml" command="load" />
+  
+  <node pkg="lqr_control" type="lqr_control_node" name="lqr_control_node" output="screen">
+    <param name="roadmap_path" value="$(find lqr_control)/data/cube_town_record_line.txt" />
+  </node>
+  <node name="rviz" pkg="rviz" type="rviz"  args="-d $(find lqr_control)/rviz/lqr_control.rviz"> </node>
+</launch>
