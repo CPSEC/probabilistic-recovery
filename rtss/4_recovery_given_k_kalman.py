@@ -4,7 +4,7 @@ from copy import deepcopy
 import matplotlib.pyplot as plt
 import numpy as np
 
-from settings_kf import motor_speed_bias, quadruple_tank_bias
+from settings_kf import motor_speed_bias, quadruple_tank_bias, lane_keeping
 from utils.formal.gaussian_distribution import GaussianDistribution
 from utils.formal.reachability import ReachableSet
 from utils.formal.zonotope import Zonotope
@@ -12,6 +12,7 @@ from utils.observers.kalman_filter import KalmanFilter
 
 exps = [motor_speed_bias]
 exps = [quadruple_tank_bias]
+exps = [lane_keeping]
 result = {}   # for print or plot
 for exp in exps:
     # ----------------------------------- w/o kalman filter ---------------------------
@@ -85,7 +86,7 @@ for exp in exps:
     exp.model.reset()
     print('=' * 20, exp.name, '=' * 20)
     k = None
-    rec_u = np.zeros((100, exp.model.m))
+    rec_u = np.zeros((200, exp.model.m))
     recovery_complete_index = None
     x_cur_predict = None
     x_cur_update = None
