@@ -92,17 +92,24 @@ class ReachableSet:
         plt.show()
 
     def given_k(self, max_k: int):
+        if not self.ready:
+            print('Init before recovery!')
+            raise RuntimeError
         max_P = 0
         reach_res = []
         k = 0
         for i in range(1, max_k+1):
             res = self.reachable_set_k(i)
             reach_res.append(res)
-            X_k, D_k, z_star, alpha, P, arrive = res
-            if P > max_P or P < 1e-7:     # fix bug when P is close to 0
-                max_P = P
-                k = i
-        return k, *reach_res[k-1]
+            # X_k, D_k, z_star, alpha, P, arrive = res
+            # if P > max_P or P < 1e-7:     # fix bug when P is close to 0
+            #     max_P = P
+            #     k = i
+        res = max(reach_res, key=lambda val: val[4])    #P
+        if res[4] < 1e-7:     # cannot recovery within max_k
+            res = reach_res[-1]
+        k = reach_res.index(res)
+        return k, *res
 
     def given_P(self, P_given: float, max_k: int):
         if not self.ready:
@@ -119,6 +126,16 @@ class ReachableSet:
             if arrive == True:
                 break
         return i, satisfy, X_k, D_k, z_star, alpha, P, arrive
+
+    def maintain_once(self, P_given: float):
+        if not self.ready:
+            print('Init before recovery!')
+            raise RuntimeError
+        res = self.reachable_set_k(1)
+        if res[4] >= P_given:
+            return True, *res
+        else:
+            return False, *res
 
 
 if __name__ == '__main__':
@@ -142,7 +159,7 @@ if __name__ == '__main__':
                    'zonotope': True, 'distribution': True}
     X_k, D_k, z_star, alpha, P, arrive = reach.reachable_set_k(1)
     # reach.plot(X_k, D_k, alpha, fig_setting)
-    print('i=', 1, 'P=', P, 'z_star=', z_star, 'arrive=', arrive)
+    print('i=', 1, 'P=', P, 'z_star=', z_star, 'arrive=', arrive, 'alpha=', alpha)
 
     X_k, D_k, z_star, alpha, P, arrive = reach.reachable_set_k(2)
     # reach.plot(X_k, D_k, alpha, fig_setting)
