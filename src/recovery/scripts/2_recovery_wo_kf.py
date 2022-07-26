@@ -5,6 +5,7 @@ from scipy.signal import StateSpace
 import rospy
 from lqr_control.msg import VehicleState
 from lgsvl_msgs.msg import VehicleControlData
+from gui.msg import AttackCmd
 
 from utils.controllers.PID import PID
 from utils.controllers.LQR import LQR
@@ -47,6 +48,38 @@ class VehicleCMD:
         control_cmd.target_wheel_angle = steer_target
         self.cmd_pub.publish(control_cmd)
 
+class AttackCMD:
+    def __init__(self) -> None:
+        self.cmd_sub = rospy.Subscriber("attack_cmd", AttackCmd, self.callback)
+        self.triggered = False
+
+    def isAttacked(self):
+        return self.triggered
+
+    def reset(self):
+        self.triggered = False
+
+    def callback(self, cmd):
+        self.triggered = True
+        self.bias = np.array([cmd.b0, cmd.b1, cmd.b2, cmd.b3])
+        bias_e = [cmd.b0e, cmd.b1e, cmd.b2e, cmd.b3e]
+        C_filter = []
+        for i in range(4):
+            if bias_e[i]:
+                continue
+            else:
+                tmp = [0, 0, 0, 0]
+                tmp[i] = 1
+                C_filter.append(tmp)
+        self.C_filter = np.array(C_filter)
+        self.attack_duration = cmd.attack_duration
+        self.detection_delay = cmd.detection_delay
+
+    def read_cmd(self):
+        self.reset()
+        return self.bias, self.C_filter, self.attack_duration, self.detection_delay
+
+
 
 def main():
     control_rate = rospy.get_param("/control_frequency", 50)
@@ -56,10 +89,13 @@ def main():
     speed_D = rospy.get_param("/speed_D")
     speed_ref = rospy.get_param("/target_speed")
     # parameters for recovery
-    attack_start_index = rospy.get_param("/attack_start_index")
-    attack_end_index = rospy.get_param("/attack_end_index")
-    attack_mode = rospy.get_param("/attack_mode")
-    recovery_start_index = rospy.get_param("/recovery_start_index")
+    # attack_start_index = rospy.get_param("/attack_start_index")
+    # attack_end_index = rospy.get_param("/attack_end_index")
+    # attack_mode = rospy.get_param("/attack_mode")
+    # recovery_start_index = rospy.get_param("/recovery_start_index")
+    attack_start_index = 10000
+    attack_end_index = 10000
+    recovery_start_index = 0
     max_recovery_step = rospy.get_param("/max_recovery_step")
     recovery_end_index = 10000 # to be computed
 
@@ -67,6 +103,7 @@ def main():
     rospy.init_node('control_loop', log_level=rospy.DEBUG)
     state = StateUpdate()
     cmd = VehicleCMD()
+    attack = AttackCMD()
 
     # speed PID controller
     speed_pid = PID(speed_P, speed_I, speed_D)
@@ -91,6 +128,7 @@ def main():
     x_cur_update = None
     last_steer_target = None
     recovery_control_sequence = None
+    bias = np.zeros((4,))
     
     rate = rospy.Rate(control_rate)
     time_index = 0  # time index
@@ -112,17 +150,22 @@ def main():
             speed_pid.set_reference(speed_ref)
             acc_cmd = speed_pid.update(state.velocity)
             # model adaptation
-            v = state.velocity if state.velocity > 1 else 1
-            steer_model.update(v)
-            steer_lqr.update_gain(steer_model.A, steer_model.B, Q, R)
+            # v = state.velocity if state.velocity > 1 else 1
+            # steer_model.update(v)
+            # steer_lqr.update_gain(steer_model.A, steer_model.B, Q, R)
+
+            # process attack command
+            if attack.isAttacked():
+                bias, C_filter, attack_duration, detection_delay = attack.read_cmd()
+                attack_start_index = time_index
+                attack_end_index = time_index + attack_duration
+                recovery_start_index = time_index + detection_delay
+                print(bias, C_filter, attack_duration, detection_delay)
 
             # sensor attack
             feedback = state.lateral_state.copy()
             if attack_start_index <= time_index < attack_end_index:
-                if attack_mode == 0:
-                    feedback += np.array([4, 0, 0, 0])
-                elif attack_mode == 1:
-                    feedback += np.array([0, 0, 1, 0])
+                feedback += bias
             steer_target = steer_lqr.update(feedback)
 
             if time_index == recovery_start_index:
@@ -137,7 +180,7 @@ def main():
                 k, X_k, D_k, z_star, alpha, P, arrive = reach.given_k(max_k=max_recovery_step)
                 print(f"k={k}, X_k={X_k}, P={P}")
                 recovery_end_index = recovery_start_index + k
-                attack_end_index = recovery_end_index - 1  #   for test!!!
+                # attack_end_index = recovery_end_index - 1  #   for test!!!
                 recovery_control_sequence = U.alpha_to_control(alpha)
                 print('recovery_control=', recovery_control_sequence[:10,:])
 

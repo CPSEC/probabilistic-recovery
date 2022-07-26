@@ -7,4 +7,5 @@
   </node>
   <node pkg='recovery' type="2_recovery_wo_kf.py" name="control_loop" output="screen"></node>
   <!-- <node name="rviz" pkg="rviz" type="rviz"  args="-d $(find lqr_control)/rviz/lqr_control.rviz"> </node> -->
+  <node pkg='gui' type="attack_controller.py" name="attack_controller" output="screen"></node>
 </launch>

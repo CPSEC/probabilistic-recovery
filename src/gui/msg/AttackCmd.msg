@@ -1,0 +1,10 @@
+bool b0e
+bool b1e
+bool b2e
+bool b3e
+float64 b0
+float64 b1
+float64 b2
+float64 b3
+int32 attack_duration
+int32 detection_delay
