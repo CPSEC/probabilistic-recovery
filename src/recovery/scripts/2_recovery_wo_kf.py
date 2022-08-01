@@ -95,7 +95,7 @@ def main():
     # recovery_start_index = rospy.get_param("/recovery_start_index")
     attack_start_index = 10000
     attack_end_index = 10000
-    recovery_start_index = 0
+    recovery_start_index = 10000
     max_recovery_step = rospy.get_param("/max_recovery_step")
     recovery_end_index = 10000 # to be computed
 

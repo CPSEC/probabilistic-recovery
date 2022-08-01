@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<launch>
+  <rosparam file="$(find recovery)/config/param.yaml" command="load" />
+  <node pkg='gui' type="attack_controller.py" name="attack_controller" output="screen"></node>
+  <node pkg="lqr_control" type="lqr_control_node" name="lqr_control_node" output="screen">
+    <param name="roadmap_path" value="$(find lqr_control)/data/cube_town_closed_line.txt" />
+  </node>
+  <node pkg='recovery' type="4_recovery_w_kf_sysid.py" name="control_loop" output="screen"></node>
+  <!-- <node name="rviz" pkg="rviz" type="rviz"  args="-d $(find lqr_control)/rviz/lqr_control.rviz"> </node> -->
+</launch>

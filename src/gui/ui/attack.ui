@@ -29,6 +29,9 @@
     <layout class="QGridLayout" name="gridLayout_2">
      <item row="1" column="2">
       <widget class="QDoubleSpinBox" name="b1">
+       <property name="minimum">
+        <double>-99.989999999999995</double>
+       </property>
        <property name="value">
         <double>1.000000000000000</double>
        </property>
@@ -36,6 +39,9 @@
      </item>
      <item row="1" column="4">
       <widget class="QDoubleSpinBox" name="b3">
+       <property name="minimum">
+        <double>-99.989999999999995</double>
+       </property>
        <property name="value">
         <double>1.000000000000000</double>
        </property>
@@ -50,6 +56,9 @@
      </item>
      <item row="1" column="1">
       <widget class="QDoubleSpinBox" name="b0">
+       <property name="minimum">
+        <double>-99.989999999999995</double>
+       </property>
        <property name="value">
         <double>4.000000000000000</double>
        </property>
@@ -57,6 +66,9 @@
      </item>
      <item row="1" column="3">
       <widget class="QDoubleSpinBox" name="b2">
+       <property name="minimum">
+        <double>-99.989999999999995</double>
+       </property>
        <property name="value">
         <double>1.000000000000000</double>
        </property>

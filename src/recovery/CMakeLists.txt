@@ -162,8 +162,11 @@ include_directories(
 catkin_install_python(PROGRAMS
   scripts/0_normal.py
   scripts/1_attack.py
-  scripts/2_5_recovery.py
+  # scripts/2_5_recovery.py
   scripts/2_recovery_wo_kf.py
+  scripts/3_recovery_w_kf.py
+  scripts/4_recovery_w_kf_sysid.py
+  scripts/5_recovery_w_kf_with_idmodel.py
   scripts/model.py
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )

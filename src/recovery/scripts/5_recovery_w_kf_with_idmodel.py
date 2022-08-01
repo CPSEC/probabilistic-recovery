@@ -1,8 +1,10 @@
 #!/usr/bin/env python
+import os
 import numpy as np
 from scipy.signal import StateSpace
 
 import rospy
+import rospkg
 from lqr_control.msg import VehicleState
 from lgsvl_msgs.msg import VehicleControlData
 from gui.msg import AttackCmd
@@ -98,7 +100,11 @@ def main():
     recovery_start_index = 10000
     max_recovery_step = rospy.get_param("/max_recovery_step")
     recovery_end_index = 10000 # to be computed
-
+    # store the system model
+    _rp = rospkg.RosPack()
+    _rp_package_list = _rp.list()
+    data_folder = os.path.join(_rp.get_path('recovery'), 'data')
+    model_file = os.path.join(data_folder, 'model.npz')
 
     rospy.init_node('control_loop', log_level=rospy.DEBUG)
     state = StateUpdate()
@@ -111,7 +117,12 @@ def main():
     # steering LQR controller
     steer_model = LaneKeeping(speed_ref)
     sysc = StateSpace(steer_model.A, steer_model.B, steer_model.C, steer_model.D)
-    sysd = sysc.to_discrete(control_interval)
+    sysd = type('', (), {})
+    model = np.load(model_file)
+    sysd.A = model['Ad']
+    sysd.B = model['Bd']
+    sysd.C = sysc.C
+    sysd.D = sysc.D
     Q = np.eye(4)
     R = np.eye(1) * 10
     steer_lqr = LQR(sysc.A, sysc.B, Q, R)

@@ -96,7 +96,7 @@ void LQRControllerNode::odomCallback(const nav_msgs::Odometry::ConstPtr& msg) {
   vehicleState_.y = msg->pose.pose.position.y;
 
   
-  ROS_INFO_STREAM("pose=" << vehicleState_.x << "," << vehicleState_.y);
+  ROS_DEBUG_STREAM("pose=" << vehicleState_.x << "," << vehicleState_.y);
   // 将orientation(四元数)转换为欧拉角(roll, pitch, yaw)
   // tf::Quaternion q;
   // tf::quaternionMsgToTF(msg->pose.pose.orientation, q);

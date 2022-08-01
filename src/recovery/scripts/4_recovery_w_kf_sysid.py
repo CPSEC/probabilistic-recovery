@@ -1,8 +1,10 @@
 #!/usr/bin/env python
+import os
 import numpy as np
 from scipy.signal import StateSpace
 
 import rospy
+import rospkg
 from lqr_control.msg import VehicleState
 from lgsvl_msgs.msg import VehicleControlData
 from gui.msg import AttackCmd
@@ -80,6 +82,29 @@ class AttackCMD:
         return self.bias, self.C_filter, self.attack_duration, self.detection_delay
 
 
+class SysId:
+    def __init__(self, filename) -> None:
+        self.filepath = filename
+        self.x = []
+        self.u = []
+    def record(self, x, u):
+        self.x.append(x)
+        self.u.append(u)
+    def compute(self):
+        length = len(self.x)
+        x_next = np.array(self.x[1:]).astype(np.float)
+        x = np.array(self.x[:-1])
+        u = np.array(self.u[:-1])
+        x_u = np.concatenate((x, u), axis=1).astype(np.float)
+        print(f'{x.shape=},{u.shape=}')
+        A_B = np.linalg.lstsq(x_u, x_next, rcond=-1)[0].T
+        Ad = A_B[:,:4]
+        Bd = A_B[:,4:]
+        print(f'{Ad=},\n{Bd=}')
+        with open(self.filepath, 'wb') as f:
+            np.savez(f, Ad=Ad, Bd=Bd)
+        rospy.logdebug('interrupt by keyboard')
+
 
 def main():
     control_rate = rospy.get_param("/control_frequency", 50)
@@ -98,12 +123,20 @@ def main():
     recovery_start_index = 10000
     max_recovery_step = rospy.get_param("/max_recovery_step")
     recovery_end_index = 10000 # to be computed
+    # store the system model
+    _rp = rospkg.RosPack()
+    _rp_package_list = _rp.list()
+    data_folder = os.path.join(_rp.get_path('recovery'), 'data')
+    model_file = os.path.join(data_folder, 'model.npz')
+    record_start = False
 
 
     rospy.init_node('control_loop', log_level=rospy.DEBUG)
     state = StateUpdate()
     cmd = VehicleCMD()
     attack = AttackCMD()
+    sysid = SysId(model_file)
+    rospy.on_shutdown(sysid.compute)
 
     # speed PID controller
     speed_pid = PID(speed_P, speed_I, speed_D)
@@ -158,6 +191,7 @@ def main():
 
             # process attack command
             if attack.isAttacked():
+                record_start = True
                 bias, C_filter, attack_duration, detection_delay = attack.read_cmd()
                 attack_start_index = time_index
                 attack_end_index = time_index + attack_duration
@@ -207,6 +241,10 @@ def main():
             last_steer_target = np.array([steer_target])
             cmd.send(acc_cmd, steer_target)
             time_index += 1
+
+            # record data for system identification
+            if record_start:
+                sysid.record(x=state.lateral_state, u=np.array([steer_target]))
             
         rate.sleep()
 
