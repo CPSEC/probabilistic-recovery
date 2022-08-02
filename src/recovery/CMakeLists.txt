@@ -167,6 +167,7 @@ catkin_install_python(PROGRAMS
   scripts/3_recovery_w_kf.py
   scripts/4_recovery_w_kf_sysid.py
   scripts/5_recovery_w_kf_with_idmodel.py
+  scripts/6_5_plus_new_target.py
   scripts/model.py
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
