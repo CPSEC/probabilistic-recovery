@@ -6,17 +6,26 @@ from utils.controllers.controller_base import Controller
 
 
 class MPC(Controller):
-    @classmethod
-    def init(cls, param_dict: dict):
-        mpc = cls()
+    def __init__(self, param_dict: dict):
         assert 'Bd' in param_dict
-        mpc.update_params(**param_dict)
-        return mpc
+        self.update_params(**param_dict)
 
     def update_params(self, **kwargs):
+        """
+        parameter template:
+        mpc_settings = {
+            'Ad': ,  'Bd': ,
+            'Q': , 'QN':, 'R':,
+            'N': ,
+            'ddl': , 'target_lo': , 'target_up': ,
+            'safe_lo': , 'safe_up': ,
+            'control_lo': , 'control_up': ,
+            'ref':
+        }
+        """
         if 'Ad' in kwargs and 'Bd' in kwargs:
             self.update_model(kwargs['Ad'], kwargs['Bd'])
-        if 'Q' in kwargs and 'QR' in kwargs and 'R' in kwargs:
+        if 'Q' in kwargs and 'QN' in kwargs and 'R' in kwargs:
             self.update_object(kwargs['Q'], kwargs['QN'], kwargs['R'])
         if 'N' in kwargs:
             self.update_horizon(kwargs['N'])
@@ -32,7 +41,7 @@ class MPC(Controller):
             self.set_reference(kwargs['ref'])
 
     def ready_to_formulate(self):
-        required = ['Ad', 'Bd', 'Q', 'QR', 'R', 'N', 'xr', 'x0']
+        required = ['Ad', 'Bd', 'Q', 'QN', 'R', 'N', 'xr', 'x0']
         ddl_required = ['xtmin', 'xtmax']
         short = []
         for key in required:
@@ -44,7 +53,7 @@ class MPC(Controller):
                     short.append(key)
         # default values
         if not hasattr(self, 'xmin'):
-            self.update_target_set(np.array([-np.inf]*self.nx), np.array([np.inf]*self.nx))
+            self.update_safe_set(np.array([-np.inf]*self.nx), np.array([np.inf]*self.nx))
         if not hasattr(self, 'umin'):
             self.set_control_limit(np.array([-np.inf]*self.nu), np.array([np.inf]*self.nu))
         if len(short) == 0:
@@ -68,7 +77,8 @@ class MPC(Controller):
 
     def update_ddl(self, ddl: [int, None]):
         if ddl is None:
-            delattr(self, 'ddl')
+            if hasattr(self, 'ddl'):
+                delattr(self, 'ddl')
         else:
             self.ddl = ddl
         assert not hasattr(self, 'ddl') or self.ddl <= self.N
@@ -83,6 +93,7 @@ class MPC(Controller):
 
     def formulate(self):
         """
+           x = | x0, x1, ..., xN, u0, u1, ..., u{N-1} |
            Aeq                                     leq (1-D)
             | -I                              |     | -x0 |
             | Ad -I              Bd           |     |     |
