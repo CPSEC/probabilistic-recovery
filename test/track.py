@@ -29,11 +29,24 @@ class GenerateTrack:
 if __name__ == '__main__':
     filename = 'cubetown_close_track.txt'
     t = GenerateTrack(filename)
+    # half
+    # t.straight(start=(35, 3.15), end=(-35, 3.15), num=200)
+    # t.circle(center=(-35, 18.6), radius=15.45, angle_range=(3*pi/2, pi), num=50)
+    # t.straight(start=(-50.45, 18.6), end=(-50.45, 35), num=100)
+    # t.circle(center=(-35, 35), radius=15.45, angle_range=(pi, pi/2), num=50)
+    # t.straight(start=(-35, 50.45), end=(35, 50.45), num=200)
+    # t.circle(center=(35, 35), radius=15.45, angle_range=(pi/2, 0), num=50)
+    # t.straight(start=(50.45, 35), end=(50.45, 18.6), num=100)
+    # t.circle(center=(35, 18.6), radius=15.45, angle_range=(0, -pi/2), num=50)
+
     t.straight(start=(35, 3.15), end=(-35, 3.15), num=200)
     t.circle(center=(-35, 18.6), radius=15.45, angle_range=(3*pi/2, pi), num=50)
     t.straight(start=(-50.45, 18.6), end=(-50.45, 35), num=100)
     t.circle(center=(-35, 35), radius=15.45, angle_range=(pi, pi/2), num=50)
     t.straight(start=(-35, 50.45), end=(35, 50.45), num=200)
     t.circle(center=(35, 35), radius=15.45, angle_range=(pi/2, 0), num=50)
-    t.straight(start=(50.45, 35), end=(50.45, 18.6), num=100)
-    t.circle(center=(35, 18.6), radius=15.45, angle_range=(0, -pi/2), num=50)
+    t.straight(start=(50.45, 35), end=(50.45, -35), num=100)
+    t.circle(center=(35, -35), radius=15.45, angle_range=(0, -pi/2), num=50)
+    t.straight(start=(35, -50.45), end=(-35, -50.45), num=100)
+    t.circle(center=(-35, -35), radius=15.45, angle_range=(3*pi/2, pi), num=50)
+    t.straight(start=(-50.45, -35), end=(-50.45, 18.6), num=110)
