@@ -1,0 +1,17 @@
+platoon_role: 'follower' #specifies the role within the platoon, 'leader' or 'follower'
+
+leader_vel: 4.0 #specifies the velocity of the leader
+
+dist_des: .6 #Distance to maintain between vehicles, units in meters
+
+dist_min: .3 #Emergency distance threshold before motor command is set to zero
+
+dist_ctrl_Kp: 1.5 #Kp gain for distance controller
+
+dist_ctrl_Ki: 0.05 #Ki gain for distance controller
+
+dist_ctrl_Kd: 0.5 #Kd gain for distance controller
+
+dist_ctrl_ctrl_max: .6 #control max
+
+dist_ctrl_ctrl_min: -.5 #control min
