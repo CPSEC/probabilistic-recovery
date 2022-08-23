@@ -168,6 +168,11 @@ catkin_install_python(PROGRAMS
   scripts/4_recovery_w_kf_sysid.py
   scripts/5_recovery_w_kf_with_idmodel.py
   scripts/6_5_plus_new_target.py
+  scripts/7_5_plus_fixed_maintain.py
+  scripts/8_recovery_w_kf_idmodel_mpc.py
+  scripts/8_5_normal_mpc.py
+  scripts/101_test_reconstruction.py
+  scripts/102_test_reconstruction_idmodel.py
   scripts/model.py
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
