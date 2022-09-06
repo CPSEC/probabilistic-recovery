@@ -10,9 +10,9 @@ from utils.formal.reachability import ReachableSet
 from utils.formal.zonotope import Zonotope
 from utils.observers.kalman_filter import KalmanFilter
 
-# exps = [motor_speed_bias]
+exps = [motor_speed_bias]
 exps = [quadruple_tank_bias]
-# exps = [lane_keeping]
+exps = [lane_keeping]
 result = {}   # for print or plot
 for exp in exps:
     # ----------------------------------- w/o kalman filter ---------------------------
@@ -73,8 +73,6 @@ for exp in exps:
         else:
             if i == recovery_complete_index:
                 print('state after recovery:', exp.model.cur_x)
-                step = recovery_complete_index-exp.recovery_index
-                print(f'use {step} steps to recover.')
             exp.model.evolve()
 
     result['w/o'] = {}
@@ -159,8 +157,6 @@ for exp in exps:
         else:
             if i == recovery_complete_index:
                 print('state after recovery:', exp.model.cur_x)
-                step = recovery_complete_index-exp.recovery_index
-                print(f'use {step} steps to recover.')
             exp.model.evolve()
 
     result['w/'] = {}
@@ -192,20 +188,47 @@ for exp in exps:
     #     plt.plot(t_arr, u_arr)
     #     plt.show()
 
-    print('='*20)
-    print('P_final_w/o_kf={} k_w/o_kf={}\nP_final_w/_kf={} k_w/_kf={}'
-          .format(result['w/o']['P_final'], result['w/o']['k'], result['w/']['P_final'], result['w/']['k']))
+    # print('='*20)
+    # print('P_final_w/o_kf={} k_w/o_kf={}\nP_final_w/_kf={} k_w/_kf={}'
+    #       .format(result['w/o']['P_final'], result['w/o']['k'], result['w/']['P_final'], result['w/']['k']))
+    #
+    # # plot
+    # plt.rcParams.update({'font.size': 18})  # front size
+    # fig = plt.figure(figsize=(8, 4))
+    # plt.title(exp.name+' y_'+str(exp.output_index))
+    # recovery_complete_index = result['w/o']['recovery_complete_index']
+    # t_arr = np.linspace(0, exp.dt * recovery_complete_index, recovery_complete_index + 1)
+    # y_arr = [x[exp.output_index] for x in result['w/o']['outputs'][:recovery_complete_index + 1]]
+    # ref = [x[exp.ref_index] for x in exp.model.refs[:recovery_complete_index + 1]]
+    # plt.plot(t_arr, ref, color='black', linestyle='dashed')
+    # plt.plot(t_arr, y_arr, label='w/o')
+    #
+    # recovery_complete_index = result['w/']['recovery_complete_index']
+    # t_arr = np.linspace(0, exp.dt * recovery_complete_index, recovery_complete_index + 1)
+    # y_arr = [x[exp.output_index] for x in result['w/']['outputs'][:recovery_complete_index + 1]]
+    # plt.plot(t_arr, y_arr, label='w/')
+    #
+    # plt.vlines(exp.attack_start_index*exp.dt, exp.y_lim[0], exp.y_lim[1], colors='red', linestyle='dashed')
+    # plt.vlines(exp.recovery_index*exp.dt, exp.y_lim[0], exp.y_lim[1], colors='green', linestyle='dotted', linewidth=2.5)
+    # plt.hlines(exp.strip[0], exp.x_lim, recovery_complete_index*exp.dt, colors='grey')
+    # plt.hlines(exp.strip[1], exp.x_lim, recovery_complete_index * exp.dt, colors='grey')
+    # plt.ylim(exp.y_lim)
+    # plt.xlim(exp.x_lim, recovery_complete_index*exp.dt)
+    # plt.legend(loc='best')
+    # # plt.savefig('./fig/'+exp.name+'.pdf', format='pdf', bbox_inches='tight')
+    # plt.show()
+    # # output
 
     # plot
     plt.rcParams.update({'font.size': 18})  # front size
     fig = plt.figure(figsize=(8, 4))
     plt.title(exp.name+' y_'+str(exp.output_index))
-    recovery_complete_index = result['w/o']['recovery_complete_index']
+    # recovery_complete_index = result['w/o']['recovery_complete_index']
     t_arr = np.linspace(0, exp.dt * recovery_complete_index, recovery_complete_index + 1)
-    y_arr = [x[exp.output_index] for x in result['w/o']['outputs'][:recovery_complete_index + 1]]
+    # y_arr = [x[exp.output_index] for x in result['w/o']['outputs'][:recovery_complete_index + 1]]
     ref = [x[exp.ref_index] for x in exp.model.refs[:recovery_complete_index + 1]]
     plt.plot(t_arr, ref, color='black', linestyle='dashed')
-    plt.plot(t_arr, y_arr, label='w/o')
+    # plt.plot(t_arr, y_arr, label='w/o')
 
     recovery_complete_index = result['w/']['recovery_complete_index']
     t_arr = np.linspace(0, exp.dt * recovery_complete_index, recovery_complete_index + 1)
@@ -220,6 +243,30 @@ for exp in exps:
     plt.xlim(exp.x_lim, recovery_complete_index*exp.dt)
     plt.legend(loc='best')
     # plt.savefig('./fig/'+exp.name+'.pdf', format='pdf', bbox_inches='tight')
+    plt.show()
+
+    fig = plt.figure(figsize=(8, 4))
+    plt.title(exp.name + ' y_' + str(2))
+    # recovery_complete_index = result['w/o']['recovery_complete_index']
+    t_arr = np.linspace(0, exp.dt * recovery_complete_index, recovery_complete_index + 1)
+    # y_arr = [x[exp.output_index] for x in result['w/o']['outputs'][:recovery_complete_index + 1]]
+    ref = [x[2] for x in exp.model.refs[:recovery_complete_index + 1]]
+    plt.plot(t_arr, ref, color='black', linestyle='dashed')
+    # plt.plot(t_arr, y_arr, label='w/o')
+
+    recovery_complete_index = result['w/']['recovery_complete_index']
+    t_arr = np.linspace(0, exp.dt * recovery_complete_index, recovery_complete_index + 1)
+    y_arr = [x[2] for x in result['w/']['outputs'][:recovery_complete_index + 1]]
+    plt.plot(t_arr, y_arr, label='w/')
+
+    plt.vlines(exp.attack_start_index * exp.dt, exp.y_lim[0], exp.y_lim[1], colors='red', linestyle='dashed')
+    plt.vlines(exp.recovery_index * exp.dt, exp.y_lim[0], exp.y_lim[1], colors='green', linestyle='dotted',
+               linewidth=2.5)
+    # plt.hlines(exp.strip[0], exp.x_lim, recovery_complete_index * exp.dt, colors='grey')
+    # plt.hlines(exp.strip[1], exp.x_lim, recovery_complete_index * exp.dt, colors='grey')
+    # plt.ylim(exp.y_lim)
+    plt.xlim(exp.x_lim, recovery_complete_index * exp.dt)
+    plt.legend(loc='best')
     plt.show()
     # output
 

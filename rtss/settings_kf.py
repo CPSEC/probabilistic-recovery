@@ -343,7 +343,7 @@ class lane_keeping:
     attack_start_index = 100
     bias = np.array([4, 0, 0, 0])
     attack = Attack('bias', bias, attack_start_index)
-    recovery_index = 150
+    recovery_index = 130
 
     # needed by 1_recovery_given_p
     s = Strip(np.array([1, 0, 0, 0]), a=-0.05, b=0.05)

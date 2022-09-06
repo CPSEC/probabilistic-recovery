@@ -24,7 +24,7 @@ sysd = sysc.to_discrete(control_interval)
 mpc_settings = {
     'Ad': sysd.A, 'Bd': sysd.B,
     'Q': np.eye(4), 'QN': np.eye(4), 'R': np.eye(1) * 10,
-    'N': 20,
+    'N': 50,
     # 'ddl': None, 'target_lo': , 'target_up':,
     # 'safe_lo': , 'safe_up':,
     'control_lo': np.array([-0.261799]), 'control_up': np.array([0.261799]),
@@ -32,7 +32,7 @@ mpc_settings = {
 }
 
 mpc = MPC(mpc_settings)
-cin = mpc.update(feedback_value=np.array([-3.901158, -0.13633914, -0.13676511, -0.44502825]))
+cin = mpc.update(feedback_value=np.array([-2.0269287 , -0.5748443 , -0.6124138 ,  0.07075875]))
 print(cin)
 
 
