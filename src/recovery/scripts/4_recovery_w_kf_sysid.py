@@ -88,8 +88,8 @@ class SysId:
         self.x = []
         self.u = []
     def record(self, x, u):
-        self.x.append(x)
-        self.u.append(u)
+        self.x.append(x.copy())
+        self.u.append(u.copy())
     def compute(self):
         length = len(self.x)
         x_next = np.array(self.x[1:]).astype(np.float)

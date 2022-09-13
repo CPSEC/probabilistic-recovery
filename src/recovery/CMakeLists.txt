@@ -170,7 +170,9 @@ catkin_install_python(PROGRAMS
   scripts/6_5_plus_new_target.py
   scripts/7_5_plus_fixed_maintain.py
   scripts/8_recovery_w_kf_idmodel_mpc.py
+  scripts/8_recovery_w_kf_mpc_data.py
   scripts/8_5_normal_mpc.py
+  scripts/9_recovery_w_kf_all.py
   scripts/101_test_reconstruction.py
   scripts/102_test_reconstruction_idmodel.py
   scripts/model.py

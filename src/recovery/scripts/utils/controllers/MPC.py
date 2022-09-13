@@ -116,8 +116,8 @@ class MPC(Controller):
         leq = np.hstack([-self.x0, np.zeros(self.N * self.nx)])
         ueq = leq
         if hasattr(self, 'ddl') and self.ddl < self.N:
-            lineq = np.hstack([np.kron(np.ones(self.N - self.ddl + 1), self.xmin), np.kron(np.ones(self.ddl), self.xtmin), np.kron(np.ones(self.N), self.umin)])
-            uineq = np.hstack([np.kron(np.ones(self.N - self.ddl + 1), self.xmax), np.kron(np.ones(self.ddl), self.xtmax), np.kron(np.ones(self.N), self.umax)])
+            lineq = np.hstack([np.kron(np.ones(self.ddl), self.xmin), np.kron(np.ones(self.N-self.ddl+1), self.xtmin), np.kron(np.ones(self.N), self.umin)])
+            uineq = np.hstack([np.kron(np.ones(self.ddl), self.xmax), np.kron(np.ones(self.N-self.ddl+1), self.xtmax), np.kron(np.ones(self.N), self.umax)])
         else:
             lineq = np.hstack([np.kron(np.ones(self.N + 1), self.xmin), np.kron(np.ones(self.N), self.umin)])
             uineq = np.hstack([np.kron(np.ones(self.N + 1), self.xmax), np.kron(np.ones(self.N), self.umax)])
@@ -132,7 +132,7 @@ class MPC(Controller):
         self.u[:self.nx] = -self.x0
         self.prob.update(l=self.l, u=self.u)
 
-    def update(self, feedback_value: np.ndarray, current_time=None) -> np.ndarray:
+    def update(self, feedback_value: np.ndarray, current_time=None):
         self.x0 = feedback_value
         if not hasattr(self, 'prob'):
             self.formulate()
@@ -143,9 +143,9 @@ class MPC(Controller):
             raise ValueError('OSQP did not solve the problem!')
         # Apply first control input to the plant
         # res.x = [ x0, x1, ... xN, u0, u1, u{N-1} ]
-        ctrl = res.x[-self.N * self.nu:-(self.N - 1) * self.nu]
-        print(f'{res.x[-self.N * self.nu:]=}')
-        return ctrl
+        ctrl = res.x[-self.N * self.nu:-(self.N - 1) * self.nu].reshape((-1, self.nu))
+        ctrl_all = res.x[-self.N * self.nu:].reshape((-1, self.nu))
+        return ctrl, ctrl_all
 
     def set_control_limit(self, control_lo: np.ndarray, control_up: np.ndarray):
         self.umin = control_lo

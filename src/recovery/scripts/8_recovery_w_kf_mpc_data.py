@@ -82,6 +82,18 @@ class AttackCMD:
         self.reset()
         return self.bias, self.C_filter, self.attack_duration, self.detection_delay
 
+class Record:
+    def __init__(self, filename) -> None:
+        self.filepath = filename
+        self.x = []
+        self.u = []
+    def record(self, x, u):
+        self.x.append(x.copy())
+        self.u.append(u.copy())
+    def save(self):
+        with open(self.filepath, 'wb') as f:
+            np.savez(f, x=np.array(self.x))
+        rospy.logdebug('interrupt by keyboard')
 
 
 def main():
@@ -105,12 +117,14 @@ def main():
     _rp = rospkg.RosPack()
     _rp_package_list = _rp.list()
     data_folder = os.path.join(_rp.get_path('recovery'), 'data')
-    model_file = os.path.join(data_folder, 'model.npz')
+    state_file = os.path.join(data_folder, 'x.npz')
 
     rospy.init_node('control_loop', log_level=rospy.DEBUG)
     state = StateUpdate()
     cmd = VehicleCMD()
     attack = AttackCMD()
+    record = Record(state_file)
+    rospy.on_shutdown(record.save)
 
     # speed PID controller
     speed_pid = PID(speed_P, speed_I, speed_D)
@@ -118,12 +132,7 @@ def main():
     # steering LQR controller
     steer_model = LaneKeeping(speed_ref)
     sysc = StateSpace(steer_model.A, steer_model.B, steer_model.C, steer_model.D)
-    sysd = type('', (), {})
-    model = np.load(model_file)
-    sysd.A = model['Ad']
-    sysd.B = model['Bd']
-    sysd.C = sysc.C
-    sysd.D = sysc.D
+    sysd = sysc.to_discrete(control_interval)
     # sysd = sysc.to_discrete(control_interval)
     Q = np.eye(4)
     R = np.eye(1) * 10
@@ -201,6 +210,7 @@ def main():
 
                 print(f"x_0={x_cur_update.miu=}")
                 cin, _ = mpc.update(feedback_value=x_cur_update.miu)
+                recovery_end_index = recovery_start_index + 30
 
 
             if recovery_start_index < time_index < recovery_end_index:
@@ -220,6 +230,8 @@ def main():
             last_steer_target = np.array([steer_target])
             cmd.send(acc_cmd, steer_target)
             time_index += 1
+
+            record.record(x=state.lateral_state, u=np.array([steer_target]))
             
         rate.sleep()
 
