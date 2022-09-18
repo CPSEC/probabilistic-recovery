@@ -108,7 +108,7 @@ class ReachableSet:
         res = max(reach_res, key=lambda val: val[4])    #P
         if res[4] < 1e-7:     # cannot recovery within max_k
             res = reach_res[-1]
-        k = reach_res.index(res)
+        k = reach_res.index(res) + 1
         return k, *res
 
     def given_P(self, P_given: float, max_k: int):
