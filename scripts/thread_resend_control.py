@@ -12,8 +12,8 @@ def thread_resend_control():
 
     pub = rospy.Publisher('uav_fm', Wrench, queue_size=1)
 
-    freq = 400
-    rate = rospy.Rate(freq) # 400 hz
+    freq = 200
+    rate = rospy.Rate(freq) # 200 hz
 
     freq = 0.0
     t = datetime.datetime.now()

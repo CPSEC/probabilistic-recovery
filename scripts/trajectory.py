@@ -287,42 +287,39 @@ class Trajectory:
 
         self.update_current_time()
 
-        if self.t < (self.circle_radius / self.circle_linear_v):
-            self.xd[0] = self.circle_center[0] + self.circle_linear_v * self.t
-            self.xd_dot[0] = self.circle_linear_v
+        
+        circle_W = self.circle_W
+        circle_radius = self.circle_radius
 
-        elif self.t < self.t_traj:
-            circle_W = self.circle_W
-            circle_radius = self.circle_radius
+        t = self.t 
+        th = circle_W * t
 
-            t = self.t - circle_radius / self.circle_linear_v
-            th = circle_W * t
+        circle_W2 = circle_W * circle_W
+        circle_W3 = circle_W2 * circle_W
+        circle_W4 = circle_W3 * circle_W
 
-            circle_W2 = circle_W * circle_W
-            circle_W3 = circle_W2 * circle_W
-            circle_W4 = circle_W3 * circle_W
+        # axis 1
+        self.xd[0] = t/2
+        self.xd_dot[0] = 1/2
+        self.xd_2dot[0] = - 0
+        self.xd_3dot[0] = 0
+        self.xd_4dot[0] = 0
 
-            # axis 1
-            self.xd[0] = circle_radius * np.cos(th) + self.circle_center[0]
-            self.xd_dot[0] = - circle_radius * circle_W * np.sin(th)
-            self.xd_2dot[0] = - circle_radius * circle_W2 * np.cos(th)
-            self.xd_3dot[0] = circle_radius * circle_W3 * np.sin(th)
-            self.xd_4dot[0] = circle_radius * circle_W4 * np.cos(th)
+        # axis 2
+        self.xd[1] = 0
+        self.xd_dot[1] = 0
+        self.xd_2dot[1] = 0
+        self.xd_3dot[1] = 0
+        self.xd_4dot[1] = 0
 
-            # axis 2
-            self.xd[1] = circle_radius * np.sin(th) + self.circle_center[1]
-            self.xd_dot[1] = circle_radius * circle_W * np.cos(th)
-            self.xd_2dot[1] = - circle_radius * circle_W2 * np.sin(th)
-            self.xd_3dot[1] = - circle_radius * circle_W3 * np.cos(th)
-            self.xd_4dot[1] = circle_radius * circle_W4 * np.sin(th)
+        self.xd[2] = self.takeoff_end_height
 
-            w_b1d = 2.0 * np.pi / 10.0
-            th_b1d = w_b1d * t
+        w_b1d = 0.0 * np.pi / 10.0
+        th_b1d = w_b1d * t
 
-            self.b1d = np.array([np.cos(th_b1d), np.sin(th_b1d), 0])
-            self.b1d_dot = np.array([- w_b1d * np.sin(th_b1d), \
-                w_b1d * np.cos(th_b1d), 0.0])
-            self.b1d_2dot = np.array([- w_b1d * w_b1d * np.cos(th_b1d),
-                w_b1d * w_b1d * np.sin(th_b1d), 0.0])
-        else:
-            self.mark_traj_end(True)
+        self.b1d = np.array([np.cos(th_b1d), np.sin(th_b1d), 0])
+        self.b1d_dot = np.array([- w_b1d * np.sin(th_b1d), \
+            w_b1d * np.cos(th_b1d), 0.0])
+        self.b1d_2dot = np.array([- w_b1d * w_b1d * np.cos(th_b1d),
+            w_b1d * w_b1d * np.sin(th_b1d), 0.0])
+    

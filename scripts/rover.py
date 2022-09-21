@@ -19,7 +19,8 @@ from sensor_msgs.msg import Imu
 from std_msgs.msg import String
 
 # Rtss
-from recovery_main import Recovery
+from recovery_main_rtss import Recovery
+from recovery_main_emsoft import RecoveryEmsoft
 
 
 class Rover:
@@ -64,29 +65,32 @@ class Rover:
         self.control = Control()
         self.control.use_integral = True  # Enable integral control
 
+        self.attack_set = False
+
         self.estimator = Estimator()
         self.trajectory = Trajectory()
 
         self.lock = threading.Lock()
     
     def init_recovery(self, freq, isolation):
+        self.freq = freq
         # Rtss
         self.recovery_complete_index = inf
         self.k_iter = 0
-        # to be moved to a config file
-        self.k_attack = 20 * freq
-        self.k_detection = self.k_attack + 1.5 * freq
+        # 
+        self.k_attack = 7000.8 * freq
+        self.k_detection = self.k_attack + 2 * freq
         self.isolation = isolation 
 
         # attack sensor
-        self.attack_sensor = int(2)
+        self.attack_sensor = int(1)
         self.attack_gps = False
 
         #
         self.fM = np.zeros((4, 1))
-        self.u_min = np.array([-5, -1e-3, -1e-3, -1e-3])
-        self.u_max = np.array([5, 1e-3, 1e-3, 1e-3])
-        self.recovery = Recovery(1/freq, self.u_min, self.u_max, self.isolation) 
+        self.u_min = np.array([-2, -1e-3, -1e-3, -1e-3])
+        self.u_max = np.array([2, 1e-3, 1e-3, 1e-3])
+        self.recovery = RecoveryEmsoft(1/freq, self.u_min, self.u_max, self.attack_sensor, self.isolation) 
         if self.isolation:
             n = self.recovery.system_model.n
             C = np.eye(n) 
@@ -117,13 +121,18 @@ class Rover:
             states = copy.deepcopy(states_pt) # FIXME: this is a deep copy of the estimator to avoid attacking the real estimator... 
                                               # This is just a proof of concept for now
 
+            if states[0][0] > 5.2 and not self.attack_set:
+                self.k_attack = self.k_iter + 1
+                self.k_detection = self.k_attack + 2 * self.freq
+                self.attack_set = True
+
             if self.k_iter == self.k_attack - 1:
                 self.recovery.checkpoint_state(copy.deepcopy(states))
                 print("Checkpointed state:", states)
 
             # attack
             if self.k_iter >= self.k_attack and not self.attack_gps:
-                states[0][self.attack_sensor] += -0.4
+                states[0][self.attack_sensor] += -0.5
                 pass
 
             # checkpoint ys and us
@@ -131,14 +140,14 @@ class Rover:
             u = copy.deepcopy(self.fM)
             u[2] = -u[2]
             u[3] = -u[3]
-            if self.k_attack <= self.k_iter <= self.k_detection:
+            if self.k_attack < self.k_iter <= self.k_detection:
                 self.recovery.checkpoint(states, u)
 
             # compute reconfiguration for the first time
             if self.k_iter == self.k_detection:
                 fM, k_reconf_max = self.recovery.update_recovery_fi()
                 self.recovery_complete_index = self.k_iter + k_reconf_max
-                print("reconfiguration begins", states_pt)
+                print("reconfiguration begins", self.recovery.process_state(states_pt))
             elif self.k_detection < self.k_iter < self.recovery_complete_index:
                 fM, k_reconf = self.recovery.update_recovery_ni(states, u)
                 self.recovery_complete_index = self.k_iter + k_reconf

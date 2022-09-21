@@ -8,6 +8,7 @@ from thread_gps import thread_gps
 from thread_control import thread_control
 from thread_log import thread_log
 from thread_resend_control import thread_resend_control
+from thread_reference import thread_reference
 
 import numpy as np
 import rospy
@@ -25,7 +26,7 @@ def run_uav():
     t1 = threading.Thread(target=thread_control)
     t2 = threading.Thread(target=thread_imu)
     t3 = threading.Thread(target=thread_gps)
-    t4 = threading.Thread(target=thread_gui)
+    t4 = threading.Thread(target=thread_reference)
     t5 = threading.Thread(target=thread_log)
     t6 = threading.Thread(target=thread_resend_control)
     

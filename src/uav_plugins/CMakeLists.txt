@@ -11,9 +11,19 @@ find_package(catkin REQUIRED)
 find_package(catkin REQUIRED COMPONENTS roscpp rospy std_msgs geometry_msgs message_generation)
 find_package(gazebo REQUIRED)
 
-## System dependencies are found with CMake's conventions
-# find_package(Boost REQUIRED COMPONENTS system)
+# Attempt wind
+# include (findPkgConfig)
+# if (PKG_CONFIG_FOUND)
+# 	pkg_check_modules(GAZEBO gazebo)
+# endif()
+# include_directories(${GAZEBO_INCLUDE_DIRS})
+# link_directories(${GAZEBO_LIBRARY_DIRS})
 
+## System dependencies are found with CMake's conventions
+find_package(Boost REQUIRED COMPONENTS system)
+pkg_check_modules(GAZEBO gazebo)
+include_directories(${GAZEBO_INCLUDE_DIRS})
+link_directories(${GAZEBO_LIBRARY_DIRS})
 
 ## Uncomment this if the package has a setup.py. This macro ensures
 ## modules and global scripts declared therein get installed
@@ -125,8 +135,14 @@ add_library(control_plugin
     src/control_plugin.cpp
     src/fdcl_matrix_utils.cpp
     src/fdcl_ros_utils.cpp
+#    src/gazebo_wind_plugin.cpp
 )
-target_link_libraries(control_plugin ${GAZEBO_LIBRARIES})
+target_link_libraries(control_plugin ${GAZEBO_LIBRARIES} ${Boost_LIBRARIES})
+#add_library(world_plugin
+#    SHARED
+#    src/gazebo_wind_plugin.cpp
+#)
+#target_link_libraries(world_plugin ${GAZEBO_LIBRARIES} ${Boost_LIBRARIES})
 
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the

@@ -6,8 +6,9 @@ class System():
     def __init__(self, dt, u_min, u_max):
         # self.u0 = [1.91295e+01, 1e-5, 1e-5, 1e-5] # option one: there is a constant part. Linearization is not very good
         self.u0 = [1.91295e+01, 0, 0, 0] # option two: some modes become uncontrollable
+        # state    0,  1,  2,  3,  4,  5,   6,   7,   8,   9,  10,  11,  12,  13,  14, 15, 16, 17
         # states  x1, x2, x3, v1, v2, v3, r11, r12, r13, r21, r22, r23, r31, r32, r33, w1, w2, w3
-        self.x0 = [0,  0, -1,  0,  0,  0,   1,   0,   0,   0,   1,   0,   0,   0,   1,  0,  0,  0] # Change this one
+        self.x0 = [0,  0, -1,  0,  0,  0,   1,   0,   0,   0,   1,   0,   0,   0,   1,  0,  0,  0] 
         x0 = self.x0
         u0 = self.u0
         m = 1.95

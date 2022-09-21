@@ -12,7 +12,7 @@ from recovery.utils.formal.strip import Strip
 # Import system model
 class RTSS:
     
-    def __init__(self, Ad, Bd, Cd, Dd, W, u_min, u_max, k_reconstruction, k_max):
+    def __init__(self, Ad, Bd, Cd, Dd, W, u_min, u_max, k_reconstruction, k_max, l, a, b):
         '''
         Inputs
         A, B, C, D: system matrices
@@ -33,7 +33,7 @@ class RTSS:
         self.reach = ReachableSet(Ad, Bd, self.U, W, max_step=k_reconstruction)
         # Create strip
         # states                x1, x2, x3, v1, v2, v3, r11, r12, r13, r21, r22, r23, r31, r32, r33, w1, w2, w3,
-        self.s = Strip(np.array([0,  0,  1,  0,  0,  0,   0,   0,   0,   0,   0,   0,   0,   0,   0,  0,  0,  0]), a=-0.1, b=0.1)
+        self.s = Strip(l, a=a, b=b)
         # Create kalman filter
         self.kf = None
         self.x_cur_update = None
@@ -75,6 +75,7 @@ class RTSS:
         # print("Attack detected, state:", self.x_cur_update.miu)
         k, X_k, D_k, z_star, alpha, P, arrive = self.reach.given_k(max_k=self.k_max)
         rec_u_temp = self.U.alpha_to_control(alpha)
+        print("Probability:", P)
         return rec_u_temp[0], k
         
     
@@ -84,6 +85,7 @@ class RTSS:
         x_0 = GaussianDistribution( x_0, np.zeros((n, n)) )
         self.reach.init( x_0, self.s )
         self.x_res_point = self.reach.state_reconstruction(us)
+        print("estimated state:  ", self.x_res_point.miu + np.array([0,  0, -1,  0,  0,  0,   1,   0,   0,   0,   1,   0,   0,   0,   1,  0,  0,  0] ))
         self.reach.init( self.x_res_point, self.s )
         # Run one-step rtss
         k, X_k, D_k, z_star, alpha, P, arrive = self.reach.given_k(max_k=self.k_max)
