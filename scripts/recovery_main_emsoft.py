@@ -1,7 +1,5 @@
 import numpy as np
 from recovery.System import System
-from recovery.rtss import RTSS
-from recovery.utils.formal.gaussian_distribution import GaussianDistribution
 from recovery.utils.controllers.MPC import MPC
 from recovery.utils.observers.full_state_bound import Estimator
 
@@ -26,12 +24,12 @@ class RecoveryEmsoft():
         self.R  = np.eye(system_model.m)/1000
         
 
-        #                    x1,  x2,   x3, v1,  v2, v3, r11, r12, r13, r21, r22, r23, r31, r32, r33, w1, w2, w3,
-        safe_lo = np.array([-10, -10,   -10, -1, -1, -1,-1.5,-1.5,-1.5,-1.5,-1.5,-1.5,-1.5,-1.5,-1.5, -1, -1, -1])
+        #                    x1,  x2,  x3, v1,  v2, v3, r11, r12, r13, r21, r22, r23, r31, r32, r33, w1, w2, w3,
+        safe_lo = np.array([-10, -10, -10, -1, -1, -1,-1.5,-1.5,-1.5,-1.5,-1.5,-1.5,-1.5,-1.5,-1.5, -1, -1, -1])
         safe_lo = safe_lo - system_model.x0
 
-        #                    x1,  x2,   x3, v1,  v2, v3, r11, r12, r13, r21, r22, r23, r31, r32, r33, w1, w2, w3,
-        safe_up = np.array([ 10,  10,    0,  1,  1,   1, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5,  1,  1,  1])
+        #                    x1,  x2, x3, v1, v2, v3, r11, r12, r13, r21, r22, r23, r31, r32, r33, w1, w2, w3,
+        safe_up = np.array([ 10,  10,  0,  1,  1,  1, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5,  1,  1,  1])
         safe_up = safe_up - system_model.x0
 
 
@@ -39,7 +37,7 @@ class RecoveryEmsoft():
         self.safe_up = safe_up
 
         #                      x1,  x2,   x3, v1,  v2, v3, r11, r12, r13, r21, r22, r23, r31, r32, r33, w1, w2, w3,
-        target_lo = np.array([-10, -10, -1.1, -1, -1, -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, -1, -1, -1])
+        target_lo = np.array([-10, -10, -1.1, -1,  -1, -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, -1, -1, -1])
         target_lo = target_lo - system_model.x0
         self.target_lo = target_lo
 
@@ -61,12 +59,7 @@ class RecoveryEmsoft():
         self.u_checkpoint = []
     
     def init_closed_loop(self, C):
-        self.x_checkpoint = []
-        self.u_checkpoint = []
-        self.y_checkpoint = []
-        self.C_kf = C
-        R = np.eye(C.shape[0]) *0.1
-        self.rtss.set_kalman_filter(C, self.W.sigma, R)
+        pass
         
 
     def checkpoint_state(self, state):
@@ -85,8 +78,6 @@ class RecoveryEmsoft():
 
     # Checkpoint the input and measurement for the closed loop strategy
     def checkpoint_closed_loop(self, dy, du):
-        self.y_checkpoint.append(dy)
-        self.u_checkpoint.append(du)
         pass
 
     # Auxiliar function to call the recovery for the first time
@@ -108,7 +99,7 @@ class RecoveryEmsoft():
 
         self.k_max = k
         _, rec_u = self.mpc.update(feedback_value= x_curr)
-        fM = rec_u[0] # Take the first u
+        fM = rec_u[0] # Pick the first u
         self.k_recovery = 0
         
         self.u_reconf = rec_u
@@ -129,9 +120,9 @@ class RecoveryEmsoft():
         # print(fM)
 
         # Gazebo uses a different frame
-        fM = self.convert_input(fM)
 
         fM = fM + self.system_model.u0
+        fM = self.convert_input(fM)
         return fM, self.k_max
 
     def convert_input(self, fM):

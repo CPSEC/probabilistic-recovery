@@ -3,7 +3,7 @@ from recovery.System import System
 from recovery.rtss import RTSS
 from recovery.utils.formal.gaussian_distribution import GaussianDistribution
 
-class Recovery():
+class RecoveryRTSS():
     def __init__(self, dt, u_min, u_max, attacked_sensor, isolation):
         system_model = System(dt, u_min, u_max)
         self.system_model = system_model
@@ -110,6 +110,7 @@ class Recovery():
         return fM
 
     # Auxiliary function to flatten the state vector
+    # TODO: move outside. This function can go outside
     def process_state(self, x):
         pos = x[0]
         v = x[1]

@@ -15,7 +15,9 @@ def thread_control():
 
     freq = 20
     rate = rospy.Rate(freq) # 200 hz
-    rover.init_recovery(freq=freq, isolation=False)
+    recovery_name = ['rtss', 'emsoft', 'v_sensors']
+    recovery_name = recovery_name[2]
+    rover.init_recovery(freq=freq, isolation=False, recovery_name = recovery_name)
 
     freq = 0.0
     t = datetime.datetime.now()

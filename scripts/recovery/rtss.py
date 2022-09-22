@@ -32,7 +32,6 @@ class RTSS:
         self.k_max = k_max
         self.reach = ReachableSet(Ad, Bd, self.U, W, max_step=k_reconstruction)
         # Create strip
-        # states                x1, x2, x3, v1, v2, v3, r11, r12, r13, r21, r22, r23, r31, r32, r33, w1, w2, w3,
         self.s = Strip(l, a=a, b=b)
         # Create kalman filter
         self.kf = None

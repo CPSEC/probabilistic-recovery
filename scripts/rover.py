@@ -19,10 +19,11 @@ from sensor_msgs.msg import Imu
 from std_msgs.msg import String
 
 # Rtss
-from recovery_main_rtss import Recovery
+from recovery_main_rtss import RecoveryRTSS
 from recovery_main_emsoft import RecoveryEmsoft
+from recovery_virtual_sensors import RecoveryVirtualSensor
 
-
+RECOVERY_NAMES = ['rtss', 'emsoft', 'v_sensors']
 class Rover:
     def __init__(self):
 
@@ -71,26 +72,42 @@ class Rover:
         self.trajectory = Trajectory()
 
         self.lock = threading.Lock()
+        
     
-    def init_recovery(self, freq, isolation):
+    def init_recovery(self, freq, isolation, recovery_name):
         self.freq = freq
         # Rtss
         self.recovery_complete_index = inf
         self.k_iter = 0
         # 
-        self.k_attack = 7000.8 * freq
-        self.k_detection = self.k_attack + 2 * freq
+        self.k_attack = 1000000
+        self.k_detection = self.k_attack + freq
         self.isolation = isolation 
+        self.k_max = self.k_detection + 10
 
         # attack sensor
-        self.attack_sensor = int(1)
+        self.attack_sensor = int(2)
         self.attack_gps = False
 
         #
         self.fM = np.zeros((4, 1))
         self.u_min = np.array([-2, -1e-3, -1e-3, -1e-3])
         self.u_max = np.array([2, 1e-3, 1e-3, 1e-3])
-        self.recovery = RecoveryEmsoft(1/freq, self.u_min, self.u_max, self.attack_sensor, self.isolation) 
+
+
+        self.states_recovery = []
+        self.recovery_name = recovery_name
+        if recovery_name == RECOVERY_NAMES[0]:
+            self.recovery = RecoveryRTSS(1/freq, self.u_min, self.u_max, self.attack_sensor, self.isolation) 
+        elif recovery_name == RECOVERY_NAMES[1]:
+            self.recovery = RecoveryEmsoft(1/freq, self.u_min, self.u_max, self.attack_sensor, self.isolation) 
+            self.isolation = False
+        elif recovery_name == RECOVERY_NAMES[2]: # TODO: implement
+            self.recovery = RecoveryVirtualSensor(1/freq, self.u_min, self.u_max, self.attack_sensor, self.isolation) 
+            self.isolation = False
+        else:
+            raise NotImplemented('Input rtss, emsoft or v_sensor')
+        
         if self.isolation:
             n = self.recovery.system_model.n
             C = np.eye(n) 
@@ -125,6 +142,7 @@ class Rover:
                 self.k_attack = self.k_iter + 1
                 self.k_detection = self.k_attack + 2 * self.freq
                 self.attack_set = True
+                self.k_max = self.k_detection + 10
 
             if self.k_iter == self.k_attack - 1:
                 self.recovery.checkpoint_state(copy.deepcopy(states))
@@ -134,7 +152,6 @@ class Rover:
             if self.k_iter >= self.k_attack and not self.attack_gps:
                 states[0][self.attack_sensor] += -0.5
                 pass
-
             # checkpoint ys and us
             # Gazebo uses a different frame
             u = copy.deepcopy(self.fM)
@@ -142,29 +159,43 @@ class Rover:
             u[3] = -u[3]
             if self.k_attack < self.k_iter <= self.k_detection:
                 self.recovery.checkpoint(states, u)
+            if self.recovery_name == RECOVERY_NAMES[0] or self.recovery_name == RECOVERY_NAMES[1]:
+                # compute reconfiguration for the first time
+                if self.k_iter == self.k_detection:
+                    fM, k_reconf_max = self.recovery.update_recovery_fi()
+                    self.recovery_complete_index = self.k_iter + k_reconf_max
+                    print("reconfiguration begins", self.recovery.process_state(states_pt))
+                elif self.k_detection < self.k_iter < self.recovery_complete_index:
+                    fM, k_reconf = self.recovery.update_recovery_ni(states, u)
+                    self.recovery_complete_index = self.k_iter + k_reconf
+                elif self.k_iter >= self.recovery_complete_index: # recovery finishes
+                    fM = self.fM *0
+                else: # nominal control 
+                    fM = self.nominal_control(states)
+                if self.k_iter == self.recovery_complete_index:
+                    print("recovery finished, ", states_pt)
+            elif self.recovery_name == RECOVERY_NAMES[2]: # TODO: Implement
+                if self.k_detection == self.k_iter:
+                    states = self.recovery.update_recovery_fi()
+                    self.states_recovery = states
+                    fM = self.nominal_control(states)
+                elif self.k_detection < self.k_iter <= self.k_max:
+                    states = self.recovery.update_recovery_ni(self.states_recovery, u)
+                    fM = self.nominal_control(states)
+                elif self.k_iter > self.k_max:
+                    fM = np.zeros((4, 1))
+                else:
+                    fM = self.nominal_control(states)
+                if self.k_iter == self.k_max + 1:
+                    print("reconfiguration finishes", self.recovery.process_state(states_pt))
 
-            # compute reconfiguration for the first time
-            if self.k_iter == self.k_detection:
-                fM, k_reconf_max = self.recovery.update_recovery_fi()
-                self.recovery_complete_index = self.k_iter + k_reconf_max
-                print("reconfiguration begins", self.recovery.process_state(states_pt))
-            elif self.k_detection < self.k_iter < self.recovery_complete_index:
-                fM, k_reconf = self.recovery.update_recovery_ni(states, u)
-                self.recovery_complete_index = self.k_iter + k_reconf
-                # print("enter!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!", self.k_iter)
-            elif self.k_iter >= self.recovery_complete_index: # recovery finishes
-                fM = self.fM *0
-                # print("recovery finished, ", states_pt)
-            else: # nominal control 
-                fM = self.nominal_control(states)
-            if self.k_iter == self.recovery_complete_index:
-                print("recovery finished, ", states_pt)
+
             
             if self.k_iter < self.recovery_complete_index:
-                print(fM)
+                # print(fM)
                 t_now = datetime.datetime.now()
                 t = (t_now - t_init).total_seconds()
-                print(t)
+                # print(t)
 
 
 
