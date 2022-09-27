@@ -4,7 +4,7 @@ from copy import deepcopy
 
 
 class Estimator:
-    def __init__(self, Ad, Bd, max_k, epsilon):
+    def __init__(self, Ad, Bd, max_k, epsilon=None):
         self.Ad = Ad
         self.Bd = Bd
         self.n = self.Ad.shape[0]
@@ -27,6 +27,7 @@ class Estimator:
         k = len(us)
         assert k < self.max_k
         assert x_a.shape[0] == self.n
+        assert self.epsilon is not None
         control_sum_term = np.zeros((self.n,))
         for j in range(k):
             control_sum_term += self.Ad_k_Bd[j] @ us[k - 1 - j]
@@ -36,10 +37,21 @@ class Estimator:
         x_0_up = x_0 + e
         return x_0_lo, x_0_up, x_0
 
+    def estimate_wo_bound(self, x_a, us):
+        # us: shape (length, m)
+        k = len(us)
+        assert k < self.max_k
+        assert x_a.shape[0] == self.n
+        control_sum_term = np.zeros((self.n,))
+        for j in range(k):
+            control_sum_term += self.Ad_k_Bd[j] @ us[k - 1 - j]
+        x_0 = self.Ad_k[k] @ x_a + control_sum_term
+        return x_0
+
     def get_deadline(self, x_a, safe_set_lo, safe_set_up, control: np.array, max_k):
         k = max_k
         breaked = False
-        print('control', control)
+        # print('control', control)
         for i in range(max_k):
             i += 1
             control_series = [control] * i
@@ -57,12 +69,13 @@ class Estimator:
                 k = i - 1
                 # print('x_0_up', x_0_up)
                 break
-        print('x_0_up', x_0_up)
+        # print('x_0_up', x_0_up)
         return k
 
 
 if __name__ == '__main__':
     from scipy.signal import StateSpace, lsim
+
     A = np.array([[-10, 1], [-0.02, -2]])
     B = np.array([[0], [2]])
     C = np.array([1, 0])
@@ -71,12 +84,10 @@ if __name__ == '__main__':
 
     est = Estimator(sysd.A, sysd.B, 20, 1e-7)
     x_0 = np.array([0, 0])
-    control_lst = np.array([[1]]*10)
-    x0_lo, x0_up = est.estimate(x_0, control_lst)
+    control_lst = np.array([[1]] * 10)
+    x0_lo, x0_up, x0 = est.estimate(x_0, control_lst)
     print(x0_lo, x0_up)
 
     t = np.arange(0, 0.22, 0.02)
-    t, y, x = lsim(sys, np.array([[1]]*11), t)
+    t, y, x = lsim(sys, np.array([[1]] * 11), t)
     print(t, x)
-
-
