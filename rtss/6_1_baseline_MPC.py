@@ -8,20 +8,8 @@ from settings_baseline import motor_speed_bias, quadruple_tank_bias, lane_keepin
 from utils.formal.gaussian_distribution import GaussianDistribution
 from utils.formal.reachability import ReachableSet
 from utils.formal.zonotope import Zonotope
-from utils.observers.kalman_filter import KalmanFilter
-from utils.controllers.MPC_OSQP import MPC
 from utils.observers.full_state_bound import Estimator
-from utils.controllers.MPC_OSQP import MPC
-
-
-def in_target_set(target_lo, target_hi, x_cur):
-    res = True
-    for i in range(len(x_cur)):
-        if target_lo[i] > x_cur[i] or target_hi[i] < x_cur[i]:
-            res = False
-            break
-    return res
-
+from utils.controllers.MPC_cvxpy import MPC
 
 # ready exp: lane_keeping,
 exps = [quadruple_tank_bias]
@@ -33,7 +21,7 @@ for exp in exps:
     print('=' * 20, exp.name, '=' * 20)
     k = None
     rec_u = None
-    recovery_complete_index = 10000
+    recovery_complete_index = None
     x_cur_predict = None
     x_cur_update = None
     cin = None
@@ -68,24 +56,46 @@ for exp in exps:
             x_cur_lo, x_cur_up, x_cur = est.estimate(x_0, us)
             print(f'{exp.attack_start_index=},{exp.recovery_index=},\n{us=}')
             print(f'{x_cur_lo=},\n {x_cur_up=},\n {exp.model.states[i]=}')
-            exp.model.cur_feedback = exp.model.sysd.C @ x_cur
+
+            # ys = (C @ exp.model.states[exp.attack_start_index + 1:exp.recovery_index + 1].T).T
+            # x_res, P_res = kf.multi_steps(x_0, np.zeros_like(A), us, ys)
+            # x_cur_update = GaussianDistribution(x_res[-1], P_res[-1])
+            # print(f'{x_cur_update.miu=}')
+
+            # deadline estimate
+            safe_set_lo = exp.safe_set_lo
+            safe_set_up = exp.safe_set_up
+            control = exp.model.inputs[i-1]
+            k = est.get_deadline(x_cur, safe_set_lo, safe_set_up, control, 100)
+            print(f'deadline {k=}')
+            recovery_complete_index = exp.attack_start_index + k
+
+            # get recovery control sequence
+            mpc_settings = {
+                'Ad': A, 'Bd': B,
+                'Q': exp.Q, 'QN': exp.QN, 'R': exp.R,
+                'N': k+3,
+                'ddl': k, 'target_lo': exp.target_set_lo, 'target_up': exp.target_set_up,
+                'safe_lo': exp.safe_set_lo, 'safe_up': exp.safe_set_up,
+                'control_lo': exp.control_lo, 'control_up': exp.control_up,
+                'ref': np.array([14, 14, 2, 2.5])
+            }
+            mpc = MPC(mpc_settings)
+            _ = mpc.update(feedback_value=x_cur)
+            rec_u = mpc.get_full_ctrl()
+            print(f'{x_cur=},{rec_u=}')
+
+        if exp.recovery_index <= i < recovery_complete_index:
+            rec_u_index = i - exp.recovery_index
+            u = rec_u[rec_u_index]
+            exp.model.evolve(u)
             print(f'{i=}, {exp.model.cur_x=}')
-
-        if exp.recovery_index < i <= recovery_complete_index:
-            # check if it is in target set
-            if in_target_set(exp.target_set_lo, exp.target_set_up, exp.model.cur_x):
-                recovery_complete_index = i
+        else:
+            if i == recovery_complete_index:
                 print('state after recovery:', exp.model.cur_x)
-                step = recovery_complete_index - exp.recovery_index
+                step = recovery_complete_index-exp.recovery_index
                 print(f'use {step} steps to recover.')
-            else:
-                us = [exp.model.inputs[i-1]]
-                x_0 = exp.model.states[i-1]
-                x_cur_lo, x_cur_up, x_cur = est.estimate(x_0, us)
-                exp.model.cur_feedback = exp.model.sysd.C @ x_cur
-                print(f'{i=}, {exp.model.cur_x=}')
-
-        exp.model.evolve()
+            exp.model.evolve()
 
     result['w/'] = {}
     result['w/']['outputs'] = deepcopy(exp.model.outputs)

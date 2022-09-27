@@ -9,9 +9,9 @@ from utils.formal.gaussian_distribution import GaussianDistribution
 from utils.formal.reachability import ReachableSet
 from utils.formal.zonotope import Zonotope
 from utils.observers.kalman_filter import KalmanFilter
-from utils.controllers.MPC import MPC
+from utils.controllers.MPC_OSQP import MPC
 from utils.observers.full_state_bound import Estimator
-from utils.controllers.MPC import MPC
+from utils.controllers.LP_cvxpy import LP
 
 # ready exp: lane_keeping,
 exps = [quadruple_tank_bias]
@@ -73,18 +73,20 @@ for exp in exps:
             recovery_complete_index = exp.attack_start_index + k
 
             # get recovery control sequence
-            mpc_settings = {
+            lp_settings = {
                 'Ad': A, 'Bd': B,
-                'Q': exp.Q, 'QN': exp.QN, 'R': exp.R,
-                'N': k+3,
+                'N': k,
                 'ddl': k, 'target_lo': exp.target_set_lo, 'target_up': exp.target_set_up,
                 'safe_lo': exp.safe_set_lo, 'safe_up': exp.safe_set_up,
                 'control_lo': exp.control_lo, 'control_up': exp.control_up,
-                'ref': np.array([14, 14, 2, 2.5])
+                'ref': exp.recovery_ref
             }
-            mpc = MPC(mpc_settings)
-            _, rec_u = mpc.update(feedback_value=x_cur)
-            print(f'{x_cur=},{rec_u=}')
+            lp = LP(lp_settings)
+            _ = lp.update(feedback_value=x_cur)
+            rec_u = lp.get_full_ctrl()
+            rec_x = lp.get_last_x()
+            print(f'{rec_x=}')
+            # print(f'{x_cur=},{rec_u=}')
 
         if exp.recovery_index <= i < recovery_complete_index:
             rec_u_index = i - exp.recovery_index
