@@ -1,5 +1,6 @@
 import numpy as np
 import os, time
+from copy import deepcopy
 from scipy.signal import StateSpace
 from scipy.integrate import solve_ivp
 from utils.formal.gaussian_distribution import GaussianDistribution
@@ -158,8 +159,8 @@ class Simulator:
 
     def evolve(self, u=None):
         # record data
-        self.feedbacks[self.cur_index] = self.cur_feedback
-        self.refs[self.cur_index] = self.cur_ref
+        self.feedbacks[self.cur_index] = deepcopy(self.cur_feedback)
+        self.refs[self.cur_index] = deepcopy(self.cur_ref)
 
         # compute control input
         if self.feedback_type:
@@ -170,7 +171,7 @@ class Simulator:
         if not (u is None):
             self.cur_u = u
         assert self.cur_u.shape == (self.m,)
-        self.inputs[self.cur_index] = self.cur_u
+        self.inputs[self.cur_index] = deepcopy(self.cur_u)
 
         # implement control input
         ts = (self.cur_index * self.dt, (self.cur_index + 1) * self.dt)
@@ -186,8 +187,8 @@ class Simulator:
             self.cur_y += self.m_noise[self.cur_index]
         assert self.cur_x.shape == (self.n,)
         assert self.cur_y.shape == (self.p,)
-        self.states[self.cur_index] = self.cur_x
-        self.outputs[self.cur_index] = self.cur_y
+        self.states[self.cur_index] = deepcopy(self.cur_x)
+        self.outputs[self.cur_index] = deepcopy(self.cur_y)
 
         # prepare feedback
         if self.feedback_type:
