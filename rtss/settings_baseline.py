@@ -87,6 +87,8 @@ class quadruple_tank_bias:
 
     kf_C = np.array([[0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]])
     k_given = 40
+    kf_Q = np.diag([1e-7, 1e-7, 1e-7, 1e-7])
+    kf_R = np.diag([1e-7, 1e-7, 1e-7])
 
     # baseline
     safe_set_lo = np.array([0, 0, 0, 0])
@@ -97,6 +99,7 @@ class quadruple_tank_bias:
     Q = np.diag([1, 1, 0, 0])
     QN = np.diag([1, 1, 0, 0])
     R = np.diag([1, 1])
+
 
 # -------------------- f16 ----------------------------
 class f16_bias:

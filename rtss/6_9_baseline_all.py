@@ -15,8 +15,8 @@ from utils.controllers.MPC_cvxpy import MPC
 
 exps = [quadruple_tank_bias]
 # baselines = ['none', 'lp', 'mpc', 'ssr', 'oprp', 'fprp']
-baselines = ['none', 'lp', 'mpc']
-colors = {'none': 'red', 'lp': 'cyan', 'mpc': 'blue', 'ssr': 'yellow', 'oprp': 'purple', 'fprp': 'violet'}
+baselines = ['none', 'lp', 'mpc', 'ssr']
+colors = {'none': 'red', 'lp': 'cyan', 'mpc': 'blue', 'ssr': 'orange', 'oprp': 'purple', 'fprp': 'violet'}
 result = {}  # for print or plot
 
 # logger
@@ -122,12 +122,12 @@ for exp in exps:
                     logger.debug(f'use {step} steps to recover.')
                 exp.model.evolve()
 
-            exp_rst['lp'] = {}
-            exp_rst['lp']['states'] = deepcopy(exp.model.states)
-            exp_rst['lp']['outputs'] = deepcopy(exp.model.outputs)
-            exp_rst['lp']['inputs'] = deepcopy(exp.model.inputs)
-            exp_rst['lp']['time'] = {}
-            exp_rst['lp']['time']['recovery_complete'] = recovery_complete_index
+        exp_rst['lp'] = {}
+        exp_rst['lp']['states'] = deepcopy(exp.model.states)
+        exp_rst['lp']['outputs'] = deepcopy(exp.model.outputs)
+        exp_rst['lp']['inputs'] = deepcopy(exp.model.inputs)
+        exp_rst['lp']['time'] = {}
+        exp_rst['lp']['time']['recovery_complete'] = recovery_complete_index
 
     #  =================  MPC_recovery  ===================
     # did not add maintainable time estimation, let it to be 3
@@ -195,19 +195,114 @@ for exp in exps:
             else:
                 exp.model.evolve()
 
-            exp_rst['mpc'] = {}
-            exp_rst['mpc']['states'] = deepcopy(exp.model.states)
-            exp_rst['mpc']['outputs'] = deepcopy(exp.model.outputs)
-            exp_rst['mpc']['inputs'] = deepcopy(exp.model.inputs)
-            exp_rst['mpc']['time'] = {}
-            exp_rst['mpc']['time']['recovery_complete'] = recovery_complete_index + maintain_time
+        exp_rst['mpc'] = {}
+        exp_rst['mpc']['states'] = deepcopy(exp.model.states)
+        exp_rst['mpc']['outputs'] = deepcopy(exp.model.outputs)
+        exp_rst['mpc']['inputs'] = deepcopy(exp.model.inputs)
+        exp_rst['mpc']['time'] = {}
+        exp_rst['mpc']['time']['recovery_complete'] = recovery_complete_index + maintain_time
 
     #  =================  Software_sensor_recovery  ===================
     exp.model.reset()
 
+    # required objects
+    def in_target_set(target_lo, target_hi, x_cur):
+        res = True
+        for i in range(len(x_cur)):
+            if target_lo[i] > x_cur[i] or target_hi[i] < x_cur[i]:
+                res = False
+                break
+        return res
+
+    # init variables
+    recovery_complete_index = np.inf
+    last_predicted_state = None
+
+    if 'ssr' in baselines:
+        exp_name = f" ssr + {exp.name} "
+        logger.info(f"{exp_name:^40}")
+        for i in range(0, exp.max_index + 1):
+            assert exp.model.cur_index == i
+            exp.model.update_current_ref(exp.ref[i])
+            # attack here
+            exp.model.cur_feedback = exp.attack.launch(exp.model.cur_feedback, i, exp.model.states)
+            if i == exp.attack_start_index - 1:
+                logger.debug(f'trustworthy_index={i}, trustworthy_state={exp.model.cur_x}')
+            if i == exp.recovery_index:
+                logger.debug(f'recovery_index={i}, recovery_start_state={exp.model.cur_x}')
+
+                # State reconstruction
+                us = exp.model.inputs[exp.attack_start_index - 1:exp.recovery_index-1]
+                x_0 = exp.model.states[exp.attack_start_index - 1]
+                x_cur = est.estimate_wo_bound(x_0, us)
+                logger.debug(f'one before reconstructed state={x_cur}')
+                last_predicted_state = deepcopy(x_cur)
+
+            if exp.recovery_index <= i <= recovery_complete_index:
+                # check if it is in target set
+                # if in_target_set(exp.target_set_lo, exp.target_set_up, last_predicted_state):
+                #     recovery_complete_index = i
+                #     logger.debug('state after recovery={exp.model.cur_x}')
+                #     step = recovery_complete_index - exp.recovery_index
+                #     logger.debug(f'use {step} steps to recover.')
+                us = [exp.model.inputs[i - 1]]
+                x_0 = last_predicted_state
+                x_cur = est.estimate_wo_bound(x_0, us)
+                exp.model.cur_feedback = exp.model.sysd.C @ x_cur
+                last_predicted_state = deepcopy(x_cur)
+            exp.model.evolve()
+
+        exp_rst['ssr'] = {}
+        exp_rst['ssr']['states'] = deepcopy(exp.model.states)
+        exp_rst['ssr']['outputs'] = deepcopy(exp.model.outputs)
+        exp_rst['ssr']['inputs'] = deepcopy(exp.model.inputs)
+        exp_rst['ssr']['time'] = {}
+        exp_rst['ssr']['time']['recovery_complete'] = exp.max_index
+        # print(f'{recovery_complete_index}')
+
+    #  =================  Optimal_probabilistic_recovery  ===================
+    exp.model.reset()
+
+    # required objects
+    C_filter = exp.kf_C
+    D = exp.model.sysd.D
+    kf_Q = exp.kf_Q
+    kf_R = exp.kf_R
+    kf = KalmanFilter(A, B, C_filter, D, kf_Q, kf_R)
+    U = Zonotope.from_box(exp.control_lo, exp.control_up)
+    # W =
+    # reach = ReachableSet(A, B, U, W, max_step=max_recovery_step + 2)
+
     # init variables
     recovery_complete_index = np.inf
 
+    if 'oprp' in baselines:
+        exp_name = f" oprp + {exp.name} "
+        logger.info(f"{exp_name:^40}")
+        for i in range(0, exp.max_index + 1):
+            assert exp.model.cur_index == i
+            exp.model.update_current_ref(exp.ref[i])
+            # attack here
+            exp.model.cur_feedback = exp.attack.launch(exp.model.cur_feedback, i, exp.model.states)
+            if i == exp.attack_start_index - 1:
+                logger.debug(f'trustworthy_index={i}, trustworthy_state={exp.model.cur_x}')
+            if i == exp.recovery_index:
+                logger.debug(f'recovery_index={i}, recovery_start_state={exp.model.cur_x}')
+
+                us = exp.model.inputs[exp.attack_start_index-1:exp.recovery_index]
+                ys = (C_filter @ exp.model.states[exp.attack_start_index:exp.recovery_index + 1].T).T
+                x_0 = exp.model.states[exp.attack_start_index-1]
+                x_res, P_res = kf.multi_steps(x_0, np.zeros_like(A), us, ys)
+                x_cur_update = GaussianDistribution(x_res[-1], P_res[-1])
+
+                # reach.init(x_cur_update, safe_set)
+                # print(f"x_0={x_cur_update.miu=}")
+                # k, X_k, D_k, z_star, alpha, P, arrive = reach.given_k(max_k=max_recovery_step)
+                # print(f"{k=}, {z_star=}, {P=}")
+                # recovery_end_index = recovery_start_index + k
+                # # attack_end_index = recovery_end_index - 1  #   for test!!!
+                # recovery_control_sequence = U.alpha_to_control(alpha)
+                # print('recovery_control=', recovery_control_sequence[0, :])
 
 
 
@@ -229,6 +324,10 @@ for exp in exps:
         end_time = exp_rst[bl]['time']['recovery_complete']
         t_arr_tmp = t_arr[exp.recovery_index:end_time]
         output = [x[exp.output_index] for x in exp_rst[bl]['outputs'][exp.recovery_index:end_time]]
-        plt.plot(t_arr_tmp, output, color=colors[bl])
+        plt.plot(t_arr_tmp, output, color=colors[bl], label=bl)
 
+    plt.ylim(exp.y_lim)
+    plt.xlim(exp.x_lim, exp.max_index*exp.dt)
+
+    plt.legend()
     plt.show()
