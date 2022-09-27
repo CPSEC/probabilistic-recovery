@@ -17,7 +17,7 @@ from rtss.settings import heat_bias as htb
 
 # exps = [msb, qtb, f16b, apb, boeb, rcb, qdb]
 # exps = [f16b]
-exps = [htb]
+exps = [msb]
 given_Ps = [0.7, 0.8, 0.95]
 result = {}
 plot = False

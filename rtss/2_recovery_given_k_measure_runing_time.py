@@ -16,7 +16,7 @@ from rtss.settings import heat_bias as htb
 
 exps = [msb, qtb, f16b, apb, boeb, rcb, qdb]
 exps = [htb]
-# exps = [f16b]
+exps = [msb]
 max_ks = [10, 20, 30]
 result = {}
 plot = False
@@ -62,7 +62,7 @@ for exp in exps:
                 recovery_complete_index = exp.recovery_index + k
                 print('k=', k, 'P=', P, 'z_star=', z_star, 'arrive=', arrive)
                 result[exp.name][max_k]['k'] = k
-                result[exp.name][max_k]['P'] = P
+                result[exp.name][max_k]['P'] = float(P)
                 print('recovery_complete_index=', recovery_complete_index)
                 rec_u = U.alpha_to_control(alpha)
                 print(rec_u)

@@ -93,6 +93,7 @@ class quadruple_tank_bias:
     safe_set_up = np.array([22, 22, 22, 22])
     target_set_lo = np.array([13.8, 13.8, 0, 0])
     target_set_up = np.array([14.2, 14.2, 20, 20])
+    recovery_ref = np.array([14, 14, 2, 2.5])
     Q = np.diag([1, 1, 0, 0])
     QN = np.diag([1, 1, 0, 0])
     R = np.diag([1, 1])

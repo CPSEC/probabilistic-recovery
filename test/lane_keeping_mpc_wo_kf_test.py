@@ -6,7 +6,7 @@ from utils.formal.zonotope import Zonotope
 from utils.formal.gaussian_distribution import GaussianDistribution
 from utils.formal.reachability import ReachableSet
 from utils.formal.strip import Strip
-from utils.controllers.MPC import MPC
+from utils.controllers.MPC_OSQP import MPC
 
 control_lo = np.array([-0.261799])
 control_up = np.array([0.261799])

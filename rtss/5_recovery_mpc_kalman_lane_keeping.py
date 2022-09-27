@@ -9,7 +9,7 @@ from utils.formal.gaussian_distribution import GaussianDistribution
 from utils.formal.reachability import ReachableSet
 from utils.formal.zonotope import Zonotope
 from utils.observers.kalman_filter import KalmanFilter
-from utils.controllers.MPC import MPC
+from utils.controllers.MPC_OSQP import MPC
 
 # exps = [motor_speed_bias]
 # exps = [quadruple_tank_bias]
