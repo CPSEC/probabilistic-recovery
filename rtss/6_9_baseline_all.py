@@ -14,9 +14,9 @@ from utils.controllers.LP_cvxpy import LP
 from utils.controllers.MPC_cvxpy import MPC
 
 exps = [quadruple_tank_bias]
-# baselines = ['none', 'lp', 'mpc', 'ssr', 'oprp', 'fprp']
-baselines = ['none', 'lp', 'mpc', 'ssr']
-colors = {'none': 'red', 'lp': 'cyan', 'mpc': 'blue', 'ssr': 'orange', 'oprp': 'purple', 'fprp': 'violet'}
+# baselines = ['none', 'lp', 'lqr', 'ssr', 'oprp', 'fprp']
+baselines = ['none', 'lp', 'lqr', 'ssr']
+colors = {'none': 'red', 'lp': 'cyan', 'lqr': 'blue', 'ssr': 'orange', 'oprp': 'purple', 'fprp': 'violet'}
 result = {}  # for print or plot
 
 # logger
@@ -129,7 +129,7 @@ for exp in exps:
         exp_rst['lp']['time'] = {}
         exp_rst['lp']['time']['recovery_complete'] = recovery_complete_index
 
-    #  =================  MPC_recovery  ===================
+    #  =================  LQR_recovery  ===================
     # did not add maintainable time estimation, let it to be 3
     maintain_time = 3
     exp.model.reset()
@@ -138,8 +138,8 @@ for exp in exps:
     recovery_complete_index = np.inf
     rec_u = None
 
-    if 'mpc' in baselines:
-        exp_name = f" mpc + {exp.name} "
+    if 'lqr' in baselines:
+        exp_name = f" lqr + {exp.name} "
         logger.info(f"{exp_name:^40}")
         for i in range(0, exp.max_index + 1):
             assert exp.model.cur_index == i
@@ -168,7 +168,7 @@ for exp in exps:
 
 
                 # get recovery control sequence
-                mpc_settings = {
+                lqr_settings = {
                     'Ad': A, 'Bd': B,
                     'Q': exp.Q, 'QN': exp.QN, 'R': exp.R,
                     'N': k + 3,
@@ -177,10 +177,10 @@ for exp in exps:
                     'control_lo': exp.control_lo, 'control_up': exp.control_up,
                     'ref': np.array([14, 14, 2, 2.5])
                 }
-                mpc = MPC(mpc_settings)
-                _ = mpc.update(feedback_value=x_cur)
-                rec_u = mpc.get_full_ctrl()
-                rec_x = mpc.get_last_x()
+                lqr = MPC(lqr_settings)
+                _ = lqr.update(feedback_value=x_cur)
+                rec_u = lqr.get_full_ctrl()
+                rec_x = lqr.get_last_x()
                 logger.debug(f'expected recovery state={rec_x}')
 
             if i == recovery_complete_index:
@@ -195,12 +195,12 @@ for exp in exps:
             else:
                 exp.model.evolve()
 
-        exp_rst['mpc'] = {}
-        exp_rst['mpc']['states'] = deepcopy(exp.model.states)
-        exp_rst['mpc']['outputs'] = deepcopy(exp.model.outputs)
-        exp_rst['mpc']['inputs'] = deepcopy(exp.model.inputs)
-        exp_rst['mpc']['time'] = {}
-        exp_rst['mpc']['time']['recovery_complete'] = recovery_complete_index + maintain_time
+        exp_rst['lqr'] = {}
+        exp_rst['lqr']['states'] = deepcopy(exp.model.states)
+        exp_rst['lqr']['outputs'] = deepcopy(exp.model.outputs)
+        exp_rst['lqr']['inputs'] = deepcopy(exp.model.inputs)
+        exp_rst['lqr']['time'] = {}
+        exp_rst['lqr']['time']['recovery_complete'] = recovery_complete_index + maintain_time
 
     #  =================  Software_sensor_recovery  ===================
     exp.model.reset()
@@ -260,49 +260,49 @@ for exp in exps:
         exp_rst['ssr']['time']['recovery_complete'] = exp.max_index
         # print(f'{recovery_complete_index}')
 
-    #  =================  Optimal_probabilistic_recovery  ===================
-    exp.model.reset()
-
-    # required objects
-    C_filter = exp.kf_C
-    D = exp.model.sysd.D
-    kf_Q = exp.kf_Q
-    kf_R = exp.kf_R
-    kf = KalmanFilter(A, B, C_filter, D, kf_Q, kf_R)
-    U = Zonotope.from_box(exp.control_lo, exp.control_up)
-    # W =
-    # reach = ReachableSet(A, B, U, W, max_step=max_recovery_step + 2)
-
-    # init variables
-    recovery_complete_index = np.inf
-
-    if 'oprp' in baselines:
-        exp_name = f" oprp + {exp.name} "
-        logger.info(f"{exp_name:^40}")
-        for i in range(0, exp.max_index + 1):
-            assert exp.model.cur_index == i
-            exp.model.update_current_ref(exp.ref[i])
-            # attack here
-            exp.model.cur_feedback = exp.attack.launch(exp.model.cur_feedback, i, exp.model.states)
-            if i == exp.attack_start_index - 1:
-                logger.debug(f'trustworthy_index={i}, trustworthy_state={exp.model.cur_x}')
-            if i == exp.recovery_index:
-                logger.debug(f'recovery_index={i}, recovery_start_state={exp.model.cur_x}')
-
-                us = exp.model.inputs[exp.attack_start_index-1:exp.recovery_index]
-                ys = (C_filter @ exp.model.states[exp.attack_start_index:exp.recovery_index + 1].T).T
-                x_0 = exp.model.states[exp.attack_start_index-1]
-                x_res, P_res = kf.multi_steps(x_0, np.zeros_like(A), us, ys)
-                x_cur_update = GaussianDistribution(x_res[-1], P_res[-1])
-
-                # reach.init(x_cur_update, safe_set)
-                # print(f"x_0={x_cur_update.miu=}")
-                # k, X_k, D_k, z_star, alpha, P, arrive = reach.given_k(max_k=max_recovery_step)
-                # print(f"{k=}, {z_star=}, {P=}")
-                # recovery_end_index = recovery_start_index + k
-                # # attack_end_index = recovery_end_index - 1  #   for test!!!
-                # recovery_control_sequence = U.alpha_to_control(alpha)
-                # print('recovery_control=', recovery_control_sequence[0, :])
+    # #  =================  Optimal_probabilistic_recovery  ===================
+    # exp.model.reset()
+    #
+    # # required objects
+    # C_filter = exp.kf_C
+    # D = exp.model.sysd.D
+    # kf_Q = exp.kf_Q
+    # kf_R = exp.kf_R
+    # kf = KalmanFilter(A, B, C_filter, D, kf_Q, kf_R)
+    # U = Zonotope.from_box(exp.control_lo, exp.control_up)
+    # # W =
+    # # reach = ReachableSet(A, B, U, W, max_step=max_recovery_step + 2)
+    #
+    # # init variables
+    # recovery_complete_index = np.inf
+    #
+    # if 'oprp' in baselines:
+    #     exp_name = f" oprp + {exp.name} "
+    #     logger.info(f"{exp_name:^40}")
+    #     for i in range(0, exp.max_index + 1):
+    #         assert exp.model.cur_index == i
+    #         exp.model.update_current_ref(exp.ref[i])
+    #         # attack here
+    #         exp.model.cur_feedback = exp.attack.launch(exp.model.cur_feedback, i, exp.model.states)
+    #         if i == exp.attack_start_index - 1:
+    #             logger.debug(f'trustworthy_index={i}, trustworthy_state={exp.model.cur_x}')
+    #         if i == exp.recovery_index:
+    #             logger.debug(f'recovery_index={i}, recovery_start_state={exp.model.cur_x}')
+    #
+    #             us = exp.model.inputs[exp.attack_start_index-1:exp.recovery_index]
+    #             ys = (C_filter @ exp.model.states[exp.attack_start_index:exp.recovery_index + 1].T).T
+    #             x_0 = exp.model.states[exp.attack_start_index-1]
+    #             x_res, P_res = kf.multi_steps(x_0, np.zeros_like(A), us, ys)
+    #             x_cur_update = GaussianDistribution(x_res[-1], P_res[-1])
+    #
+    #             # reach.init(x_cur_update, safe_set)
+    #             # print(f"x_0={x_cur_update.miu=}")
+    #             # k, X_k, D_k, z_star, alpha, P, arrive = reach.given_k(max_k=max_recovery_step)
+    #             # print(f"{k=}, {z_star=}, {P=}")
+    #             # recovery_end_index = recovery_start_index + k
+    #             # # attack_end_index = recovery_end_index - 1  #   for test!!!
+    #             # recovery_control_sequence = U.alpha_to_control(alpha)
+    #             # print('recovery_control=', recovery_control_sequence[0, :])
 
 
 
