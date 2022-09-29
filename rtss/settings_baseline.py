@@ -61,7 +61,7 @@ class quadruple_tank_bias:
     noise = {
         'process': {
             'type': 'white',
-            'param': {'C': np.eye(4) * 0.1}
+            'param': {'C': np.diag([0.02, 0.02, 0.02, 0.02])}
         }
     }
     model = QuadrupleTank('test', dt, max_index, noise)
@@ -74,7 +74,7 @@ class quadruple_tank_bias:
     recovery_index = 160
 
     # needed by 1_recovery_given_p
-    s = Strip(np.array([-1, 0, 0, 0]), a=-14.6, b=-13.4)
+    s = Strip(np.array([-1, 0, 0, 0]), a=-14.2, b=-13.8)
     P_given = 0.95
     max_recovery_step = 40
     # plot
@@ -85,14 +85,13 @@ class quadruple_tank_bias:
     y_label = 'water level - cm'
     strip = (7.3, 6.7)
 
-    kf_C = np.array([[0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]])
+    kf_C = np.array([[0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]])   # depend on attack
     k_given = 40
-    kf_Q = np.diag([1e-7, 1e-7, 1e-7, 1e-7])
     kf_R = np.diag([1e-7, 1e-7, 1e-7])
 
     # baseline
     safe_set_lo = np.array([0, 0, 0, 0])
-    safe_set_up = np.array([22, 22, 22, 22])
+    safe_set_up = np.array([20, 20, 20, 20])
     target_set_lo = np.array([13.8, 13.8, 0, 0])
     target_set_up = np.array([14.2, 14.2, 20, 20])
     recovery_ref = np.array([14, 14, 2, 2.5])
@@ -121,7 +120,7 @@ class f16_bias:
     attack_start_index = 400
     bias = np.array([-1])
     attack = Attack('bias', bias, attack_start_index)
-    recovery_index = 600
+    recovery_index = 420
 
     # needed by 1_recovery_given_p
     s = Strip(np.array([0, 0, -1, 0]), a=-8.76e-02, b=8.75e-02)
@@ -134,6 +133,20 @@ class f16_bias:
     y_lim = (4.5, 7)
     y_label = 'pitch angle - rad'
     strip = (8.76e-02*57.3, 8.75e-02*57.3)
+
+    kf_C = np.array([[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 0, 1]])   # depend on attack
+    k_given = 40
+    kf_R = np.diag([1e-7, 1e-7, 1e-7])
+
+    # baseline
+    safe_set_lo = np.array([0, 0, 5/57.3, 0])
+    safe_set_up = np.array([1, 1, 9/57.3, 1])
+    target_set_lo = np.array([13.8, 13.8, 0, 0])
+    target_set_up = np.array([14.2, 14.2, 20, 20])
+    recovery_ref = np.array([4.02134576e+02, 4.02134576e+02, 0.0872665, 2.70015266e-04])
+    Q = np.diag([1, 1, 0, 0])
+    QN = np.diag([1, 1, 0, 0])
+    R = np.diag([1, 1])
 
 # -------------------- aircraft_pitch ----------------------------
 class aircraft_pitch_bias:
@@ -168,6 +181,10 @@ class aircraft_pitch_bias:
     y_lim = (0, 1.2)
     y_label = 'pitch - rad'
     strip = (0.33, 0.27)
+
+    kf_C = np.array([[0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]])   # depend on attack
+    k_given = 40
+    kf_R = np.diag([1e-7, 1e-7, 1e-7])
 
 
 # -------------------- boeing747 ----------------------------

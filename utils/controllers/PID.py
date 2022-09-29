@@ -112,9 +112,9 @@ class PID(Controller):
             self.last_pv = feedback_value
 
             self.output = self.PTerm + (self.Ki * self.ITerm) + (self.Kd * self.DTerm)
-            if self.control_up and self.control_up < self.output:
+            if self.control_up is not None and self.control_up < self.output:
                 self.output = self.control_up
-            elif self.control_lo and self.control_lo > self.output:
+            elif self.control_lo is not None and self.control_lo > self.output:
                 self.output = self.control_lo
         return self.output
 

@@ -4,7 +4,7 @@ import numpy as np
 import logging
 import sys
 
-from settings_baseline import motor_speed_bias, quadruple_tank_bias, lane_keeping
+from settings_baseline import motor_speed_bias, quadruple_tank_bias, lane_keeping, f16_bias
 from utils.formal.gaussian_distribution import GaussianDistribution
 from utils.formal.reachability import ReachableSet
 from utils.formal.zonotope import Zonotope
@@ -14,8 +14,10 @@ from utils.controllers.LP_cvxpy import LP
 from utils.controllers.MPC_cvxpy import MPC
 
 exps = [quadruple_tank_bias]
+# exps = [f16_bias]
 # baselines = ['none', 'lp', 'lqr', 'ssr', 'oprp', 'fprp']
-baselines = ['none', 'lp', 'lqr', 'ssr']
+baselines = ['none', 'lp', 'lqr', 'ssr', 'oprp']
+# baselines = ['none', 'ssr', 'oprp']
 colors = {'none': 'red', 'lp': 'cyan', 'lqr': 'blue', 'ssr': 'orange', 'oprp': 'purple', 'fprp': 'violet'}
 result = {}  # for print or plot
 
@@ -37,6 +39,7 @@ for exp in exps:
     #  =================  no_recovery  ===================
     # if 'none' in baselines:
     if True:
+        bl = 'none'
         exp_name = f" none + {exp.name} "
         logger.info(f"{exp_name:^40}")
         for i in range(0, exp.max_index + 1):
@@ -49,13 +52,13 @@ for exp in exps:
             if i == exp.recovery_index:
                 logger.debug(f'recovery_index={i}, recovery_start_state={exp.model.cur_x}')
             exp.model.evolve()
-        exp_rst['none'] = {}
-        exp_rst['none']['refs'] = deepcopy(exp.model.refs)
-        exp_rst['none']['states'] = deepcopy(exp.model.states)
-        exp_rst['none']['outputs'] = deepcopy(exp.model.outputs)
-        exp_rst['none']['inputs'] = deepcopy(exp.model.inputs)
-        exp_rst['none']['time'] = {}
-        exp_rst['none']['time']['recovery_complete'] = exp.max_index
+        exp_rst[bl] = {}
+        exp_rst[bl]['refs'] = deepcopy(exp.model.refs)
+        exp_rst[bl]['states'] = deepcopy(exp.model.states)
+        exp_rst[bl]['outputs'] = deepcopy(exp.model.outputs)
+        exp_rst[bl]['inputs'] = deepcopy(exp.model.inputs)
+        exp_rst[bl]['time'] = {}
+        exp_rst[bl]['time']['recovery_complete'] = exp.max_index-1
 
     #  =================  LP_recovery  ===================
     exp.model.reset()
@@ -70,6 +73,7 @@ for exp in exps:
     rec_u = None
 
     if 'lp' in baselines:
+        bl = 'lp'
         exp_name = f" lp + {exp.name} "
         logger.info(f"{exp_name:^40}")
         for i in range(0, exp.max_index + 1):
@@ -122,12 +126,12 @@ for exp in exps:
                     logger.debug(f'use {step} steps to recover.')
                 exp.model.evolve()
 
-        exp_rst['lp'] = {}
-        exp_rst['lp']['states'] = deepcopy(exp.model.states)
-        exp_rst['lp']['outputs'] = deepcopy(exp.model.outputs)
-        exp_rst['lp']['inputs'] = deepcopy(exp.model.inputs)
-        exp_rst['lp']['time'] = {}
-        exp_rst['lp']['time']['recovery_complete'] = recovery_complete_index
+        exp_rst[bl] = {}
+        exp_rst[bl]['states'] = deepcopy(exp.model.states)
+        exp_rst[bl]['outputs'] = deepcopy(exp.model.outputs)
+        exp_rst[bl]['inputs'] = deepcopy(exp.model.inputs)
+        exp_rst[bl]['time'] = {}
+        exp_rst[bl]['time']['recovery_complete'] = recovery_complete_index
 
     #  =================  LQR_recovery  ===================
     # did not add maintainable time estimation, let it to be 3
@@ -139,6 +143,7 @@ for exp in exps:
     rec_u = None
 
     if 'lqr' in baselines:
+        bl = 'lqr'
         exp_name = f" lqr + {exp.name} "
         logger.info(f"{exp_name:^40}")
         for i in range(0, exp.max_index + 1):
@@ -195,12 +200,12 @@ for exp in exps:
             else:
                 exp.model.evolve()
 
-        exp_rst['lqr'] = {}
-        exp_rst['lqr']['states'] = deepcopy(exp.model.states)
-        exp_rst['lqr']['outputs'] = deepcopy(exp.model.outputs)
-        exp_rst['lqr']['inputs'] = deepcopy(exp.model.inputs)
-        exp_rst['lqr']['time'] = {}
-        exp_rst['lqr']['time']['recovery_complete'] = recovery_complete_index + maintain_time
+        exp_rst[bl] = {}
+        exp_rst[bl]['states'] = deepcopy(exp.model.states)
+        exp_rst[bl]['outputs'] = deepcopy(exp.model.outputs)
+        exp_rst[bl]['inputs'] = deepcopy(exp.model.inputs)
+        exp_rst[bl]['time'] = {}
+        exp_rst[bl]['time']['recovery_complete'] = recovery_complete_index + maintain_time
 
     #  =================  Software_sensor_recovery  ===================
     exp.model.reset()
@@ -219,6 +224,7 @@ for exp in exps:
     last_predicted_state = None
 
     if 'ssr' in baselines:
+        bl = 'ssr'
         exp_name = f" ssr + {exp.name} "
         logger.info(f"{exp_name:^40}")
         for i in range(0, exp.max_index + 1):
@@ -250,60 +256,89 @@ for exp in exps:
                 x_cur = est.estimate_wo_bound(x_0, us)
                 exp.model.cur_feedback = exp.model.sysd.C @ x_cur
                 last_predicted_state = deepcopy(x_cur)
+                print(f'{exp.model.cur_u}')
             exp.model.evolve()
 
-        exp_rst['ssr'] = {}
-        exp_rst['ssr']['states'] = deepcopy(exp.model.states)
-        exp_rst['ssr']['outputs'] = deepcopy(exp.model.outputs)
-        exp_rst['ssr']['inputs'] = deepcopy(exp.model.inputs)
-        exp_rst['ssr']['time'] = {}
-        exp_rst['ssr']['time']['recovery_complete'] = exp.max_index
+        exp_rst[bl] = {}
+        exp_rst[bl]['states'] = deepcopy(exp.model.states)
+        exp_rst[bl]['outputs'] = deepcopy(exp.model.outputs)
+        exp_rst[bl]['inputs'] = deepcopy(exp.model.inputs)
+        exp_rst[bl]['time'] = {}
+        exp_rst[bl]['time']['recovery_complete'] = exp.max_index-1
         # print(f'{recovery_complete_index}')
 
-    # #  =================  Optimal_probabilistic_recovery  ===================
-    # exp.model.reset()
-    #
-    # # required objects
-    # C_filter = exp.kf_C
-    # D = exp.model.sysd.D
-    # kf_Q = exp.kf_Q
-    # kf_R = exp.kf_R
-    # kf = KalmanFilter(A, B, C_filter, D, kf_Q, kf_R)
-    # U = Zonotope.from_box(exp.control_lo, exp.control_up)
-    # # W =
-    # # reach = ReachableSet(A, B, U, W, max_step=max_recovery_step + 2)
-    #
-    # # init variables
-    # recovery_complete_index = np.inf
-    #
-    # if 'oprp' in baselines:
-    #     exp_name = f" oprp + {exp.name} "
-    #     logger.info(f"{exp_name:^40}")
-    #     for i in range(0, exp.max_index + 1):
-    #         assert exp.model.cur_index == i
-    #         exp.model.update_current_ref(exp.ref[i])
-    #         # attack here
-    #         exp.model.cur_feedback = exp.attack.launch(exp.model.cur_feedback, i, exp.model.states)
-    #         if i == exp.attack_start_index - 1:
-    #             logger.debug(f'trustworthy_index={i}, trustworthy_state={exp.model.cur_x}')
-    #         if i == exp.recovery_index:
-    #             logger.debug(f'recovery_index={i}, recovery_start_state={exp.model.cur_x}')
-    #
-    #             us = exp.model.inputs[exp.attack_start_index-1:exp.recovery_index]
-    #             ys = (C_filter @ exp.model.states[exp.attack_start_index:exp.recovery_index + 1].T).T
-    #             x_0 = exp.model.states[exp.attack_start_index-1]
-    #             x_res, P_res = kf.multi_steps(x_0, np.zeros_like(A), us, ys)
-    #             x_cur_update = GaussianDistribution(x_res[-1], P_res[-1])
-    #
-    #             # reach.init(x_cur_update, safe_set)
-    #             # print(f"x_0={x_cur_update.miu=}")
-    #             # k, X_k, D_k, z_star, alpha, P, arrive = reach.given_k(max_k=max_recovery_step)
-    #             # print(f"{k=}, {z_star=}, {P=}")
-    #             # recovery_end_index = recovery_start_index + k
-    #             # # attack_end_index = recovery_end_index - 1  #   for test!!!
-    #             # recovery_control_sequence = U.alpha_to_control(alpha)
-    #             # print('recovery_control=', recovery_control_sequence[0, :])
+    #  =================  Optimal_probabilistic_recovery  ===================
+    exp.model.reset()
 
+    # required objects
+    kf_C = exp.kf_C
+    C = exp.model.sysd.C
+    D = exp.model.sysd.D
+    kf_Q = exp.model.p_noise_dist.sigma if exp.model.p_noise_dist is not None else np.zeros_like(A)
+    kf_R = exp.kf_R
+    kf = KalmanFilter(A, B, kf_C, D, kf_Q, kf_R)
+    U = Zonotope.from_box(exp.control_lo, exp.control_up)
+    W = exp.model.p_noise_dist
+    reach = ReachableSet(A, B, U, W, max_step=exp.max_recovery_step + 2)
+
+    # init variables
+    recovery_complete_index = np.inf
+    x_cur_update = None
+
+    if 'oprp' in baselines:
+        bl = 'oprp'
+        exp_name = f" oprp + {exp.name} "
+        logger.info(f"{exp_name:^40}")
+        for i in range(0, exp.max_index + 1):
+            assert exp.model.cur_index == i
+            exp.model.update_current_ref(exp.ref[i])
+            # attack here
+            exp.model.cur_feedback = exp.attack.launch(exp.model.cur_feedback, i, exp.model.states)
+            if i == exp.attack_start_index - 1:
+                logger.debug(f'trustworthy_index={i}, trustworthy_state={exp.model.cur_x}')
+
+            # state reconstruct
+            if i == exp.recovery_index:
+                logger.debug(f'recovery_index={i}, recovery_start_state={exp.model.cur_x}')
+
+                us = exp.model.inputs[exp.attack_start_index-1:exp.recovery_index]
+                ys = (kf_C @ exp.model.states[exp.attack_start_index:exp.recovery_index + 1].T).T
+                x_0 = exp.model.states[exp.attack_start_index-1]
+                x_res, P_res = kf.multi_steps(x_0, np.zeros_like(A), us, ys)
+                x_cur_update = GaussianDistribution(x_res[-1], P_res[-1])
+                logger.debug(f"reconstructed state={x_cur_update.miu=}, ground_truth={exp.model.cur_x}")
+                # x_cur_update = GaussianDistribution(exp.model.cur_x, P_res[-1])
+
+            if exp.recovery_index < i < recovery_complete_index:
+                x_cur_predict = GaussianDistribution(*kf.predict(x_cur_update.miu, x_cur_update.sigma, exp.model.cur_u))
+                y = kf_C @ exp.model.cur_x
+                x_cur_update = GaussianDistribution(*kf.update(x_cur_predict.miu, x_cur_predict.sigma, y))
+                logger.debug(f"reconstructed state={x_cur_update.miu=}, ground_truth={exp.model.cur_x}")
+
+            if i == recovery_complete_index:
+                logger.debug(f'state after recovery={exp.model.cur_x}')
+
+            if exp.recovery_index <= i < recovery_complete_index:
+                reach.init(x_cur_update, exp.s)
+                k, X_k, D_k, z_star, alpha, P, arrive = reach.given_k(max_k=exp.max_recovery_step)
+                print(f"{k=}, {z_star=}, {P=}")
+                recovery_control_sequence = U.alpha_to_control(alpha)
+                recovery_complete_index = i+k
+
+                exp.model.evolve(recovery_control_sequence[0])
+                print(f"{i=}, {recovery_control_sequence[0]=}")
+            else:
+                exp.model.evolve()
+
+
+
+
+        exp_rst[bl] = {}
+        exp_rst[bl]['states'] = deepcopy(exp.model.states)
+        exp_rst[bl]['outputs'] = deepcopy(exp.model.outputs)
+        exp_rst[bl]['inputs'] = deepcopy(exp.model.inputs)
+        exp_rst[bl]['time'] = {}
+        exp_rst[bl]['time']['recovery_complete'] = recovery_complete_index
 
 
     # ==================== plot =============================
@@ -322,8 +357,8 @@ for exp in exps:
 
     for bl in baselines:
         end_time = exp_rst[bl]['time']['recovery_complete']
-        t_arr_tmp = t_arr[exp.recovery_index:end_time]
-        output = [x[exp.output_index] for x in exp_rst[bl]['outputs'][exp.recovery_index:end_time]]
+        t_arr_tmp = t_arr[exp.recovery_index:end_time+1]
+        output = [x[exp.output_index] for x in exp_rst[bl]['outputs'][exp.recovery_index:end_time+1]]
         plt.plot(t_arr_tmp, output, color=colors[bl], label=bl)
 
     plt.ylim(exp.y_lim)
