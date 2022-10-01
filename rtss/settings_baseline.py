@@ -219,7 +219,7 @@ class boeing747_bias:
     x_lim = None #(7,15)
     y_lim = (0.4, 2.2)
     y_label = 'Yaw angle - rad'
-    strip = (0.7, 1.3)
+    strip = (0.85, 1.15)
 
     kf_C = np.array([[0, 1, 0, 0, 0], [0, 0, 1, 0, 0], [0, 0, 0, 1, 0], [0, 0, 0, 0, 1]])  # depend on attack
     k_given = 40
@@ -228,12 +228,12 @@ class boeing747_bias:
     # baseline
     safe_set_lo = np.array([-5, -500,  -500, -500, -500])
     safe_set_up = np.array([5, 500, 500, 500, 500])
-    target_set_lo = np.array([0.6, -100,  -100, -100, -100])
-    target_set_up = np.array([1.4, 100, 100, 100, 100])
+    target_set_lo = np.array([0.9, -100,  -100, -100, -100])
+    target_set_up = np.array([1.1, 100, 100, 100, 100])
     recovery_ref = np.array([1, 0, 0, 0, 0])
     Q = np.diag([100000, 1, 10000, 1, 1])
     QN = np.diag([1, 1, 1, 1, 1])
-    R = np.diag([1]) * 10
+    R = np.diag([1]) * 0.1
 
 # -------------------- heat ----------------------------
 class heat_bias:
