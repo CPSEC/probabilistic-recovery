@@ -13,11 +13,11 @@ from utils.observers.full_state_bound import Estimator
 from utils.controllers.LP_cvxpy import LP
 from utils.controllers.MPC_cvxpy import MPC
 
-#exps = [quadruple_tank_bias]
+# exps = [quadruple_tank_bias]
 exps = [boeing747_bias]
 # baselines = ['none', 'lp', 'lqr', 'ssr', 'oprp', 'fprp']
 baselines = ['none', 'lp', 'lqr', 'ssr', 'oprp']
-#baselines = [ 'lp', 'lqr']
+baselines = [ 'lp', 'lqr']
 colors = {'none': 'red', 'lp': 'cyan', 'lqr': 'blue', 'ssr': 'orange', 'oprp': 'purple', 'fprp': 'violet'}
 result = {}  # for print or plot
 
@@ -97,7 +97,7 @@ for exp in exps:
                 safe_set_up = exp.safe_set_up
                 control = exp.model.inputs[i - 1]
                 k = est.get_deadline(x_cur, safe_set_lo, safe_set_up, control, 100)
-                recovery_complete_index = exp.attack_start_index + k
+                recovery_complete_index = exp.recovery_index + k
                 logger.debug(f'deadline={k}')
 
                 # get recovery control sequence
@@ -167,7 +167,7 @@ for exp in exps:
                 safe_set_up = exp.safe_set_up
                 control = exp.model.inputs[i - 1]
                 k = est.get_deadline(x_cur, safe_set_lo, safe_set_up, control, 100)
-                recovery_complete_index = exp.attack_start_index + k
+                recovery_complete_index = exp.recovery_index + k
                 logger.debug(f'deadline={k}')
                 # maintainable time compute
 

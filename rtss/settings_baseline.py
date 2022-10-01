@@ -80,7 +80,7 @@ class quadruple_tank_bias:
     # plot
     ref_index = 0
     output_index = 0
-    x_lim = (140, 220)
+    x_lim = (140, 230)
     y_lim = (6.7, 9)
     y_label = 'water level - cm'
     strip = (7.15, 6.85)    # modify according to strip
