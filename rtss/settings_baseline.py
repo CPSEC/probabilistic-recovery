@@ -216,10 +216,25 @@ class boeing747_bias:
     # plot
     ref_index = 0
     output_index = 0
-    x_lim = 7.5
+    x_lim = None #(7,15)
     y_lim = (0.4, 2.2)
     y_label = 'Yaw angle - rad'
     strip = (0.7, 1.3)
+
+    kf_C = np.array([[0, 1, 0, 0, 0], [0, 0, 1, 0, 0], [0, 0, 0, 1, 0], [0, 0, 0, 0, 1]])  # depend on attack
+    k_given = 40
+    kf_R = np.diag([1e-7, 1e-7, 1e-7, 1e-7])
+
+    # baseline
+    safe_set_lo = np.array([-5, -500,  -500, -500, -500])
+    safe_set_up = np.array([5, 500, 500, 500, 500])
+    target_set_lo = np.array([0.6, -100,  -100, -100, -100])
+    target_set_up = np.array([1.4, 100, 100, 100, 100])
+    recovery_ref = np.array([1, 0, 0, 0, 0])
+    Q = np.diag([1, 1, 1, 1, 1])
+    QN = np.diag([1, 1, 1, 1, 1])
+    R = np.diag([1])
+
 
 # -------------------- heat ----------------------------
 class heat_bias:
@@ -253,6 +268,8 @@ class heat_bias:
     # plot
     ref_index = 0
     output_index = 0
+
+
 
 # -------------------- platoon ----------------------------
 class platoon_bias:
@@ -383,11 +400,13 @@ class lane_keeping:
     # plot
     ref_index = 0
     output_index = 0
-    x_lim = 4
+    x_lim = (140, 260)
     y_lim = (-4, 0.5)
     y_label = 'lateral error - m'
     strip = (-0.05, 0.05)
 
-    kf_C = np.array([[0, 0, 1, 0], [0, 0, 0, 1]])
+    kf_C = np.array([[0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]])
     k_given = 100
+    kf_R = np.diag([1e-7, 1e-7, 1e-7])
+
 
