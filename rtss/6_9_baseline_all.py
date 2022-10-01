@@ -339,7 +339,7 @@ for exp in exps:
 
 
     # ==================== plot =============================
-    plt.rcParams.update({'font.size': 20})  # front size
+    plt.rcParams.update({'font.size': 24})  # front size
     fig = plt.figure(figsize=(8, 4))
 
     # plot reference
@@ -352,8 +352,8 @@ for exp in exps:
     plt.plot(t_arr_common, output, color='black')
     # plot attack / recovery
     if exp.y_lim:
-        plt.vlines(exp.attack_start_index*exp.dt, exp.y_lim[0], exp.y_lim[1], colors='red', linestyle='dashed')
-        plt.vlines(exp.recovery_index*exp.dt, exp.y_lim[0], exp.y_lim[1], colors='green', linestyle='dotted', linewidth=2.5)
+        plt.vlines(exp.attack_start_index*exp.dt, exp.y_lim[0], exp.y_lim[1], colors='red', linestyle='dashed', linewidth=2)
+        plt.vlines(exp.recovery_index*exp.dt, exp.y_lim[0], exp.y_lim[1], colors='green', linestyle='dotted', linewidth=2)
     # strip
     cnt = len(t_arr)
     y1 = [exp.strip[0]]*cnt
