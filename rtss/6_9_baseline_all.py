@@ -4,7 +4,7 @@ import numpy as np
 import logging
 import sys
 
-from settings_baseline import motor_speed_bias, quadruple_tank_bias, lane_keeping, f16_bias
+from settings_baseline import motor_speed_bias, quadruple_tank_bias, lane_keeping, f16_bias, aircraft_pitch_bias, boeing747_bias
 from utils.formal.gaussian_distribution import GaussianDistribution
 from utils.formal.reachability import ReachableSet
 from utils.formal.zonotope import Zonotope
@@ -13,11 +13,11 @@ from utils.observers.full_state_bound import Estimator
 from utils.controllers.LP_cvxpy import LP
 from utils.controllers.MPC_cvxpy import MPC
 
-exps = [quadruple_tank_bias]
-# exps = [f16_bias]
+#exps = [quadruple_tank_bias]
+exps = [boeing747_bias]
 # baselines = ['none', 'lp', 'lqr', 'ssr', 'oprp', 'fprp']
 baselines = ['none', 'lp', 'lqr', 'ssr', 'oprp']
-# baselines = ['none', 'ssr', 'oprp']
+#baselines = [ 'lp', 'lqr']
 colors = {'none': 'red', 'lp': 'cyan', 'lqr': 'blue', 'ssr': 'orange', 'oprp': 'purple', 'fprp': 'violet'}
 result = {}  # for print or plot
 
