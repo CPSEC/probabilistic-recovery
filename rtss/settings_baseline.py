@@ -231,10 +231,9 @@ class boeing747_bias:
     target_set_lo = np.array([0.6, -100,  -100, -100, -100])
     target_set_up = np.array([1.4, 100, 100, 100, 100])
     recovery_ref = np.array([1, 0, 0, 0, 0])
-    Q = np.diag([1, 1, 1, 1, 1])
+    Q = np.diag([100000, 1, 10000, 1, 1])
     QN = np.diag([1, 1, 1, 1, 1])
-    R = np.diag([1])
-
+    R = np.diag([1]) * 10
 
 # -------------------- heat ----------------------------
 class heat_bias:

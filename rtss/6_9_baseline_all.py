@@ -17,7 +17,7 @@ from utils.controllers.MPC_cvxpy import MPC
 exps = [boeing747_bias]
 # baselines = ['none', 'lp', 'lqr', 'ssr', 'oprp', 'fprp']
 baselines = ['none', 'lp', 'lqr', 'ssr', 'oprp']
-baselines = [ 'lp', 'lqr']
+# baselines = [ 'lp', 'lqr']
 colors = {'none': 'red', 'lp': 'cyan', 'lqr': 'blue', 'ssr': 'orange', 'oprp': 'purple', 'fprp': 'violet'}
 result = {}  # for print or plot
 
