@@ -74,16 +74,16 @@ class quadruple_tank_bias:
     recovery_index = 160
 
     # needed by 1_recovery_given_p
-    s = Strip(np.array([-1, 0, 0, 0]), a=-14.2, b=-13.8)
+    s = Strip(np.array([-1, 0, 0, 0]), a=-14.3, b=-13.7)
     P_given = 0.95
     max_recovery_step = 40
     # plot
     ref_index = 0
     output_index = 0
-    x_lim = 140
-    y_lim = (6, 10)
+    x_lim = (140, 220)
+    y_lim = (6.7, 9)
     y_label = 'water level - cm'
-    strip = (7.3, 6.7)
+    strip = (7.15, 6.85)    # modify according to strip
 
     kf_C = np.array([[0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]])   # depend on attack
     k_given = 40
@@ -129,7 +129,7 @@ class f16_bias:
     # plot
     ref_index = 0
     output_index = 0
-    x_lim = 7.5
+    x_lim = (140, 220)
     y_lim = (4.5, 7)
     y_label = 'pitch angle - rad'
     strip = (8.76e-02*57.3, 8.75e-02*57.3)
