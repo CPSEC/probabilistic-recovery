@@ -40,8 +40,8 @@ for exp in exps:
     # if 'none' in baselines:
     if True:
         bl = 'none'
-        exp_name = f" none + {exp.name} "
-        logger.info(f"{exp_name:^40}")
+        exp_name = f" {bl} {exp.name} "
+        logger.info(f"{exp_name:=^40}")
         for i in range(0, exp.max_index + 1):
             assert exp.model.cur_index == i
             exp.model.update_current_ref(exp.ref[i])
@@ -74,8 +74,8 @@ for exp in exps:
 
     if 'lp' in baselines:
         bl = 'lp'
-        exp_name = f" lp + {exp.name} "
-        logger.info(f"{exp_name:^40}")
+        exp_name = f" {bl} {exp.name} "
+        logger.info(f"{exp_name:=^40}")
         for i in range(0, exp.max_index + 1):
             assert exp.model.cur_index == i
             exp.model.update_current_ref(exp.ref[i])
@@ -144,8 +144,8 @@ for exp in exps:
 
     if 'lqr' in baselines:
         bl = 'lqr'
-        exp_name = f" lqr + {exp.name} "
-        logger.info(f"{exp_name:^40}")
+        exp_name = f" {bl} {exp.name} "
+        logger.info(f"{exp_name:=^40}")
         for i in range(0, exp.max_index + 1):
             assert exp.model.cur_index == i
             exp.model.update_current_ref(exp.ref[i])
@@ -180,7 +180,7 @@ for exp in exps:
                     'ddl': k, 'target_lo': exp.target_set_lo, 'target_up': exp.target_set_up,
                     'safe_lo': exp.safe_set_lo, 'safe_up': exp.safe_set_up,
                     'control_lo': exp.control_lo, 'control_up': exp.control_up,
-                    'ref': np.array([14, 14, 2, 2.5])
+                    'ref': exp.recovery_ref
                 }
                 lqr = MPC(lqr_settings)
                 _ = lqr.update(feedback_value=x_cur)
@@ -225,8 +225,8 @@ for exp in exps:
 
     if 'ssr' in baselines:
         bl = 'ssr'
-        exp_name = f" ssr + {exp.name} "
-        logger.info(f"{exp_name:^40}")
+        exp_name = f" {bl} {exp.name} "
+        logger.info(f"{exp_name:=^40}")
         for i in range(0, exp.max_index + 1):
             assert exp.model.cur_index == i
             exp.model.update_current_ref(exp.ref[i])
@@ -256,7 +256,7 @@ for exp in exps:
                 x_cur = est.estimate_wo_bound(x_0, us)
                 exp.model.cur_feedback = exp.model.sysd.C @ x_cur
                 last_predicted_state = deepcopy(x_cur)
-                print(f'{exp.model.cur_u}')
+                # print(f'{exp.model.cur_u}')
             exp.model.evolve()
 
         exp_rst[bl] = {}
@@ -287,8 +287,8 @@ for exp in exps:
 
     if 'oprp' in baselines:
         bl = 'oprp'
-        exp_name = f" oprp + {exp.name} "
-        logger.info(f"{exp_name:^40}")
+        exp_name = f" {bl} {exp.name} "
+        logger.info(f"{exp_name:=^40}")
         for i in range(0, exp.max_index + 1):
             assert exp.model.cur_index == i
             exp.model.update_current_ref(exp.ref[i])
@@ -321,12 +321,12 @@ for exp in exps:
             if exp.recovery_index <= i < recovery_complete_index:
                 reach.init(x_cur_update, exp.s)
                 k, X_k, D_k, z_star, alpha, P, arrive = reach.given_k(max_k=exp.max_recovery_step)
-                print(f"{k=}, {z_star=}, {P=}")
+                # print(f"{k=}, {z_star=}, {P=}")
                 recovery_control_sequence = U.alpha_to_control(alpha)
                 recovery_complete_index = i+k
 
                 exp.model.evolve(recovery_control_sequence[0])
-                print(f"{i=}, {recovery_control_sequence[0]=}")
+                # print(f"{i=}, {recovery_control_sequence[0]=}")
             else:
                 exp.model.evolve()
 
