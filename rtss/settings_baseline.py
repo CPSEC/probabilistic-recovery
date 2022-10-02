@@ -336,7 +336,7 @@ class platoon_bias:
 class rlc_circuit_bias:
     # needed by 0_attack_no_recovery
     name = 'rlc_circuit'
-    max_index = 600
+    max_index = 800
     dt = 0.02
     ref = [np.array([3])] * (max_index + 1)
     noise = {
@@ -361,10 +361,24 @@ class rlc_circuit_bias:
     # plot
     ref_index = 0
     output_index = 0
-    x_lim = 7.7
-    y_lim = (2.6, 4.1)
+    x_lim = None #7.7
+    y_lim = None #(2.6, 4.1)
     y_label = 'Capacitor Voltage - V'
     strip = (2.7, 3.3)
+
+    kf_C = np.array([[0, 1]]) # depend on attack
+    k_given = 40
+    kf_R = np.diag([1e-7])
+
+    # baseline
+    safe_set_lo = np.array([-10, -10])
+    safe_set_up = np.array([10, 10])
+    target_set_lo = np.array([2.8, -10])
+    target_set_up = np.array([3.2, 10])
+    recovery_ref = np.array([3, 0])
+    Q = np.diag([100, 1])
+    QN = np.diag([100, 1])
+    R = np.diag([1])
 
 # -------------------- quadrotor ----------------------------
 class quadrotor_bias:
