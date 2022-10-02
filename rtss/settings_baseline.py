@@ -43,14 +43,24 @@ class motor_speed_bias:
     # plot
     ref_index = 0
     output_index = 0
-    x_lim = 2.8
-    y_lim = (3.65, 5.5)
+    x_lim = None #2.8
+    y_lim = None #(3.65, 5.5)
     y_label = 'rotational speed - rad/sec'
     strip = (4.3, 3.7)
 
     kf_C = np.array([[0, 1]])
     k_given = 40    #  new added
+    kf_R = np.diag([1e-7])
 
+    # baseline
+    safe_set_lo = np.array([-100, -100])
+    safe_set_up = np.array([100, 100])
+    target_set_lo = np.array([3.8, -100])
+    target_set_up = np.array([4.2, 100])
+    recovery_ref = np.array([4, 0])
+    Q = np.diag([10000, 1])
+    QN = np.diag([1, 1])
+    R = np.diag([1])
 # -------------------- quadruple tank ----------------------------
 class quadruple_tank_bias:
     # needed by 0_attack_no_recovery
