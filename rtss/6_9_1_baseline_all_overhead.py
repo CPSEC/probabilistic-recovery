@@ -14,8 +14,8 @@ from utils.observers.full_state_bound import Estimator
 from utils.controllers.LP_cvxpy import LP
 from utils.controllers.MPC_cvxpy import MPC
 
-# exps = [quadruple_tank_bias]
-exps = [platoon_bias]
+exps = [quadruple_tank_bias]
+# exps = [platoon_bias]
 # baselines = ['none', 'lp', 'lqr', 'ssr', 'oprp', 'fprp']
 baselines = ['none', 'lp', 'lqr', 'ssr', 'oprp']
 # baselines = [ 'lp', 'lqr']
@@ -41,6 +41,7 @@ for exp in exps:
     recon_t = None
     step_t = None
     solve_t = None
+    b_step_t = None
 
     #  =================  no_recovery  ===================
     # if 'none' in baselines:
@@ -174,12 +175,16 @@ for exp in exps:
                 logger.debug(f'recovery_index={i}, recovery_start_state={exp.model.cur_x}')
 
                 # State reconstruction
+                b_recon_t = perf_counter()
                 us = exp.model.inputs[exp.attack_start_index - 1:exp.recovery_index]
                 x_0 = exp.model.states[exp.attack_start_index - 1]
                 x_cur_lo, x_cur_up, x_cur = est.estimate(x_0, us)
+                e_recon_t = perf_counter()
+                recon_t = e_recon_t - b_recon_t
                 logger.debug(f'reconstructed state={x_cur}')
 
                 # deadline estimate
+                b_step_t = perf_counter()
                 safe_set_lo = exp.safe_set_lo
                 safe_set_up = exp.safe_set_up
                 control = exp.model.inputs[i - 1]
@@ -200,7 +205,11 @@ for exp in exps:
                     'ref': exp.recovery_ref
                 }
                 lqr = MPC(lqr_settings)
+                b_solve_t = perf_counter()
                 _ = lqr.update(feedback_value=x_cur)
+                e_solve_t = perf_counter()
+                solve_t = e_solve_t - b_solve_t
+                step_t = e_solve_t - b_step_t
                 rec_u = lqr.get_full_ctrl()
                 rec_x = lqr.get_last_x()
                 logger.debug(f'expected recovery state={rec_x}')
@@ -223,6 +232,9 @@ for exp in exps:
         exp_rst[bl]['inputs'] = deepcopy(exp.model.inputs)
         exp_rst[bl]['time'] = {}
         exp_rst[bl]['time']['recovery_complete'] = recovery_complete_index + maintain_time
+        exp_rst[bl]['time']['recon'] = recon_t
+        exp_rst[bl]['time']['solve'] = solve_t
+        exp_rst[bl]['time']['step'] = step_t
 
     #  =================  Software_sensor_recovery  ===================
     exp.model.reset()
@@ -255,9 +267,12 @@ for exp in exps:
                 logger.debug(f'recovery_index={i}, recovery_start_state={exp.model.cur_x}')
 
                 # State reconstruction
+                b_recon_t = perf_counter()
                 us = exp.model.inputs[exp.attack_start_index - 1:exp.recovery_index-1]
                 x_0 = exp.model.states[exp.attack_start_index - 1]
                 x_cur = est.estimate_wo_bound(x_0, us)
+                e_recon_t = perf_counter()
+                recon_t = e_recon_t - b_recon_t
                 logger.debug(f'one before reconstructed state={x_cur}')
                 last_predicted_state = deepcopy(x_cur)
 
@@ -268,10 +283,14 @@ for exp in exps:
                 #     logger.debug('state after recovery={exp.model.cur_x}')
                 #     step = recovery_complete_index - exp.recovery_index
                 #     logger.debug(f'use {step} steps to recover.')
+                b_step_t = perf_counter()
                 us = [exp.model.inputs[i - 1]]
                 x_0 = last_predicted_state
                 x_cur = est.estimate_wo_bound(x_0, us)
                 exp.model.cur_feedback = exp.model.sysd.C @ x_cur
+                e_solve_t = perf_counter()
+                solve_t = "N/A"
+                step_t = e_solve_t - b_step_t
                 last_predicted_state = deepcopy(x_cur)
                 # print(f'{exp.model.cur_u}')
             exp.model.evolve()
@@ -282,6 +301,9 @@ for exp in exps:
         exp_rst[bl]['inputs'] = deepcopy(exp.model.inputs)
         exp_rst[bl]['time'] = {}
         exp_rst[bl]['time']['recovery_complete'] = exp.max_index-1
+        exp_rst[bl]['time']['recon'] = recon_t
+        exp_rst[bl]['time']['solve'] = solve_t
+        exp_rst[bl]['time']['step'] = step_t
         # print(f'{recovery_complete_index}')
 
     #  =================  Optimal_probabilistic_recovery  ===================
@@ -317,16 +339,19 @@ for exp in exps:
             # state reconstruct
             if i == exp.recovery_index:
                 logger.debug(f'recovery_index={i}, recovery_start_state={exp.model.cur_x}')
-
+                b_recon_t = perf_counter()
                 us = exp.model.inputs[exp.attack_start_index-1:exp.recovery_index]
                 ys = (kf_C @ exp.model.states[exp.attack_start_index:exp.recovery_index + 1].T).T
                 x_0 = exp.model.states[exp.attack_start_index-1]
                 x_res, P_res = kf.multi_steps(x_0, np.zeros_like(A), us, ys)
                 x_cur_update = GaussianDistribution(x_res[-1], P_res[-1])
+                e_recon_t = perf_counter()
+                recon_t = e_recon_t - b_recon_t
                 logger.debug(f"reconstructed state={x_cur_update.miu=}, ground_truth={exp.model.cur_x}")
                 # x_cur_update = GaussianDistribution(exp.model.cur_x, P_res[-1])
 
             if exp.recovery_index < i < recovery_complete_index:
+                b_step_t = perf_counter()
                 x_cur_predict = GaussianDistribution(*kf.predict(x_cur_update.miu, x_cur_update.sigma, exp.model.cur_u))
                 y = kf_C @ exp.model.cur_x
                 x_cur_update = GaussianDistribution(*kf.update(x_cur_predict.miu, x_cur_predict.sigma, y))
@@ -337,11 +362,14 @@ for exp in exps:
 
             if exp.recovery_index <= i < recovery_complete_index:
                 reach.init(x_cur_update, exp.s)
+                b_solve_t = perf_counter()
                 k, X_k, D_k, z_star, alpha, P, arrive = reach.given_k(max_k=exp.max_recovery_step)
                 # print(f"{k=}, {z_star=}, {P=}")
                 recovery_control_sequence = U.alpha_to_control(alpha)
+                e_solve_t = perf_counter()
+                solve_t = e_solve_t - b_solve_t
+                step_t = e_solve_t - b_step_t
                 recovery_complete_index = i+k
-
                 exp.model.evolve(recovery_control_sequence[0])
                 # print(f"{i=}, {recovery_control_sequence[0]=}")
             else:
@@ -353,42 +381,64 @@ for exp in exps:
         exp_rst[bl]['inputs'] = deepcopy(exp.model.inputs)
         exp_rst[bl]['time'] = {}
         exp_rst[bl]['time']['recovery_complete'] = recovery_complete_index
+        exp_rst[bl]['time']['recon'] = recon_t
+        exp_rst[bl]['time']['solve'] = solve_t
+        exp_rst[bl]['time']['step'] = step_t
 
 
-    # ==================== plot =============================
-    plt.rcParams.update({'font.size': 24})  # front size
-    fig = plt.figure(figsize=(8, 4))
+    # # ==================== plot =============================
+    # plt.rcParams.update({'font.size': 24})  # front size
+    # fig = plt.figure(figsize=(8, 4))
+    #
+    # # plot reference
+    # t_arr = np.linspace(0, exp.dt * exp.max_index, exp.max_index + 1)[:exp.max_index]
+    # ref = [x[exp.ref_index] for x in exp_rst['none']['refs'][:exp.max_index]]
+    # plt.plot(t_arr, ref, color='grey', linestyle='dashed')
+    # # plot common part (before recovery)
+    # t_arr_common = t_arr[:exp.recovery_index + 1]
+    # output = [x[exp.output_index] for x in exp_rst['none']['outputs'][:exp.recovery_index + 1]]
+    # plt.plot(t_arr_common, output, color='black')
+    # # plot attack / recovery
+    # if exp.y_lim:
+    #     plt.vlines(exp.attack_start_index*exp.dt, exp.y_lim[0], exp.y_lim[1], colors='red', linestyle='dashed', linewidth=2)
+    #     plt.vlines(exp.recovery_index*exp.dt, exp.y_lim[0], exp.y_lim[1], colors='green', linestyle='dotted', linewidth=2)
+    # # strip
+    # cnt = len(t_arr)
+    # y1 = [exp.strip[0]]*cnt
+    # y2 = [exp.strip[1]]*cnt
+    # plt.fill_between(t_arr, y1, y2, facecolor='green', alpha=0.1)
+    #
+    # for bl in baselines:
+    #     end_time = exp_rst[bl]['time']['recovery_complete']
+    #     t_arr_tmp = t_arr[exp.recovery_index:end_time+1]
+    #     output = [x[exp.output_index] for x in exp_rst[bl]['outputs'][exp.recovery_index:end_time+1]]
+    #     plt.plot(t_arr_tmp, output, color=colors[bl], label=bl)
+    #
+    # if exp.y_lim:
+    #     plt.ylim(exp.y_lim)
+    # if exp.x_lim:
+    #     plt.xlim(exp.x_lim)
+    #
+    # # plt.legend()
+    # plt.ylabel(exp.y_label)
+    # plt.savefig(f'fig/baselines/{exp.name}.svg', format='svg', bbox_inches='tight')
+    # plt.show()
 
-    # plot reference
-    t_arr = np.linspace(0, exp.dt * exp.max_index, exp.max_index + 1)[:exp.max_index]
-    ref = [x[exp.ref_index] for x in exp_rst['none']['refs'][:exp.max_index]]
-    plt.plot(t_arr, ref, color='grey', linestyle='dashed')
-    # plot common part (before recovery)
-    t_arr_common = t_arr[:exp.recovery_index + 1]
-    output = [x[exp.output_index] for x in exp_rst['none']['outputs'][:exp.recovery_index + 1]]
-    plt.plot(t_arr_common, output, color='black')
-    # plot attack / recovery
-    if exp.y_lim:
-        plt.vlines(exp.attack_start_index*exp.dt, exp.y_lim[0], exp.y_lim[1], colors='red', linestyle='dashed', linewidth=2)
-        plt.vlines(exp.recovery_index*exp.dt, exp.y_lim[0], exp.y_lim[1], colors='green', linestyle='dotted', linewidth=2)
-    # strip
-    cnt = len(t_arr)
-    y1 = [exp.strip[0]]*cnt
-    y2 = [exp.strip[1]]*cnt
-    plt.fill_between(t_arr, y1, y2, facecolor='green', alpha=0.1)
-
+# save result to csv
+import csv
+headers = ['exp_name', 'baseline', 'reconstr', 'step', 'solving']
+rows = []
+for exp_rst_name in result:
+    exp_rst = result[exp_rst_name]
     for bl in baselines:
-        end_time = exp_rst[bl]['time']['recovery_complete']
-        t_arr_tmp = t_arr[exp.recovery_index:end_time+1]
-        output = [x[exp.output_index] for x in exp_rst[bl]['outputs'][exp.recovery_index:end_time+1]]
-        plt.plot(t_arr_tmp, output, color=colors[bl], label=bl)
-
-    if exp.y_lim:
-        plt.ylim(exp.y_lim)
-    if exp.x_lim:
-        plt.xlim(exp.x_lim)
-
-    # plt.legend()
-    plt.ylabel(exp.y_label)
-    plt.savefig(f'fig/baselines/{exp.name}.svg', format='svg', bbox_inches='tight')
-    plt.show()
+        if bl == 'none':
+            continue
+        recon_t = f"{exp_rst[bl]['time']['recon'] * 1000:.3f}"
+        step_t = f"{exp_rst[bl]['time']['step'] * 1000:.3f}"
+        solve_t = f"{exp_rst[bl]['time']['solve'] * 1000:.3f}" if isinstance(exp_rst[bl]['time']['solve'], float) else exp_rst[bl]['time']['solve']
+        row = [exp_rst_name, bl, recon_t, step_t, solve_t]
+        rows.append(row)
+with open('res/baseline_overhead.csv', 'w', newline='') as f:
+    writer = csv.writer(f)
+    writer.writerow(headers)
+    writer.writerows(rows)
