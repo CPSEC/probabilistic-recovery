@@ -43,7 +43,7 @@ class Controller:
         self.lqr.set_control_limit(self.control_lo[0], self.control_up[0])
 
     def clear(self):
-        self.pid.clear(current_time=-self.dt)
+        self.lqr.clear()
 
 class Platoon(Simulator):
     """
