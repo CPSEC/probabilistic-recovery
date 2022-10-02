@@ -437,7 +437,7 @@ class quadrotor_bias:
 class lane_keeping:
     # needed by 0_attack_no_recovery
     name = 'lane_keeping_bias'
-    max_index = 1000
+    max_index = 250
     dt = 0.05
     ref = [np.array([0, 0, 0, 0])] * (max_index + 1)
     noise = {
@@ -451,7 +451,7 @@ class lane_keeping:
     control_up = np.array([0.261799])
     model.controller.set_control_limit(control_lo, control_up)
     attack_start_index = 100
-    bias = np.array([4, 0, 0, 0])
+    bias = np.array([-0.6, 0, 0, 0])
     attack = Attack('bias', bias, attack_start_index)
     recovery_index = 130
 
@@ -462,13 +462,24 @@ class lane_keeping:
     # plot
     ref_index = 0
     output_index = 0
-    x_lim = (140, 260)
-    y_lim = (-4, 0.5)
+    x_lim = None #(140, 260)
+    y_lim = None #(-4, 0.5)
     y_label = 'lateral error - m'
     strip = (-0.05, 0.05)
 
     kf_C = np.array([[0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]])
     k_given = 100
     kf_R = np.diag([1e-7, 1e-7, 1e-7])
+
+    # baseline
+    safe_set_lo = np.array([-10, -10, -10, -10])
+    safe_set_up = np.array([10, 10, 10, 10])
+    target_set_lo = np.array([-0.04, 0, 0, 0])
+    target_set_up = np.array([0.04, 0, 0, 0])
+    recovery_ref = np.array([0, 0, 0, 0])
+    Q = np.diag([1, 1, 1, 1])
+    QN = np.diag([1, 1, 1, 1])
+    R = np.diag([1]) * 5
+
 
 
