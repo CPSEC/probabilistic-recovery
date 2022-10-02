@@ -144,9 +144,9 @@ class f16_bias:
     target_set_lo = np.array([13.8, 13.8, 0, 0])
     target_set_up = np.array([14.2, 14.2, 20, 20])
     recovery_ref = np.array([4.02134576e+02, 4.02134576e+02, 0.0872665, 2.70015266e-04])
-    Q = np.diag([1, 1, 0, 0])
-    QN = np.diag([1, 1, 0, 0])
-    R = np.diag([1, 1])
+    Q = np.diag([1, 1, 1, 1])
+    QN = np.diag([1, 1, 1, 1])
+    R = np.diag([1])
 
 # -------------------- aircraft_pitch ----------------------------
 class aircraft_pitch_bias:
@@ -182,9 +182,19 @@ class aircraft_pitch_bias:
     y_label = 'pitch - rad'
     strip = (0.33, 0.27)
 
-    kf_C = np.array([[0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]])   # depend on attack
+    kf_C = np.array([[1, 0, 0], [0, 1, 0]])   # depend on attack
     k_given = 40
-    kf_R = np.diag([1e-7, 1e-7, 1e-7])
+    kf_R = np.diag([1e-7, 1e-7])
+
+    # baseline
+    safe_set_lo = np.array([0, 0, 0.3])
+    safe_set_up = np.array([0.5, 0.5 ,0.3])
+    target_set_lo = np.array([0, 0, 0.27])
+    target_set_up = np.array([0.5, 0.5, 0.3])
+    recovery_ref = np.array([0, 0, 0.3])
+    Q = np.diag([1, 1, 1])
+    QN = np.diag([1, 1, 1])
+    R = np.diag([1])
 
 
 # -------------------- boeing747 ----------------------------
@@ -270,6 +280,8 @@ class heat_bias:
 
 
 
+
+
 # -------------------- platoon ----------------------------
 class platoon_bias:
     # needed by 0_attack_no_recovery
@@ -299,6 +311,21 @@ class platoon_bias:
     # plot
     ref_index = 0
     output_index = 0
+
+    kf_C = np.array([[0, 1, 0, 0, 0, 0, 0], [0, 0, 1, 0, 0, 0, 0], [0, 0, 0, 1, 0, 0, 0],
+                     [0, 0, 0, 0, 1, 0, 0], [0, 0, 0, 0, 0, 1, 0], [0, 0, 0, 0, 0, 0, 1]])  # depend on attack
+    k_given = 40
+    kf_R = np.diag([1e-7, 1e-7, 1e-7, 1e-7, 1e-7, 1e-7])
+
+    # baseline
+    safe_set_lo = np.array([0, 0, 0, 0, 0, 0, 0])
+    safe_set_up = np.array([1000, 1000, 1000, 50, 50, 50, 50])
+    target_set_lo = np.array([1.5, 0, 0, 0, 0, 0, 0])
+    target_set_up = np.array([2.5, 1000, 1000, 50, 50, 50, 50])
+    recovery_ref = np.array([2, 1000, 1000, 50, 50, 50, 50])
+    Q = np.diag([1, 1, 1, 1, 1, 1, 1])
+    QN = np.diag([1, 1, 1, 1, 1, 1, 1])
+    R = np.diag([1, 1, 1 ,1])
 
 
 # -------------------- rlc_circuit ----------------------------
