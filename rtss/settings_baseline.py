@@ -43,13 +43,13 @@ class motor_speed_bias:
     # plot
     ref_index = 0
     output_index = 0
-    x_lim = None #2.8
-    y_lim = None #(3.65, 5.5)
+    x_lim = None  # 2.8
+    y_lim = None  # (3.65, 5.5)
     y_label = 'rotational speed - rad/sec'
     strip = (4.3, 3.7)
 
     kf_C = np.array([[0, 1]])
-    k_given = 40    #  new added
+    k_given = 40  # new added
     kf_R = np.diag([1e-7])
 
     # baseline
@@ -61,6 +61,8 @@ class motor_speed_bias:
     Q = np.diag([10000, 1])
     QN = np.diag([1, 1])
     R = np.diag([1])
+
+
 # -------------------- quadruple tank ----------------------------
 class quadruple_tank_bias:
     # needed by 0_attack_no_recovery
@@ -93,9 +95,9 @@ class quadruple_tank_bias:
     x_lim = (140, 230)
     y_lim = (6.7, 9)
     y_label = 'water level - cm'
-    strip = (7.15, 6.85)    # modify according to strip
+    strip = (7.15, 6.85)  # modify according to strip
 
-    kf_C = np.array([[0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]])   # depend on attack
+    kf_C = np.array([[0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]])  # depend on attack
     k_given = 40
     kf_R = np.diag([1e-7, 1e-7, 1e-7])
 
@@ -114,7 +116,7 @@ class quadruple_tank_bias:
 class f16_bias:
     # needed by 0_attack_no_recovery
     name = 'f16_bias'
-    max_index = 800
+    max_index = 550
     dt = 0.02
     ref = [np.array([0.0872665 * 57.3])] * 801
     noise = {
@@ -139,24 +141,27 @@ class f16_bias:
     # plot
     ref_index = 0
     output_index = 0
-    x_lim = (140, 220)
-    y_lim = (4.5, 7)
+    x_lim = None #(140, 220)
+    y_lim = None #(4.5, 7)
     y_label = 'pitch angle - rad'
-    strip = (8.76e-02*57.3, 8.75e-02*57.3)
+    strip = (8.76e-02 * 57.3, 8.75e-02 * 57.3)
 
-    kf_C = np.array([[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 0, 1]])   # depend on attack
+    kf_C = np.array([[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 0, 1]])  # depend on attack
     k_given = 40
     kf_R = np.diag([1e-7, 1e-7, 1e-7])
 
     # baseline
-    safe_set_lo = np.array([0, 0, 5/57.3, 0])
-    safe_set_up = np.array([1, 1, 9/57.3, 1])
-    target_set_lo = np.array([13.8, 13.8, 0, 0])
-    target_set_up = np.array([14.2, 14.2, 20, 20])
-    recovery_ref = np.array([4.02134576e+02, 4.02134576e+02, 0.0872665, 2.70015266e-04])
-    Q = np.diag([1, 1, 1, 1])
+    safe_set_lo = np.array([0, -3.14, -3.14, -1000])
+    safe_set_up = np.array([1000, 3.14, 3.14, 1000])
+    # target_set_lo = np.array([13.8, 13.8, 0.0871 * 57.3, -20])
+    # target_set_up = np.array([14.2, 14.2, 0.0874 * 57.3, 20])
+    target_set_lo = np.array([0,-3.14, 0.0871, -200])
+    target_set_up = np.array([1000,  3.14, 0.0873, 200])
+    recovery_ref = np.array([4.02134576e+02, -1.01668849e-01, 0.0872665, 3.03028029e-04])
+    Q = np.diag([1, 1, 10000, 10])
     QN = np.diag([1, 1, 1, 1])
-    R = np.diag([1])
+    R = np.diag([1]) * 10
+
 
 # -------------------- aircraft_pitch ----------------------------
 class aircraft_pitch_bias:
@@ -187,18 +192,18 @@ class aircraft_pitch_bias:
     # plot
     ref_index = 0
     output_index = 0
-    x_lim = None #8
-    y_lim = None #(0, 1.2)
+    x_lim = None  # 8
+    y_lim = None  # (0, 1.2)
     y_label = 'pitch - rad'
     strip = (0.23, 0.17)
 
-    kf_C = np.array([[1, 0, 0], [0, 1, 0]])   # depend on attack
+    kf_C = np.array([[1, 0, 0], [0, 1, 0]])  # depend on attack
     k_given = 40
     kf_R = np.diag([1e-7, 1e-7])
 
     # baseline
     safe_set_lo = np.array([-100, -100, -100])
-    safe_set_up = np.array([100, 100 ,100])
+    safe_set_up = np.array([100, 100, 100])
     target_set_lo = np.array([-100, -100, 0.18])
     target_set_up = np.array([100, 100, 0.22])
     recovery_ref = np.array([0, 0, 0.2])
@@ -236,7 +241,7 @@ class boeing747_bias:
     # plot
     ref_index = 0
     output_index = 0
-    x_lim = None #(7,15)
+    x_lim = None  # (7,15)
     y_lim = (0.4, 2.2)
     y_label = 'Yaw angle - rad'
     strip = (0.85, 1.15)
@@ -246,15 +251,20 @@ class boeing747_bias:
     kf_R = np.diag([1e-7, 1e-7, 1e-7, 1e-7])
 
     # baseline
-    safe_set_lo = np.array([-5, -500,  -500, -500, -500])
+    safe_set_lo = np.array([-5, -500, -500, -500, -500])
     safe_set_up = np.array([5, 500, 500, 500, 500])
-    target_set_lo = np.array([0.9, -100,  -100, -100, -100])
+    target_set_lo = np.array([0.9, -100, -100, -100, -100])
     target_set_up = np.array([1.1, 100, 100, 100, 100])
     recovery_ref = np.array([1, 0, 0, 0, 0])
     Q = np.diag([100000, 1, 10000, 1, 1])
     QN = np.diag([1, 1, 1, 1, 1])
     R = np.diag([1]) * 0.1
 
+def generate_list(dimension, value):
+    temp = []
+    for i in range(dimension):
+        temp.append(value)
+    return temp
 # -------------------- heat ----------------------------
 class heat_bias:
     # needed by 0_attack_no_recovery
@@ -287,6 +297,43 @@ class heat_bias:
     # plot
     ref_index = 0
     output_index = 0
+
+    kf_C = np.zeros((44, 45))  # depend on attack
+    for i in range(44):
+        if i < y_point:
+            kf_C[i][i] = 1
+        elif i >= y_point:
+            kf_C[i][i + 1] = 1
+    k_given = 40
+    temp = []
+    for i in range(44):
+        temp.append(1e-7)
+    kf_R = np.diag(temp)
+
+    # baseline
+    temp = generate_list(45, -1000)
+    safe_set_lo = np.array(temp)
+
+    temp = generate_list(45, 1000)
+    safe_set_up = np.array(temp)
+
+    temp = generate_list(45, -1000)
+    temp[y_point] = 14.8
+    target_set_lo = np.array(temp)
+
+    temp = generate_list(45, 1000)
+    temp[y_point] = 15.2
+    target_set_up = np.array(temp)
+
+    temp = generate_list(45, 0)
+    temp[y_point] = 15
+    recovery_ref = np.array(temp)
+
+    temp = generate_list(45, 1)
+    temp[y_point] = 1
+    Q = np.diag(temp)
+    QN = np.diag(temp)
+    R = np.diag([1]) * 0.000008
 
 
 
@@ -339,7 +386,7 @@ class platoon_bias:
     recovery_ref = np.array([2, 2, 2, 1, 1, 1, 1])
     Q = np.diag([1000, 1, 1, 1000, 1000, 1, 1])
     QN = np.diag([1000, 1, 1, 1000, 1000, 1, 1])
-    R = np.diag([1, 1, 1 ,1])
+    R = np.diag([1, 1, 1, 1])
 
 
 # -------------------- rlc_circuit ----------------------------
@@ -371,12 +418,12 @@ class rlc_circuit_bias:
     # plot
     ref_index = 0
     output_index = 0
-    x_lim = None #7.7
-    y_lim = None #(2.6, 4.1)
+    x_lim = None  # 7.7
+    y_lim = None  # (2.6, 4.1)
     y_label = 'Capacitor Voltage - V'
     strip = (2.7, 3.3)
 
-    kf_C = np.array([[0, 1]]) # depend on attack
+    kf_C = np.array([[0, 1]])  # depend on attack
     k_given = 40
     kf_R = np.diag([1e-7])
 
@@ -389,6 +436,7 @@ class rlc_circuit_bias:
     Q = np.diag([100, 1])
     QN = np.diag([100, 1])
     R = np.diag([1])
+
 
 # -------------------- quadrotor ----------------------------
 class quadrotor_bias:
@@ -472,8 +520,8 @@ class lane_keeping:
     # plot
     ref_index = 0
     output_index = 0
-    x_lim = None #(140, 260)
-    y_lim = None #(-4, 0.5)
+    x_lim = None  # (140, 260)
+    y_lim = None  # (-4, 0.5)
     y_label = 'lateral error - m'
     strip = (-0.05, 0.05)
 
@@ -490,6 +538,3 @@ class lane_keeping:
     Q = np.diag([1, 1, 1, 1])
     QN = np.diag([1, 1, 1, 1])
     R = np.diag([1]) * 5
-
-
-
