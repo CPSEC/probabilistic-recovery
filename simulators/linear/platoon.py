@@ -55,7 +55,7 @@ class Platoon(Simulator):
                   x[4]: velocity of car 2
                   x[5]: velocity of car 3
                   x[6]: velocity of car 4
-              Control Input: (1,)
+              Control Input: (4,)
                   u[0]: acceleration of car 1
                   u[1]: acceleration of car 2
                   u[2]: acceleration of car 3

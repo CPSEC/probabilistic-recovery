@@ -296,8 +296,8 @@ class platoon_bias:
         }
     }
     model = Platoon('Platoon', dt, max_index, noise)
-    control_lo = np.array([-5])
-    control_up = np.array([5])
+    control_lo = np.array([-5, -5, -5, -5])
+    control_up = np.array([5, 5, 5, 5])
     model.controller.set_control_limit(control_lo, control_up)
     attack_start_index = 400
     bias = np.array([-1])
@@ -311,6 +311,10 @@ class platoon_bias:
     # plot
     ref_index = 0
     output_index = 0
+    x_lim = None
+    y_lim = None
+    y_label = 'relative distance error with car 1 and 2'
+    strip = (1.9, 2.1)
 
     kf_C = np.array([[0, 1, 0, 0, 0, 0, 0], [0, 0, 1, 0, 0, 0, 0], [0, 0, 0, 1, 0, 0, 0],
                      [0, 0, 0, 0, 1, 0, 0], [0, 0, 0, 0, 0, 1, 0], [0, 0, 0, 0, 0, 0, 1]])  # depend on attack
@@ -319,12 +323,12 @@ class platoon_bias:
 
     # baseline
     safe_set_lo = np.array([0, 0, 0, 0, 0, 0, 0])
-    safe_set_up = np.array([1000, 1000, 1000, 50, 50, 50, 50])
-    target_set_lo = np.array([1.5, 0, 0, 0, 0, 0, 0])
-    target_set_up = np.array([2.5, 1000, 1000, 50, 50, 50, 50])
-    recovery_ref = np.array([2, 1000, 1000, 50, 50, 50, 50])
-    Q = np.diag([1, 1, 1, 1, 1, 1, 1])
-    QN = np.diag([1, 1, 1, 1, 1, 1, 1])
+    safe_set_up = np.array([10, 1000, 1000, 50, 50, 50, 50])
+    target_set_lo = np.array([1.8, 0, 0, 0, 0, 0, 0])
+    target_set_up = np.array([2.2, 1000, 1000, 50, 50, 50, 50])
+    recovery_ref = np.array([2, 2, 2, 1, 1, 1, 1])
+    Q = np.diag([1000, 1, 1, 1000, 1000, 1, 1])
+    QN = np.diag([1000, 1, 1, 1000, 1000, 1, 1])
     R = np.diag([1, 1, 1 ,1])
 
 
