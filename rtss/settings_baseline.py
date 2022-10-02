@@ -168,33 +168,33 @@ class aircraft_pitch_bias:
     attack_start_index = 500
     bias = np.array([-1])
     attack = Attack('bias', bias, attack_start_index)
-    recovery_index = 700
+    recovery_index = 600
 
     # needed by 1_recovery_given_p
-    s = Strip(np.array([0, 0, -1]), a=-0.33, b=--0.27)
+    s = Strip(np.array([0, 0, -1]), a=-0.23, b=--0.17)
     P_given = 0.95
     max_recovery_step = 40
     # plot
     ref_index = 0
     output_index = 0
-    x_lim = 8
-    y_lim = (0, 1.2)
+    x_lim = None #8
+    y_lim = None #(0, 1.2)
     y_label = 'pitch - rad'
-    strip = (0.33, 0.27)
+    strip = (0.23, 0.17)
 
     kf_C = np.array([[1, 0, 0], [0, 1, 0]])   # depend on attack
     k_given = 40
     kf_R = np.diag([1e-7, 1e-7])
 
     # baseline
-    safe_set_lo = np.array([0, 0, 0.3])
-    safe_set_up = np.array([0.5, 0.5 ,0.3])
-    target_set_lo = np.array([0, 0, 0.27])
-    target_set_up = np.array([0.5, 0.5, 0.3])
-    recovery_ref = np.array([0, 0, 0.3])
-    Q = np.diag([1, 1, 1])
-    QN = np.diag([1, 1, 1])
-    R = np.diag([1])
+    safe_set_lo = np.array([-100, -100, -100])
+    safe_set_up = np.array([100, 100 ,100])
+    target_set_lo = np.array([-100, -100, 0.18])
+    target_set_up = np.array([100, 100, 0.22])
+    recovery_ref = np.array([0, 0, 0.2])
+    Q = np.diag([10, 1, 1])
+    QN = np.diag([10, 1, 1])
+    R = np.diag([1]) * 0.1
 
 
 # -------------------- boeing747 ----------------------------
