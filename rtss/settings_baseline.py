@@ -384,7 +384,7 @@ class rlc_circuit_bias:
 class quadrotor_bias:
     # needed by 0_attack_no_recovery
     name = 'quadrotor'
-    max_index = 600
+    max_index = 1000
     dt = 0.02
     ref = [np.array([4])] * (max_index + 1)
     noise = {
@@ -410,9 +410,27 @@ class quadrotor_bias:
     ref_index = 0
     output_index = 5
     x_lim = 7.7
-    y_lim = (3.6, 5.2)
+    y_lim = (1.6, 5.2)
     y_label = 'Altitude - m'
     strip = (4.3, 3.7)
+
+    # kf_C = np.array([[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]])  # depend on attack
+    kf_C = np.zeros((11, 12))
+    for i in range(11):
+        kf_C[i][i] = 1
+    # print(kf_C)
+    k_given = 40
+    kf_R = np.diag([1e-7, 1e-7, 1e-7, 1e-7, 1e-7, 1e-7, 1e-7, 1e-7, 1e-7, 1e-7, 1e-7])
+
+    # baseline
+    safe_set_lo = np.array([-10, -10, -10, -10, -10, -10, -10, -10, -10, -10, -10, -10])
+    safe_set_up = np.array([10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10])
+    target_set_lo = np.array([-10, -10, -10, -10, -10, -10, -10, -10, 0, 0, 0, 3.8])
+    target_set_up = np.array([10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 4.2])
+    recovery_ref = np.array([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4])
+    Q = np.diag([1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1000])
+    QN = np.diag([1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1000])
+    R = np.diag([1])
 
 
 # -------------------- lane keeping ----------------------------
