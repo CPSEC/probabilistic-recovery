@@ -28,6 +28,9 @@ class Strip:
     def center(self) -> Hyperplane:
         return Hyperplane(self.l, (self.a+self.b)/2)
 
+    def in_strip(self, x):
+        return self.a < self.l @ x < self.b
+
     def plot(self, x1, x2, fig=None):
         if self.dim != 2:
             return NotImplemented
