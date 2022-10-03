@@ -96,7 +96,8 @@ class ReachableSet:
             print('Init before recovery!')
             raise RuntimeError
         max_P = 0
-        reach_res = [None]
+        dummy_res = (None, None, None, None, 0, False)
+        reach_res = [dummy_res]
         k = 0
         arrived = False
         for i in range(1, max_k + 1):
@@ -112,10 +113,12 @@ class ReachableSet:
         if k != 0:
             res = reach_res[k]
         else:
-            res = max(reach_res, key=lambda val: val[4])  # P
-            if res[4] < 1e-7:  # cannot recovery within max_k
-                res = reach_res[-1]
-            k = reach_res.index(res)
+            # res = max(reach_res, key=lambda val: val[4])  # P
+            # if res[4] < 1e-7:  # cannot recovery within max_k
+            #     res = reach_res[-1]
+            # k = reach_res.index(res)
+            res = reach_res[-1]
+            k = len(reach_res)-1
         return k, *res
 
     def given_P(self, P_given: float, max_k: int):
