@@ -143,7 +143,7 @@ class f16_bias:
     output_index = 0
     x_lim = (7.9, 9.1)
     y_lim = (4.5, 6.7)
-    y_label = 'pitch angle - rad'
+    y_label = 'pitch angle - degree'
     strip = (5.1, 4.9)
     # strip = (8.76e-02 , 8.75e-02 )
 
