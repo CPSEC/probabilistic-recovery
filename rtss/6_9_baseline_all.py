@@ -14,7 +14,7 @@ from utils.controllers.LP_cvxpy import LP
 from utils.controllers.MPC_cvxpy import MPC
 
 # exps = [quadruple_tank_bias]
-exps = [f16_bias]
+exps = [rlc_circuit_bias]
 # baselines = ['none', 'lp', 'lqr', 'ssr', 'oprp', 'fprp']
 baselines = ['none', 'lp', 'lqr', 'ssr', 'oprp']
 # baselines = [ 'lp', 'lqr']
