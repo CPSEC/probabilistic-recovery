@@ -135,7 +135,7 @@ class f16_bias:
     recovery_index = 420
 
     # needed by 1_recovery_given_p
-    s = Strip(np.array([0, 0, 1, 0]), a=8.71e-02 , b=8.73e-02 )
+    s = Strip(np.array([0, 0, 1, 0]), a=4.9/57.3, b=5.1/57.3)
     P_given = 0.95
     max_recovery_step = 40
     # plot

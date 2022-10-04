@@ -14,7 +14,7 @@ from utils.observers.full_state_bound import Estimator
 from utils.controllers.LP_cvxpy import LP
 from utils.controllers.MPC_cvxpy import MPC
 
-exps = [rlc_circuit_bias]
+exps = [motor_speed_bias, aircraft_pitch_bias, boeing747_bias, quadrotor_bias, f16_bias, quadruple_tank_bias, rlc_circuit_bias]
 # exps = [platoon_bias]
 # baselines = ['none', 'lp', 'lqr', 'ssr', 'oprp', 'fprp']
 baselines = ['none', 'lp', 'lqr', 'ssr', 'oprp']

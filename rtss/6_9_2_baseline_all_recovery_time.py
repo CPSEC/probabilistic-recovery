@@ -4,7 +4,7 @@ import numpy as np
 import logging
 import sys
 
-from settings_baseline import motor_speed_bias, quadruple_tank_bias, lane_keeping, f16_bias, aircraft_pitch_bias, boeing747_bias, platoon_bias
+from settings_baseline import motor_speed_bias, quadruple_tank_bias, lane_keeping, f16_bias, aircraft_pitch_bias, boeing747_bias, platoon_bias, rlc_circuit_bias, quadrotor_bias, heat_bias
 from utils.formal.gaussian_distribution import GaussianDistribution
 from utils.formal.reachability import ReachableSet
 from utils.formal.zonotope import Zonotope
@@ -13,8 +13,8 @@ from utils.observers.full_state_bound import Estimator
 from utils.controllers.LP_cvxpy import LP
 from utils.controllers.MPC_cvxpy import MPC
 
-exps = [quadruple_tank_bias]
-# exps = [platoon_bias]
+exps = [motor_speed_bias, aircraft_pitch_bias, boeing747_bias, quadrotor_bias, f16_bias, quadruple_tank_bias, rlc_circuit_bias]
+# exps = [f16_bias]
 # baselines = ['none', 'lp', 'lqr', 'ssr', 'oprp', 'fprp']
 baselines = ['none', 'lp', 'lqr', 'ssr', 'oprp']
 # baselines = [ 'lp', 'lqr']
@@ -119,10 +119,13 @@ for exp in exps:
                 rec_x = lp.get_last_x()
                 logger.debug(f'expected recovery state={rec_x}')
 
-            if exp.recovery_index <= i < recovery_complete_index:
+            if exp.recovery_index <= i <= recovery_complete_index:
                 if not in_strip and exp.s.in_strip(exp.model.cur_x):
                     in_strip = True
                     first_in_strip_index = i
+                    logger.debug(f'in strip at {i=}')
+
+            if exp.recovery_index <= i < recovery_complete_index:
                 rec_u_index = i - exp.recovery_index
                 u = rec_u[rec_u_index]
                 exp.model.evolve(u)
@@ -202,10 +205,13 @@ for exp in exps:
                 step = recovery_complete_index - exp.recovery_index
                 logger.debug(f'use {step} steps to recover.')
 
-            if exp.recovery_index <= i < recovery_complete_index + maintain_time:
+            if exp.recovery_index <= i <= recovery_complete_index:
                 if not in_strip and exp.s.in_strip(exp.model.cur_x):
                     in_strip = True
                     first_in_strip_index = i
+                    logger.debug(f'in strip at {i=}')
+
+            if exp.recovery_index <= i < recovery_complete_index + maintain_time:
                 rec_u_index = i - exp.recovery_index
                 u = rec_u[rec_u_index]
                 exp.model.evolve(u)
@@ -262,6 +268,7 @@ for exp in exps:
                 if not in_strip and exp.s.in_strip(exp.model.cur_x):
                     in_strip = True
                     first_in_strip_index = i
+                    logger.debug(f'in strip at {i=}')
                 # check if it is in target set
                 # if in_target_set(exp.target_set_lo, exp.target_set_up, last_predicted_state):
                 #     recovery_complete_index = i
@@ -338,11 +345,12 @@ for exp in exps:
             if i == recovery_complete_index:
                 logger.debug(f'state after recovery={exp.model.cur_x}')
 
-            if exp.recovery_index <= i < recovery_complete_index:
+            if exp.recovery_index <= i <= recovery_complete_index:
                 if not in_strip and exp.s.in_strip(exp.model.cur_x):
                     in_strip = True
                     first_in_strip_index = i
 
+            if exp.recovery_index <= i < recovery_complete_index:
                 reach.init(x_cur_update, exp.s)
                 k, X_k, D_k, z_star, alpha, P, arrive = reach.given_k(max_k=exp.max_recovery_step)
                 # print(f"{k=}, {z_star=}, {P=}")
