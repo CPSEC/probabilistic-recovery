@@ -18,7 +18,7 @@ exps = [motor_speed_bias, aircraft_pitch_bias, boeing747_bias, quadrotor_bias, f
 # baselines = ['none', 'lp', 'lqr', 'ssr', 'oprp', 'fprp']
 baselines = ['none', 'lp', 'lqr', 'ssr', 'oprp-open']
 # baselines = [ 'lp', 'lqr']
-colors = {'none': 'red', 'lp': 'cyan', 'lqr': 'blue', 'ssr': 'orange', 'oprp': 'purple', 'oprp-open': 'violet'}
+colors = {'none': 'red', 'lp': 'cyan', 'lqr': 'blue', 'ssr': 'orange', 'oprp': 'violet', 'oprp-open': 'purple'}
 result = {}  # for print or plot
 
 # logger
