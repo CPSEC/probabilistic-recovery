@@ -13,7 +13,7 @@ from utils.observers.full_state_bound import Estimator
 from utils.controllers.LP_cvxpy import LP
 from utils.controllers.MPC_cvxpy import MPC
 
-exps = [motor_speed_bias, aircraft_pitch_bias, boeing747_bias, quadrotor_bias, f16_bias, quadruple_tank_bias, rlc_circuit_bias]
+exps = [motor_speed_bias, aircraft_pitch_bias, boeing747_bias, quadrotor_bias, f16_bias, quadruple_tank_bias]
 # exps = [f16_bias]
 # baselines = ['none', 'lp', 'lqr', 'ssr', 'oprp', 'fprp']
 baselines = ['none', 'lp', 'lqr', 'ssr', 'oprp']
@@ -425,3 +425,34 @@ with open('res/baseline_recovery_step.csv', 'w', newline='') as f:
     writer = csv.writer(f)
     writer.writerow(headers)
     writer.writerows(rows)
+
+
+benchmarks = ['Motor Speed', 'Aircraft Pitch', 'Boeing 747', 'Quadrotor', 'F16', 'Quadruple Tank']
+baselines = ['lqr', 'ssr', 'oprp']
+bl_labels = ['RTR-LQR', 'VS', 'OPRP']
+rst = {'lqr': [], 'ssr': [], 'oprp': []}
+
+for exp in exps:
+    for bl in baselines:
+        recover_step = result[exp.name][bl]['time']['recovery_step']
+        rst[bl].append(recover_step)
+
+barWidth = 0.25
+br1 = np.arange(len(rst['lqr']))
+br2 = [x + barWidth for x in br1]
+br3 = [x + barWidth for x in br2]
+
+plt.rcParams.update({'font.size': 20})
+fig = plt.figure(figsize=(24, 4))
+plt.bar(br1, rst['oprp'], color='lightgreen', width=barWidth, edgecolor='grey', label=bl_labels[2])
+plt.bar(br2, rst['lqr'], color='gold', width=barWidth, edgecolor='grey', label=bl_labels[0])
+plt.bar(br3, rst['ssr'], color='lightblue', width=barWidth, edgecolor='grey', label=bl_labels[1])
+
+# Adding Xticks
+# plt.xlabel('Branch', fontweight ='bold', fontsize = 15)
+plt.ylabel('Recovery Time (steps)', fontweight='bold', fontsize=20)
+plt.xticks([r + barWidth for r in range(len(benchmarks))], benchmarks)
+
+plt.legend()
+plt.savefig(f'fig/baselines/recovery_time.svg', format='svg', bbox_inches='tight')
+plt.show()
