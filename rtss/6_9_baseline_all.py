@@ -17,9 +17,9 @@ from utils.controllers.MPC_cvxpy import MPC
 # exps = [motor_speed_bias, aircraft_pitch_bias, boeing747_bias, quadrotor_bias, f16_bias, quadruple_tank_bias, rlc_circuit_bias]
 exps = [f16_bias]
 # baselines = ['none', 'lp', 'lqr', 'ssr', 'oprp', 'fprp']
-baselines = ['none', 'lp', 'lqr', 'ssr', 'oprp']
+baselines = ['none', 'lp', 'lqr', 'ssr', 'oprp-open']
 # baselines = [ 'lp', 'lqr']
-colors = {'none': 'red', 'lp': 'cyan', 'lqr': 'blue', 'ssr': 'orange', 'oprp': 'purple', 'fprp': 'violet'}
+colors = {'none': 'red', 'lp': 'cyan', 'lqr': 'blue', 'ssr': 'orange', 'oprp': 'purple', 'oprp-open': 'violet'}
 result = {}  # for print or plot
 
 # logger
@@ -328,6 +328,70 @@ for exp in exps:
 
                 exp.model.evolve(recovery_control_sequence[0])
                 # print(f"{i=}, {recovery_control_sequence[0]=}")
+            else:
+                exp.model.evolve()
+
+        exp_rst[bl] = {}
+        exp_rst[bl]['states'] = deepcopy(exp.model.states)
+        exp_rst[bl]['outputs'] = deepcopy(exp.model.outputs)
+        exp_rst[bl]['inputs'] = deepcopy(exp.model.inputs)
+        exp_rst[bl]['time'] = {}
+        exp_rst[bl]['time']['recovery_complete'] = recovery_complete_index
+
+
+    #  =================  Optimal_probabilistic_recovery - OPEN LOOP ===================
+    exp.model.reset()
+
+    # required objects
+    kf_C = exp.kf_C
+    C = exp.model.sysd.C
+    D = exp.model.sysd.D
+    kf_Q = exp.model.p_noise_dist.sigma if exp.model.p_noise_dist is not None else np.zeros_like(A)
+    kf_R = exp.kf_R
+    kf = KalmanFilter(A, B, kf_C, D, kf_Q, kf_R)
+    U = Zonotope.from_box(exp.control_lo, exp.control_up)
+    W = exp.model.p_noise_dist
+    reach = ReachableSet(A, B, U, W, max_step=exp.max_recovery_step + 2)
+
+    # init variables
+    recovery_complete_index = np.inf
+    x_cur_update = None
+
+    if 'oprp-open' in baselines:
+        bl = 'oprp-open'
+        exp_name = f" {bl} {exp.name} "
+        logger.info(f"{exp_name:=^40}")
+
+        for i in range(0, exp.max_index + 1):
+            assert exp.model.cur_index == i
+            exp.model.update_current_ref(exp.ref[i])
+            # attack here
+            exp.model.cur_feedback = exp.attack.launch(exp.model.cur_feedback, i, exp.model.states)
+            if i == exp.attack_start_index - 1:
+                logger.debug(f'trustworthy_index={i}, trustworthy_state={exp.model.cur_x}')
+
+            # state reconstruct
+            if i == exp.recovery_index:
+                logger.debug(f'recovery_index={i}, recovery_start_state={exp.model.cur_x}')
+
+                # state reconstruction
+                us = exp.model.inputs[exp.attack_start_index-1:exp.recovery_index]
+                ys = (kf_C @ exp.model.states[exp.attack_start_index:exp.recovery_index + 1].T).T
+                x_0 = exp.model.states[exp.attack_start_index-1]
+                x_res, P_res = kf.multi_steps(x_0, np.zeros_like(A), us, ys)
+                x_cur_update = GaussianDistribution(x_res[-1], P_res[-1])
+                logger.debug(f"reconstructed state={x_cur_update.miu=}, ground_truth={exp.model.cur_x}")
+
+
+                reach.init(x_cur_update, exp.s)
+                k, X_k, D_k, z_star, alpha, P, arrive = reach.given_k(max_k=exp.max_recovery_step)
+                rec_u = U.alpha_to_control(alpha)
+                recovery_complete_index = i + k
+
+            if exp.recovery_index <= i < recovery_complete_index:
+                rec_u_index = i - exp.recovery_index
+                u = rec_u[rec_u_index]
+                exp.model.evolve(u)
             else:
                 exp.model.evolve()
 
