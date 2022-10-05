@@ -14,9 +14,9 @@ from utils.controllers.LP_cvxpy import LP
 from utils.controllers.MPC_cvxpy import MPC
 
 # exps = [f16_bias]
-exps = [motor_speed_bias, aircraft_pitch_bias, boeing747_bias, quadrotor_bias, f16_bias, quadruple_tank_bias, rlc_circuit_bias]
+exps = [motor_speed_bias, aircraft_pitch_bias, boeing747_bias, quadrotor_bias, f16_bias, quadruple_tank_bias]
 # baselines = ['none', 'lp', 'lqr', 'ssr', 'oprp', 'fprp']
-baselines = ['none', 'lp', 'lqr', 'ssr', 'oprp-open']
+baselines = ['none', 'lqr', 'ssr', 'oprp-open']
 # baselines = [ 'lp', 'lqr']
 colors = {'none': 'red', 'lp': 'cyan', 'lqr': 'blue', 'ssr': 'orange', 'oprp': 'violet', 'oprp-open': 'purple'}
 result = {}  # for print or plot
