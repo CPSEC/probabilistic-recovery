@@ -65,6 +65,7 @@ class Controller:
 class Quadrotor(Simulator):
     """
                States: (12,)
+                    x[0], x[1], x[2]: Roll, Pitch, Yaw
                     x[9], x[10], x[11]: relative position
                     x[11]: altitude
                Control Input: (4,)

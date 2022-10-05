@@ -1,4 +1,8 @@
 #Ref: https://web.stanford.edu/class/archive/ee/ee392m/ee392m.1056/Lecture2_LinearSystems.pdf page 6
+# Nenad Popovich. Lateral motion control of boeing 747
+# by using full-order observer. In 2019 5th International
+# Conference on Control, Automation and Robotics (IC-
+# CAR), pages 377–383, 2019.
 import numpy as np
 
 from utils import PID, Simulator, LQRSSE, LQR
