@@ -43,8 +43,8 @@ class motor_speed_bias:
     # plot
     ref_index = 0
     output_index = 0
-    x_lim = (2.8, 5)
-    y_lim = (3.65, 5.5)
+    x_lim = (2.8, 4.2)
+    y_lim = (3.65, 5.2)
     y_label = 'rotational speed - rad/sec'
     strip = (4.2, 3.8)
 
@@ -193,8 +193,8 @@ class aircraft_pitch_bias:
     # plot
     ref_index = 0
     output_index = 0
-    x_lim = (9,18)
-    y_lim = (-0.3, 1.3)
+    x_lim = (9.7, 12.7)
+    y_lim = (0, 1.3)
     y_label = 'pitch - rad'
     strip = (0.23, 0.17)
 
