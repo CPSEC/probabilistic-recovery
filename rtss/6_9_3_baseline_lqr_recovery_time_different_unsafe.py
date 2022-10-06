@@ -19,7 +19,7 @@ baselines = ['lqr', 'oprp']
 # baselines = [ 'lp', 'lqr']
 colors = {'none': 'red', 'lp': 'cyan', 'lqr': 'blue', 'ssr': 'orange', 'oprp': 'purple', 'fprp': 'violet'}
 result = {}  # for print or plot
-max_l0s = [15, 16, 17, 18, 19, 20, 21, 22]    # only for quadruple_tank_bias
+max_l0s = [15.8, 16, 17, 18, 19, 20, 21, 22]    # only for quadruple_tank_bias
 
 # logger
 logging.basicConfig(
