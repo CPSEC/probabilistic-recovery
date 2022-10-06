@@ -444,9 +444,9 @@ br3 = [x + barWidth for x in br2]
 
 plt.rcParams.update({'font.size': 20})
 fig = plt.figure(figsize=(24, 4))
-plt.bar(br1, rst['oprp'], color='lightgreen', width=barWidth, edgecolor='grey', label=bl_labels[2])
-plt.bar(br2, rst['lqr'], color='gold', width=barWidth, edgecolor='grey', label=bl_labels[0])
-plt.bar(br3, rst['ssr'], color='lightblue', width=barWidth, edgecolor='grey', label=bl_labels[1])
+plt.bar(br1, rst['oprp'], color='purple', width=barWidth, edgecolor='grey', label=bl_labels[2])
+plt.bar(br2, rst['lqr'], color='blue', width=barWidth, edgecolor='grey', label=bl_labels[0])
+plt.bar(br3, rst['ssr'], color='orange', width=barWidth, edgecolor='grey', label=bl_labels[1])
 
 # Adding Xticks
 # plt.xlabel('Branch', fontweight ='bold', fontsize = 15)
