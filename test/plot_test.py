@@ -32,10 +32,10 @@ for idx, val in enumerate(cov_val):
 
     # Generating 5000 samples out of the
     # distribution
-    data = distr.rvs(size=500000)
+    data = distr.rvs(size=300000)
 
     # Plotting the generated samples
-    plt.scatter(data[:, 0], data[:, 1], c='lime', s=0.00001)
+    plt.scatter(data[:, 0], data[:, 1], c='blue', s=0.00001)
     plt.title(f'Covariance between x1 and x2 = {val}')
     plt.xlabel('x1')
     plt.ylabel('x2')
