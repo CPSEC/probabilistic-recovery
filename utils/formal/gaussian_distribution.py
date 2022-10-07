@@ -6,6 +6,8 @@ from utils.formal.half_space import HalfSpace
 from utils.formal.strip import Strip
 from statistics import NormalDist, mean
 import mpmath as mp
+import math
+from scipy.special import erf
 
 class GaussianDistribution:
     # only keep miu and sigma in __init__ for efficiency
@@ -83,7 +85,8 @@ class GaussianDistribution:
         # update for high precision
         mp.dps = 50
         def cdf(x, miu, sigma):
-            return 0.5 * (1.0 + mp.erf((x - miu) / (sigma * mp.sqrt(2.0))))
+            # return 0.5 * (1.0 + mp.erf((x - miu) / (sigma * mp.sqrt(2.0))))
+            return 0.5 * (1.0 + math.erf((x - miu) / (math.sqrt(sigma * 2.0))))
         P = abs(cdf(s.b, miu, sigma) - abs(cdf(s.a, miu, sigma)))
 
         return P
