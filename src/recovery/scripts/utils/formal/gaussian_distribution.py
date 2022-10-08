@@ -4,7 +4,10 @@ from scipy.linalg import sqrtm
 import matplotlib.pyplot as plt
 from utils.formal.half_space import HalfSpace
 from utils.formal.strip import Strip
-from statistics import NormalDist
+from statistics import NormalDist, mean
+import mpmath as mp
+import math
+from scipy.special import erf
 
 class GaussianDistribution:
     # only keep miu and sigma in __init__ for efficiency
@@ -75,8 +78,17 @@ class GaussianDistribution:
         l = s.l
         miu = l @ self.miu
         sigma = l @ self.sigma @ l
-        norm_dist = NormalDist(miu, sigma)
-        P = abs(norm_dist.cdf(s.b) - norm_dist.cdf(s.a))
+
+        # norm_dist = NormalDist(miu, sigma)
+        # P = abs(norm_dist.cdf(s.b) - norm_dist.cdf(s.a))
+
+        # update for high precision
+        mp.dps = 50
+        def cdf(x, miu, sigma):
+            # return 0.5 * (1.0 + mp.erf((x - miu) / (sigma * mp.sqrt(2.0))))
+            return 0.5 * (1.0 + math.erf((x - miu) / (math.sqrt(sigma * 2.0))))
+        P = abs(cdf(s.b, miu, sigma) - abs(cdf(s.a, miu, sigma)))
+
         return P
 
     def plot(self, x1, x2, y1, y2, fig=None):
@@ -114,3 +126,5 @@ if __name__ == "__main__":
 
     points = g3.random(4)
     print(points)
+
+    norm_dist = NormalDist(2,4)

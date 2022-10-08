@@ -47,7 +47,7 @@ class ReachableSet:
         k = len(us)
         x = self.x_0.miu
         for u in us:
-            x = self.A@x + self.B@u
+            x = self.A @ x + self.B @ u
         return self.distribution(x, k)
 
     def first_intersection(self) -> ([int, None], Zonotope):
@@ -60,7 +60,7 @@ class ReachableSet:
     def distribution(self, vertex: [np.ndarray, GaussianDistribution], k: int):
         zstar_cov = self.A_k[k] @ self.x_0.sigma @ self.A_k[k].T
         zstar_distribution = GaussianDistribution(vertex, zstar_cov)
-        return zstar_distribution + self.bar_w_k[k]   # count in x_0 covariance
+        return zstar_distribution + self.bar_w_k[k]  # count in x_0 covariance
 
     def reachable_set_k(self, k: int):
         X_k = self.reachable_set_wo_noise(k)
@@ -96,19 +96,29 @@ class ReachableSet:
             print('Init before recovery!')
             raise RuntimeError
         max_P = 0
-        reach_res = []
+        dummy_res = (None, None, None, None, 0, False)
+        reach_res = [dummy_res]
         k = 0
-        for i in range(1, max_k+1):
+        arrived = False
+        for i in range(1, max_k + 1):
             res = self.reachable_set_k(i)
             reach_res.append(res)
             # X_k, D_k, z_star, alpha, P, arrive = res
             # if P > max_P or P < 1e-7:     # fix bug when P is close to 0
             #     max_P = P
             #     k = i
-        res = max(reach_res, key=lambda val: val[4])    #P
-        if res[4] < 1e-7:     # cannot recovery within max_k
+            if res[5] and not arrived:
+                k = i
+                arrived = True
+        if k != 0:
+            res = reach_res[k]
+        else:
+            # res = max(reach_res, key=lambda val: val[4])  # P
+            # if res[4] < 1e-7:  # cannot recovery within max_k
+            #     res = reach_res[-1]
+            # k = reach_res.index(res)
             res = reach_res[-1]
-        k = reach_res.index(res)
+            k = len(reach_res)-1
         return k, *res
 
     def given_P(self, P_given: float, max_k: int):
@@ -118,7 +128,7 @@ class ReachableSet:
         satisfy = False
         i = 0
         X_k = D_k = z_star = alpha = P = arrive = None
-        for i in range(1, max_k+1):
+        for i in range(1, max_k + 1):
             X_k, D_k, z_star, alpha, P, arrive = self.reachable_set_k(i)
             if P > P_given:
                 satisfy = True
@@ -185,6 +195,3 @@ if __name__ == '__main__':
     # k, X_k, D_k, z_star, alpha, P, arrive = reach.given_k(5)
     # print('i=', i, 'P=', P, 'z_star=', z_star, 'arrive=', arrive)
     # reach.plot(X_k, D_k, alpha, fig_setting)
-
-
-

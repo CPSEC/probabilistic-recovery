@@ -86,19 +86,28 @@ class StateRecord:
     def __init__(self) -> None:
         self.xs = []
         self.us = []
+        self.rxs = []   # ground truth states
+        self.attack_index = 0
+        self.recovery_index = 0
+        self.recovery_end_index = 0
     
-    def record(self, x, u, t):
+    def record(self, x, u, rx, t):
         assert t == len(self.xs)
-        self.xs.append(x)
-        self.us.append(u)
+        self.xs.append(x.copy())      
+        self.us.append(u.copy())
+        self.rxs.append(rx.copy())
 
     def record_x(self, x, t):
         assert t == len(self.xs)
-        self.xs.append(x)
+        self.xs.append(x.copy())
 
     def record_u(self, u, t):
         assert t == len(self.us)
-        self.us.append(u)
+        self.us.append(u.copy())
+
+    def record_rx(self, rx, t):
+        assert t == len(self.rxs)
+        self.rxs.append(rx.copy())
 
     def get_x(self, i):
         assert i < len(self.xs)
@@ -114,6 +123,19 @@ class StateRecord:
         xs = np.vstack(self.xs[start:end])
         ys = (C @ xs.T).T
         return ys
+
+    def save(self):
+        _rp = rospkg.RosPack()
+        _rp_package_list = _rp.list()
+        data_folder = os.path.join(_rp.get_path('recovery'), 'data')
+        state_file = os.path.join(data_folder, 'rxs.npz')
+        with open(state_file, 'wb') as f:
+            np.savez(f, 
+                     rxs=np.array(self.rxs),
+                     attack_index=self.attack_index,
+                     recovery_index=self.recovery_index,
+                     recovery_end_index=self.recovery_end_index)
+        rospy.logdebug('interrupt by keyboard')
 
 
 def main():
@@ -150,6 +172,7 @@ def main():
     cmd = VehicleCMD()
     attack = AttackCMD()
     record = StateRecord()
+    rospy.on_shutdown(record.save)
 
     # speed PID controller
     speed_pid = PID(speed_P, speed_I, speed_D)
@@ -176,7 +199,7 @@ def main():
     U = Zonotope.from_box(control_lo, control_up)
     C_noise = np.diag([0.0001, 0.0001, 0.0001, 0.0001])
     W = GaussianDistribution.from_standard(np.zeros((4,))*0.01, C_noise)
-    safe_set = Strip(np.array([1, 0, 0, 0]), a=2, b=2.1)
+    safe_set = Strip(np.array([1, 0, 0, 0]), a=2.8, b=3.2)
     x_cur_update = None
     last_steer_target = None
     recovery_control_sequence = None
@@ -188,6 +211,7 @@ def main():
     
     rate = rospy.Rate(control_rate)
     time_index = 0  # time index
+    recovered = False 
     while not rospy.is_shutdown():
         if state.started:
             # info 
@@ -203,8 +227,11 @@ def main():
             # print(state.val.e_cg, state.val.e_cg_dot, state.val.theta_e, state.val.e_cg_dot)
 
             # cruise control
-            speed_pid.set_reference(speed_ref)
-            acc_cmd = speed_pid.update(state.velocity)
+            if not recovered:
+                speed_pid.set_reference(speed_ref)
+                acc_cmd = speed_pid.update(state.velocity)
+            else:
+                acc_cmd = -5
             # model adaptation
             # v = state.velocity if state.velocity > 1 else 1
             # steer_model.update(v)
@@ -218,9 +245,12 @@ def main():
                 recovery_start_index = time_index + detection_delay
                 kf = KalmanFilter(sysd.A, sysd.B, C_filter, sysd.D, Q, R)
                 rospy.loginfo(f"[ATTACK]  {bias=}, {C_filter=}, {attack_duration=}, {detection_delay=}")
+                record.attack_index = attack_start_index
+                record.recovery_index = recovery_start_index 
 
             # sensor attack
             feedback = state.lateral_state.copy()
+            record.record_rx(feedback, time_index)
             if attack_start_index <= time_index < attack_end_index:
                 feedback += bias
             steer_target = steer_lqr.update(feedback)
@@ -250,7 +280,7 @@ def main():
                 y = C_filter @ feedback
                 x_cur_update = GaussianDistribution(*kf.update(x_cur_predict.miu, x_cur_predict.sigma, y))
                 reach.init(x_cur_update, safe_set)
-
+                
                 print(f"x_0={x_cur_update.miu=}")
                 k, X_k, D_k, z_star, alpha, P, arrive = reach.given_k(max_k=max_recovery_step)
                 print(f"{k=}, {z_star=}, {P=}")
@@ -263,6 +293,11 @@ def main():
                 i = time_index - recovery_start_index
                 steer_target = recovery_control_sequence[0][0]
                 rospy.logdebug(f"i={time_index}, steer_target={steer_target:.4f}, e_cg={state.lateral_state[0]:.2f}")
+
+            if time_index == recovery_end_index:
+                rospy.logdebug(f"state recovered!")
+                recovered = True
+                record.recovery_end_index = time_index
 
             # control input record
             record.record_u(np.array([steer_target]), time_index)

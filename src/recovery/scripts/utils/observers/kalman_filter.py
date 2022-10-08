@@ -2,9 +2,9 @@ import numpy as np
 from scipy.linalg import inv
 
 class KalmanFilter:
-    def __init__(self, A: np.ndarray, B: np.ndarray, C: np.ndarray, D: [np.ndarray, None], Q: np.ndarray, R: np.ndarray):
-        self.A = A
-        self.B = B
+    def __init__(self, Ad: np.ndarray, Bd: np.ndarray, C: np.ndarray, D: [np.ndarray, None], Q: np.ndarray, R: np.ndarray):
+        self.A = Ad
+        self.B = Bd
         self.C = C
         self.D = D if D is None else np.zeros((self.C.shape[0], self.B.shape[1]))
         self.Q = Q

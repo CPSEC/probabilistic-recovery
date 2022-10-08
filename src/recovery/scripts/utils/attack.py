@@ -2,7 +2,7 @@ import numpy as np
 
 
 class Attack:
-    def __init__(self, category, param, start_index, end_index=None):
+    def  __init__(self, category, param, start_index, end_index=None):
         """
         category: 'bias', 'delay', 'replay'  todo: 'stealthy'
         param
@@ -38,3 +38,27 @@ class Attack:
             delta_index = self.cur_index - self.start_index
             offset_index = self.param['start'] + delta_index % (self.param['end']-self.param['start'])
             return history_intact_data[offset_index]
+
+    def get_C_filter(self):
+        if self.cat == 'bias':
+            cnt = len(self.param)
+            bias_e = np.full((cnt,), False)
+            for i in range(cnt):
+                if self.param[i] != 0:
+                    bias_e[i] = True
+            C_filter = []
+            for i in range(4):
+                if bias_e[i]:
+                    continue
+                else:
+                    tmp = [0, 0, 0, 0]
+                    tmp[i] = 1
+                    C_filter.append(tmp)
+            return C_filter
+        else:
+            raise NotImplementedError()
+
+
+if __name__ == "__main__":
+    attack = Attack('bias', np.array([1, 0, 0, 0]), 0)
+    print(attack.get_C_filter())
