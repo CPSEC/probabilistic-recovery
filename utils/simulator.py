@@ -1,9 +1,19 @@
 import numpy as np
-import os, time
+import os, time, logging, sys
 from copy import deepcopy
 from scipy.signal import StateSpace
 from scipy.integrate import solve_ivp
 from utils.formal.gaussian_distribution import GaussianDistribution
+
+logging.basicConfig(
+    format="%(asctime)s [%(levelname)s] %(message)s",
+    handlers=[
+        logging.FileHandler("debug.log"),
+        logging.StreamHandler(sys.stdout)
+    ]
+)
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
 
 rseed_str = os.getenv('RANDOM_SEED')
 if rseed_str is None:
@@ -14,7 +24,7 @@ else:
     except Exception as e:
         print('rseed read error:', e)
         rseed = np.uint32(int(time.time()))
-print('rseed=', rseed)
+logger.info(f'simulator: numpy random seed is set to {rseed}.')
 np.random.seed(rseed)
 
 class Simulator:
