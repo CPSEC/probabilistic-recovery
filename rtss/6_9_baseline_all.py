@@ -1,9 +1,11 @@
+import os
 from copy import deepcopy
 import matplotlib.pyplot as plt
 import numpy as np
 import logging
 import sys
 
+os.environ["RANDOM_SEED"] = '0'   # for reproducibility
 from settings_baseline import motor_speed_bias, quadruple_tank_bias, lane_keeping, f16_bias, aircraft_pitch_bias, boeing747_bias, platoon_bias, rlc_circuit_bias, quadrotor_bias, heat_bias
 from utils.formal.gaussian_distribution import GaussianDistribution
 from utils.formal.reachability import ReachableSet
