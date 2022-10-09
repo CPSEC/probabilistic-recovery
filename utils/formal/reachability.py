@@ -95,30 +95,22 @@ class ReachableSet:
         if not self.ready:
             print('Init before recovery!')
             raise RuntimeError
-        max_P = 0
         dummy_res = (None, None, None, None, 0, False)
         reach_res = [dummy_res]
-        k = 0
         arrived = False
+        max_P = 0
         for i in range(1, max_k + 1):
             res = self.reachable_set_k(i)
             reach_res.append(res)
             # X_k, D_k, z_star, alpha, P, arrive = res
-            # if P > max_P or P < 1e-7:     # fix bug when P is close to 0
-            #     max_P = P
-            #     k = i
+            if res[4] > max_P:
+                max_P = res[4]
             if res[5] and not arrived:
-                k = i
                 arrived = True
-        if k != 0:
-            res = reach_res[k]
-        else:
-            # res = max(reach_res, key=lambda val: val[4])  # P
-            # if res[4] < 1e-7:  # cannot recovery within max_k
-            #     res = reach_res[-1]
-            # k = reach_res.index(res)
-            res = reach_res[-1]
-            k = len(reach_res)-1
+                break
+        all_res = [val for val in reach_res if val[4] == max_P]
+        res = all_res[-1]
+        k = reach_res.index(res)
         return k, *res
 
     def given_P(self, P_given: float, max_k: int):
