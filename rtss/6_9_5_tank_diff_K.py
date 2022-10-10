@@ -18,7 +18,7 @@ from utils.formal.strip import Strip
 
 from simulators.linear.quadruple_tank import QuadrupleTank
 
-exp_num = 100
+exp_num = 2
 
 class quadruple_tank_bias:
     # needed by 0_attack_no_recovery
@@ -82,8 +82,8 @@ logger = logging.getLogger(__name__)
 logger.setLevel(logging.FATAL)
 
 # creat file
-rst_file = 'res/tank_open_close_P.csv'
-headers = ['gamma', 'bl', 'P']
+rst_file = 'res/tank_DIFF_K.csv'
+headers = ['K', 'P']
 with open(rst_file, 'w', newline='') as f:
     writer = csv.writer(f)
     writer.writerow(headers)
@@ -92,14 +92,16 @@ with open(rst_file, 'w', newline='') as f:
 for i in range(exp_num):
     rseed = np.uint32(int(time.time()))
     np.random.seed(rseed)
-    gammas = [0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.07, 0.08, 0.09, 0.10]
-    exps = [quadruple_tank_bias(g) for g in gammas]
+    # gammas = [0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.07, 0.08, 0.09, 0.10]
+    # exps = [quadruple_tank_bias(g) for g in gammas]
+    gamma = 0.04
+    exp = quadruple_tank_bias(gamma)
     baselines = ['none', 'oprp-open', 'oprp']
     # baselines = [ 'lp', 'lqr']
     colors = {'none': 'red', 'lp': 'cyan', 'lqr': 'blue', 'ssr': 'orange', 'oprp': 'violet', 'oprp-open': 'purple'}
     result = {}  # for print or plot
 
-    for exp in exps:
+    for exp in exps:   # todo: diff K
         result[exp.name] = {}
         exp_rst = result[exp.name]
 
@@ -420,7 +422,7 @@ for i in range(exp_num):
         kf = KalmanFilter(A, B, kf_C, D, kf_Q, kf_R)
         U = Zonotope.from_box(exp.control_lo, exp.control_up)
         W = exp.model.p_noise_dist
-        reach = ReachableSet(A, B, U, W, max_step=exp.max_recovery_step + 2)
+        reach = ReachableSet(A, B, U, W, max_step=100)
 
         # init variables
         recovery_complete_index = np.inf
@@ -453,7 +455,7 @@ for i in range(exp_num):
 
 
                     reach.init(x_cur_update, exp.s)
-                    k, X_k, D_k, z_star, alpha, P, arrive = reach.given_k(max_k=exp.max_recovery_step)
+                    k, X_k, D_k, z_star, alpha, P, arrive = reach.given_k(max_k=exp.max_recovery_step)   # todo: K
                     rec_u = U.alpha_to_control(alpha)
                     recovery_complete_index = i + k
                     max_P = P
@@ -515,9 +517,9 @@ for i in range(exp_num):
     baselines = ['oprp-open', 'oprp']
     blables = {'oprp-open': 'Open loop', 'oprp': 'Close loop'}
     one_rst = []
-    for gamma in result:
+    for gamma in result:     # TODO： K
         for bl in baselines:
-            one_rst.append([gamma, blables[bl], result[gamma][bl]['P']])
+            one_rst.append([gamma,  result[gamma][bl]['P']])
 
     with open(rst_file, 'a', newline='') as f:
         writer = csv.writer(f)
