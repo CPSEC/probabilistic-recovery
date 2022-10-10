@@ -22,7 +22,7 @@ from rtss.settings_baseline import rlc_circuit_bias as rcb
 from rtss.settings_baseline import quadrotor_bias as qdb
 from rtss.settings_baseline import heat_bias as htb
 
-exps = [msb, qtb, f16b, apb, boeb, rcb, qdb]
+exps = [msb, qtb, f16b, apb, boeb, qdb]
 # exps = [htb]
 # exps = [msb]
 max_ks = [10, 20, 30]
