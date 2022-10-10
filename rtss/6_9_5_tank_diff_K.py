@@ -5,6 +5,7 @@ import logging
 import sys
 import csv
 import time
+from time import perf_counter
 
 from utils.formal.gaussian_distribution import GaussianDistribution
 from utils.formal.reachability import ReachableSet
@@ -18,7 +19,7 @@ from utils.formal.strip import Strip
 
 from simulators.linear.quadruple_tank import QuadrupleTank
 
-exp_num = 2
+exp_num = 1000
 
 class quadruple_tank_bias:
     # needed by 0_attack_no_recovery
@@ -27,11 +28,11 @@ class quadruple_tank_bias:
     ref = [np.array([7, 7])] * 1001 + [np.array([7, 7])] * 1000
 
     control_lo = np.array([0, 0])
-    control_up = np.array([10, 10])
+    control_up = np.array([2, 2])
     attack_start_index = 150
-    bias = np.array([-2.0, 0])
+    bias = np.array([-5.0, 0])
     attack = Attack('bias', bias, attack_start_index)
-    recovery_index = 160
+    recovery_index = 170
 
     # needed by 1_recovery_given_p
     s = Strip(np.array([-1, 0, 0, 0]), a=-14.3, b=-13.7)
@@ -82,12 +83,17 @@ logger = logging.getLogger(__name__)
 logger.setLevel(logging.FATAL)
 
 # creat file
-rst_file = 'res/tank_DIFF_K.csv'
+rst_file = 'res/tank_DIFF_K_P.csv'
+overhead_file = 'res/tank_DIFF_K_overhead.csv'
 headers = ['K', 'P']
+overhead_headers = ['K', 'time']
 with open(rst_file, 'w', newline='') as f:
     writer = csv.writer(f)
     writer.writerow(headers)
 
+with open(overhead_file, 'w', newline='') as f:
+    writer = csv.writer(f)
+    writer.writerow(overhead_headers)
 
 for i in range(exp_num):
     rseed = np.uint32(int(time.time()))
@@ -98,16 +104,17 @@ for i in range(exp_num):
     exp = quadruple_tank_bias(gamma)
     baselines = ['none', 'oprp-open', 'oprp']
     # baselines = [ 'lp', 'lqr']
+    baselines = ['oprp-open']
     colors = {'none': 'red', 'lp': 'cyan', 'lqr': 'blue', 'ssr': 'orange', 'oprp': 'violet', 'oprp-open': 'purple'}
     result = {}  # for print or plot
-
-    for exp in exps:   # todo: diff K
-        result[exp.name] = {}
-        exp_rst = result[exp.name]
+    DiFF_K = list(range(1, 16))
+    for diff_k in DiFF_K:   # todo: diff K
+        result[diff_k] = {}
+        exp_rst = result[diff_k]
 
         #  =================  no_recovery  ===================
-        # if 'none' in baselines:
-        if True:
+        if 'none' in baselines:
+        # if True:
             bl = 'none'
             exp_name = f" {bl} {exp.name} "
             logger.info(f"{exp_name:=^40}")
@@ -427,6 +434,7 @@ for i in range(exp_num):
         # init variables
         recovery_complete_index = np.inf
         x_cur_update = None
+        exp_rst[diff_k] = {}
 
         if 'oprp-open' in baselines:
             bl = 'oprp-open'
@@ -446,6 +454,7 @@ for i in range(exp_num):
                     logger.debug(f'recovery_index={i}, recovery_start_state={exp.model.cur_x}')
 
                     # state reconstruction
+                    b_recovery_t = perf_counter()
                     us = exp.model.inputs[exp.attack_start_index-1:exp.recovery_index]
                     ys = (kf_C @ exp.model.states[exp.attack_start_index:exp.recovery_index + 1].T).T
                     x_0 = exp.model.states[exp.attack_start_index-1]
@@ -455,8 +464,10 @@ for i in range(exp_num):
 
 
                     reach.init(x_cur_update, exp.s)
-                    k, X_k, D_k, z_star, alpha, P, arrive = reach.given_k(max_k=exp.max_recovery_step)   # todo: K
+                    k, X_k, D_k, z_star, alpha, P, arrive = reach.given_k(max_k=diff_k)   # todo: K
                     rec_u = U.alpha_to_control(alpha)
+                    e_recovery_t = perf_counter()
+                    recovery_t = e_recovery_t - b_recovery_t
                     recovery_complete_index = i + k
                     max_P = P
 
@@ -467,13 +478,14 @@ for i in range(exp_num):
                 else:
                     exp.model.evolve()
 
-            exp_rst[bl] = {}
-            exp_rst[bl]['states'] = deepcopy(exp.model.states)
-            exp_rst[bl]['outputs'] = deepcopy(exp.model.outputs)
-            exp_rst[bl]['inputs'] = deepcopy(exp.model.inputs)
-            exp_rst[bl]['time'] = {}
-            exp_rst[bl]['time']['recovery_complete'] = recovery_complete_index
-            exp_rst[bl]['P'] = max_P
+
+            # exp_rst[bl]['states'] = deepcopy(exp.model.states)
+            # exp_rst[bl]['outputs'] = deepcopy(exp.model.outputs)
+            # exp_rst[bl]['inputs'] = deepcopy(exp.model.inputs)
+            # exp_rst[bl]['time'] = {}
+            # exp_rst[bl]['time']['recovery_complete'] = recovery_complete_index
+            exp_rst[diff_k]['overhead'] = recovery_t
+            exp_rst[diff_k]['P'] = max_P
 
 
         # # ==================== plot =============================
@@ -514,13 +526,25 @@ for i in range(exp_num):
         # plt.savefig(f'fig/baselines/{exp.name}.svg', format='svg', bbox_inches='tight')
         # plt.show()
 
-    baselines = ['oprp-open', 'oprp']
+    # baselines = ['oprp-open', 'oprp']
+    baselines = ['oprp-open']
     blables = {'oprp-open': 'Open loop', 'oprp': 'Close loop'}
     one_rst = []
-    for gamma in result:     # TODO： K
+    overhead_rst = []
+    for diff_k in DiFF_K:     # TODO： K
         for bl in baselines:
-            one_rst.append([gamma,  result[gamma][bl]['P']])
+            one_rst.append([diff_k,  result[diff_k][diff_k]['P']])
+            overhead_rst.append([diff_k, result[diff_k][diff_k]['overhead']])
 
     with open(rst_file, 'a', newline='') as f:
         writer = csv.writer(f)
         writer.writerows(one_rst)
+
+
+    with open(overhead_file, 'a', newline='') as f:
+        writer = csv.writer(f)
+        writer.writerows(overhead_rst)
+    # rst = np.array(one_rst)
+    # # print(rst[:, 0])
+    # plt.plot(rst[:, 0], rst[:, 1])
+    # plt.show()
