@@ -438,5 +438,6 @@ for exp in exps:
 
     # plt.legend()
     plt.ylabel(exp.y_label)
+    plt.xlabel('time - sec', loc='right', labelpad=-55)
     plt.savefig(f'fig/baselines/{exp.name}.svg', format='svg', bbox_inches='tight')
     plt.show()
