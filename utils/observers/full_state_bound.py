@@ -4,9 +4,10 @@ from copy import deepcopy
 
 
 class Estimator:
-    def __init__(self, Ad, Bd, max_k, epsilon=None):
+    def __init__(self, Ad, Bd, max_k, epsilon=None, c=None):
         self.Ad = Ad
         self.Bd = Bd
+        self.c = c
         self.n = self.Ad.shape[0]
         self.epsilon = epsilon
         self.max_k = max_k
@@ -14,6 +15,8 @@ class Estimator:
         for i in range(max_k):
             self.Ad_k.append(self.Ad_k[-1].dot(self.Ad))
         self.Ad_k_Bd = [i.dot(self.Bd) for i in self.Ad_k]
+        if self.c is not None:
+            self.Ad_k_c = [i.dot(self.c) for i in self.Ad_k]
         self.Ad_k_Ad_k_T = [i.dot(i.T) for i in self.Ad_k]
         self.epsilon_coef = []
         sqrt_term = np.zeros((self.n,))
@@ -30,7 +33,10 @@ class Estimator:
         assert self.epsilon is not None
         control_sum_term = np.zeros((self.n,))
         for j in range(k):
-            control_sum_term += self.Ad_k_Bd[j] @ us[k - 1 - j]
+            if self.c is not None:
+                control_sum_term += self.Ad_k_Bd[j] @ us[k - 1 - j] + self.Ad_k_c[j]
+            else:
+                control_sum_term += self.Ad_k_Bd[j] @ us[k - 1 - j]
         x_0 = self.Ad_k[k] @ x_a + control_sum_term
         e = np.ones((self.n,)) * self.epsilon * self.epsilon_coef[k]
         x_0_lo = x_0 - e
@@ -44,7 +50,10 @@ class Estimator:
         assert x_a.shape[0] == self.n
         control_sum_term = np.zeros((self.n,))
         for j in range(k):
-            control_sum_term += self.Ad_k_Bd[j] @ us[k - 1 - j]
+            if self.c is not None:
+                control_sum_term += self.Ad_k_Bd[j] @ us[k - 1 - j] + self.Ad_k_c[j]
+            else:
+                control_sum_term += self.Ad_k_Bd[j] @ us[k - 1 - j]
         x_0 = self.Ad_k[k] @ x_a + control_sum_term
         return x_0
 
