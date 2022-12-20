@@ -1,7 +1,6 @@
 import numpy as np
 from utils import Simulator
 from utils.controllers.PID_incremental import PID
-from interval import imath
 
 # Parameters:
 # Volumetric Flowrate (m^3/sec)
@@ -39,6 +38,7 @@ def cstr(t, x, u, Tf=350, Caf=1, use_imath=False):
 
     # reaction rate
     if use_imath:
+        from interval import imath
         rA = k0 * imath.exp(-EoverR / T) * Ca
     else:
         rA = k0 * np.exp(-EoverR / T) * Ca

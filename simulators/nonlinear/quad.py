@@ -4,7 +4,7 @@ import numpy as np
 from utils import Simulator, PID
 import math 
 # parameters
-from interval import imath
+
 
 
 def quad(t, x, u, use_imath=False):
@@ -24,7 +24,8 @@ def quad(t, x, u, use_imath=False):
     U_phi = 0
     U_theta = 0
     U_psi  = 0
-    if use_imath: 
+    if use_imath:
+        from interval import imath
         xdot = [
         w_phi,
         w_theta,
