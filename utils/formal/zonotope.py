@@ -139,17 +139,17 @@ class Zonotope:
         v = v[ConvexHull(v).vertices, :]  # one vertex per row
         return v
 
-    def plot(self, fig=None):
+    def plot(self, fig=None, color='orange'):
         v = self.to_V()
         if v.shape[1] != 2:  # only 2-d
             raise NotImplemented
         v = np.vstack((v, v[0]))  # close the polygon
         if fig is None:
             fig = plt.figure()
-            plt.plot(v[:, 0], v[:, 1])
+            plt.plot(v[:, 0], v[:, 1], color)
             plt.show()
         else:
-            plt.plot(v[:, 0], v[:, 1])
+            plt.plot(v[:, 0], v[:, 1], color)
         return fig
 
     # display routine by generators

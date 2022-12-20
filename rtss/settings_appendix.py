@@ -24,20 +24,20 @@ class motor_speed_bias:
     noise = {
         'process': {
             'type': 'white',
-            'param': {'C': np.array([[0.01, 0], [0, 0.04]])}
+            'param': {'C': np.array([[0.03, 0], [0, 0.04]])}
         }
     }
     model = MotorSpeed('bias', dt, max_index, noise)
     control_lo = np.array([0])
-    control_up = np.array([60])
+    control_up = np.array([50])
     model.controller.set_control_limit(control_lo, control_up)
     attack_start_index = 150
     bias = np.array([-1])
     attack = Attack('bias', bias, attack_start_index)
-    recovery_index = 180
+    recovery_index = 200
 
     # needed by 1_recovery_given_p
-    s = Strip(np.array([-1, 0]), a=-4.3, b=-3.7)
+    s = Strip(np.array([-1, 0]), a=-4.2, b=-3.8)
     P_given = 0.95
     max_recovery_step = 40
     # plot
@@ -73,7 +73,7 @@ class quadruple_tank_bias:
     noise = {
         'process': {
             'type': 'white',
-            'param': {'C': np.diag([0.02, 0.02, 0.02, 0.02])}
+            'param': {'C': np.diag([0.05, 0.05, 0.05, 0.05])}
         }
     }
     model = QuadrupleTank('test', dt, max_index, noise)
@@ -122,7 +122,7 @@ class f16_bias:
     noise = {
         'process': {
             'type': 'white',
-            'param': {'C': np.eye(4) * 0.0002}
+            'param': {'C': np.eye(4) * 0.002}
         }
     }
     model = F16('test', dt, max_index, noise)
@@ -130,12 +130,12 @@ class f16_bias:
     control_up = np.array([25])
     model.controller.set_control_limit(control_lo, control_up)
     attack_start_index = 400
-    bias = np.array([-1])
+    bias = np.array([-10])
     attack = Attack('bias', bias, attack_start_index)
-    recovery_index = 420
+    recovery_index = 470
 
     # needed by 1_recovery_given_p
-    s = Strip(np.array([0, 0, 1, 0]), a=4.9/57.3, b=5.1/57.3)
+    s = Strip(np.array([0, 0, 1, 0]), a=4.2/57.3, b=5.8/57.3)
     P_given = 0.95
     max_recovery_step = 40
     # plot
@@ -174,7 +174,7 @@ class aircraft_pitch_bias:
     noise = {
         'process': {
             'type': 'white',
-            'param': {'C': np.eye(3) * 0.00025}
+            'param': {'C': np.diag([0.0003, 0.0002, 0.0003])}
         }
     }
     model = AircraftPitch('aircraft_pitch', dt, max_index, noise)
@@ -187,7 +187,7 @@ class aircraft_pitch_bias:
     recovery_index = 550
 
     # needed by 1_recovery_given_p
-    s = Strip(np.array([0, 0, -1]), a=-0.23, b=-0.17)
+    s = Strip(np.array([0, 0, -1]), a=-0.395, b=-0.005)
     P_given = 0.95
     max_recovery_step = 40
     # plot
@@ -223,7 +223,7 @@ class boeing747_bias:
     noise = {
         'process': {
             'type': 'white',
-            'param': {'C': np.eye(5) * 0.0001}
+            'param': {'C': np.eye(5) * 0.02}
         }
     }
     model = Boeing('boeing747', dt, max_index, noise)
@@ -236,7 +236,7 @@ class boeing747_bias:
     recovery_index = 430
 
     # needed by 1_recovery_given_p
-    s = Strip(np.array([-1, 0, 0, 0, 0]), a=-1.3, b=-0.7)
+    s = Strip(np.array([-1, 0, 0, 0, 0]), a=-1.4, b=-0.6)
     P_given = 0.95
     max_recovery_step = 40
     # plot
@@ -450,7 +450,7 @@ class quadrotor_bias:
     noise = {
         'process': {
             'type': 'white',
-            'param': {'C': np.eye(12) * 0.0001}
+            'param': {'C': np.eye(12) * 0.08}
         }
     }
     model = Quadrotor('quadrotor', dt, max_index, noise)
@@ -463,7 +463,7 @@ class quadrotor_bias:
     recovery_index = 410
 
     # needed by 1_recovery_given_p
-    s = Strip(np.array([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1]), a=-4.3, b=-3.7)
+    s = Strip(np.array([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1]), a=-4.5, b=-3.5)
     P_given = 0.95
     max_recovery_step = 40
     # plot

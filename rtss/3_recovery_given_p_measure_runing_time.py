@@ -1,32 +1,29 @@
 import matplotlib.pyplot as plt
 import numpy as np
+import os
+os.environ["RANDOM_SEED"] = '0'   # for reproducibility
+
+
 from time import perf_counter
 import json
 from utils.formal.zonotope import Zonotope
 from utils.formal.reachability import ReachableSet
 from utils.formal.gaussian_distribution import GaussianDistribution
-# from rtss.settings import motor_speed_bias as msb
-# from rtss.settings import quadruple_tank_bias as qtb
-# from rtss.settings import f16_bias as f16b
-# from rtss.settings import aircraft_pitch_bias as apb
-# from rtss.settings import boeing747_bias as boeb
-# from rtss.settings import rlc_circuit_bias as rcb
-# from rtss.settings import quadrotor_bias as qdb
-# from rtss.settings import heat_bias as htb
-from rtss.settings_baseline import motor_speed_bias as msb
-from rtss.settings_baseline import quadruple_tank_bias as qtb
-from rtss.settings_baseline import f16_bias as f16b
-from rtss.settings_baseline import aircraft_pitch_bias as apb
-from rtss.settings_baseline import boeing747_bias as boeb
-from rtss.settings_baseline import rlc_circuit_bias as rcb
-from rtss.settings_baseline import quadrotor_bias as qdb
-from rtss.settings_baseline import heat_bias as htb
+from rtss.settings_appendix import motor_speed_bias as msb
+from rtss.settings_appendix import quadruple_tank_bias as qtb
+from rtss.settings_appendix import f16_bias as f16b
+from rtss.settings_appendix import aircraft_pitch_bias as apb
+from rtss.settings_appendix import boeing747_bias as boeb
+from rtss.settings_appendix import rlc_circuit_bias as rcb
+from rtss.settings_appendix import quadrotor_bias as qdb
+from rtss.settings_appendix import heat_bias as htb
 
 
-exps = [msb, qtb, f16b, apb, boeb, qdb]
+
+# exps = [msb, qtb, f16b, apb, boeb, qdb]
 # exps = [f16b]
-# exps = [msb]
-given_Ps = [0.7, 0.8, 0.95]
+exps = [qtb]
+given_Ps = [0.6, 0.8, 0.95]
 result = {}
 plot = False
 
@@ -65,7 +62,7 @@ for exp in exps:
                 reach.init(x_0, exp.s)
                 # k, satisfy, X_k, D_k, z_star, alpha, P, arrive = reach.given_P(P_given=exp.P_given, max_k=40)
                 tic = perf_counter()
-                k, satisfy, X_k, D_k, z_star, alpha, P, arrive = reach.given_P(P_given=given_P, max_k=50)
+                k, satisfy, X_k, D_k, z_star, alpha, P, arrive = reach.given_P(P_given=given_P, max_k=exp.max_recovery_step)
                 toc = perf_counter() - tic
                 result[exp.name][given_P]['time'] = toc * 1000
                 recovery_complete_index = exp.recovery_index + k

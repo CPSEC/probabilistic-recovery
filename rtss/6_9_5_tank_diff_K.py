@@ -19,7 +19,7 @@ from utils.formal.strip import Strip
 
 from simulators.linear.quadruple_tank import QuadrupleTank
 
-exp_num = 1000
+exp_num = 100
 
 class quadruple_tank_bias:
     # needed by 0_attack_no_recovery
