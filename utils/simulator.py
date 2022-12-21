@@ -9,7 +9,7 @@ from utils.control.linearizer import Linearizer
 logging.basicConfig(
     format="%(asctime)s [%(levelname)s] %(message)s",
     handlers=[
-        logging.FileHandler("debug.log"),
+        logging.FileHandler("output.log"),
         logging.StreamHandler(sys.stdout)
     ]
 )
