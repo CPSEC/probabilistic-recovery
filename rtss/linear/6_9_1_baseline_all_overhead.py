@@ -39,7 +39,7 @@ logger.setLevel(logging.DEBUG)
 
 
 # to save as boxplot
-data_file = 'res/baseline_overhead.csv'
+data_file = '../res/baseline_overhead.csv'
 headers = ['benchmark', 'TS', 'RTR-LQR', 'VS', 'OPRP']
 times = 50
 with open(data_file, 'w', newline='') as f:

@@ -83,8 +83,8 @@ logger = logging.getLogger(__name__)
 logger.setLevel(logging.FATAL)
 
 # creat file
-rst_file = 'res/tank_DIFF_K_P.csv'
-overhead_file = 'res/tank_DIFF_K_overhead.csv'
+rst_file = '../res/tank_DIFF_K_P.csv'
+overhead_file = '../res/tank_DIFF_K_overhead.csv'
 headers = ['K', 'P']
 overhead_headers = ['K', 'time']
 with open(rst_file, 'w', newline='') as f:

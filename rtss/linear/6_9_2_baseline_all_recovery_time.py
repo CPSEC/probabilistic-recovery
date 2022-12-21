@@ -421,7 +421,7 @@ for exp_rst_name in result:
         recover_step = exp_rst[bl]['time']['recovery_step']
         row = [exp_rst_name, bl, recover_step]
         rows.append(row)
-with open('res/baseline_recovery_step.csv', 'w', newline='') as f:
+with open('../res/baseline_recovery_step.csv', 'w', newline='') as f:
     writer = csv.writer(f)
     writer.writerow(headers)
     writer.writerows(rows)

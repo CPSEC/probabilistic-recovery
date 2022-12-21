@@ -3,16 +3,8 @@ import numpy as np
 from utils.formal.zonotope import Zonotope
 from utils.formal.reachability import ReachableSet
 from utils.formal.gaussian_distribution import GaussianDistribution
-from rtss.settings import motor_speed_bias as msb
-from rtss.settings import aircraft_pitch_bias as apb
-from rtss.settings import boeing747_bias as boeb
-from rtss.settings import heat_bias as hb
-from rtss.settings import platoon_bias as pltb
-from rtss.settings import rlc_circuit_bias as rcb
-from rtss.settings import quadrotor_bias as qdb
-from rtss.settings import quadruple_tank_bia,s as qtb
-from rtss.settings import f16_bias as f16b
-from rtss.settings import lane_keeping as lkp
+from rtss.linear.settings import aircraft_pitch_bias as apb
+from rtss.linear.settings import lane_keeping as lkp
 
 exps = [lkp]
 # exps = [msb]

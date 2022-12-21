@@ -82,7 +82,7 @@ logger = logging.getLogger(__name__)
 logger.setLevel(logging.FATAL)
 
 # creat file
-rst_file = 'res/tank_open_close_P.csv'
+rst_file = '../res/tank_open_close_P.csv'
 headers = ['gamma', 'bl', 'P']
 with open(rst_file, 'w', newline='') as f:
     writer = csv.writer(f)

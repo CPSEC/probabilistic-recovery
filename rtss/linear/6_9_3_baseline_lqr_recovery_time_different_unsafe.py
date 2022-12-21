@@ -290,7 +290,7 @@ for exp_rst_name in result:
                 recover_step = exp_rst[bl][max_l0]['time']['recovery_step']
                 row = [max_l0, k, recover_step]
                 rows.append(row)
-with open('res/baseline_lqr_recovery_step_diff_unsafe.csv', 'w', newline='') as f:
+with open('../res/baseline_lqr_recovery_step_diff_unsafe.csv', 'w', newline='') as f:
     writer = csv.writer(f)
     writer.writerow(headers)
     writer.writerows(rows)
