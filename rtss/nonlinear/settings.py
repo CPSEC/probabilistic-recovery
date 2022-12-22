@@ -12,12 +12,13 @@ class cstr:
     max_index = 300
     dt = 0.1
     ref = [np.array([0.98189, 300.00013])] * (max_index+1)
-    noise = {
-        'process': {
-            'type': 'white',
-            'param': {'C': np.array([[0.03, 0], [0, 0.04]])}
-        }
-    }
+    # noise = {
+    #     'process': {
+    #         'type': 'white',
+    #         'param': {'C': np.array([[0.03, 0], [0, 0.04]])}
+    #     }
+    # }
+    noise = {}
     model = CSTR(name, dt, max_index, noise=noise)
     control_lo = np.array([250])
     control_up = np.array([350])

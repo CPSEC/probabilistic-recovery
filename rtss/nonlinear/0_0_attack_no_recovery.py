@@ -1,9 +1,11 @@
-import os
+import os, sys
 import sys
 from copy import deepcopy
 
 import matplotlib.pyplot as plt
 import numpy as np
+
+from utils.observers import full_state_nonlinear as fsn
 
 # logger
 import logging
@@ -25,7 +27,7 @@ os.environ["RANDOM_SEED"] = '0'  # for reproducibility
 from settings import cstr
 
 # simulation settings
-baselines = ['none']
+baselines = ['none', 'oprp']
 exps = [cstr]
 colors = {'none': 'red', 'oprp': 'blue'}  # 'lp': 'cyan', 'lqr': 'green', 'ssr': 'orange', 'mpc': 'blue'}
 result = {}  # for plotting figures
@@ -60,7 +62,34 @@ for exp in exps:
     # ---------  attack + OPRP recovery  -------------
     if 'oprp' in baselines:
         bl = 'oprp'
+        exp_name = f" {bl} {exp.name} "
+        logger.info(f"{exp_name:=^40}")
 
+        # init for recovery
+        exp.model.reset()
+        non_est = fsn.Estimator(exp.model.ode, exp.dt)
+
+        for i in range(0, exp.max_index + 1):
+            assert exp.model.cur_index == i
+            exp.model.update_current_ref(exp.ref[i])
+            # attack here
+            exp.model.cur_feedback = exp.attack.launch(exp.model.cur_feedback, i, exp.model.states)
+            if i == exp.attack_start_index - 1:
+                logger.debug(f'trustworthy_index={i}, trustworthy_state={exp.model.cur_x}')
+            if i == exp.recovery_index:
+                logger.debug(f'recovery_index={i}, recovery_start_state={exp.model.cur_x}')
+                # state reconstruction
+                us = exp.model.inputs[exp.attack_start_index - 1:i]
+                x_0 = exp.model.states[exp.attack_start_index - 1]
+                xs = non_est.estimate(x_0, us)
+                # g_xs = exp.model.states[exp.attack_start_index:i+1] # ground truth
+                x_cur = xs[-1]
+                logger.debug(f'recovered_cur_state={x_cur}')
+
+
+            exp.model.evolve()
+
+        sys.exit()
 
     # ==================== plot =============================
     plt.rcParams.update({'font.size': 24})  # front size
