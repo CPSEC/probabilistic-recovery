@@ -111,7 +111,7 @@ class Simulator:
         self.sysc = Ax + Bu + c
         """
         assert self.model_type == 'nonlinear'
-        linearize = Linearizer(self.ode, self.n, self.m)
+        linearize = Linearizer(self.ode, self.n, self.m, self.dt)
         Ac, Bc, Cc = linearize.at(x_0, u_0)
         self.sysc = StateSpace(Ac, Bc, self.C, self.D)
         self.sysc.c = Cc
