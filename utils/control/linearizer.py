@@ -18,12 +18,13 @@ class Linearizer:
         assert B.shape == (self.nx, self.nu)
         
         C = np.diag([1]*len(A)); D = np.zeros(B.shape) # not important or useful!
-        sysc = StateSpace(A, B, C, D)
-        sysd = sysc.to_discrete(self.dt)
-        Ad = sysd.A
-        Bd = sysd.B
-        cd = (x_0 + self.ode(0, x_0, u_0)*self.dt) - Ad@x_0 - Bd@u_0
-        return Ad, Bd, cd
+        self.sysc = StateSpace(A, B, C, D)
+        self.sysd = self.sysc.to_discrete(self.dt)
+        Ad = self.sysd.A
+        Bd = self.sysd.B
+        self.sysc.c = self.ode(0, x_0, u_0) - Ad@x_0 - Bd@u_0
+        self.sysd.c = (x_0 + self.ode(0, x_0, u_0)*self.dt) - Ad@x_0 - Bd@u_0
+        return self.sysc, self.sysd
 
 def analytical_linearize_cstr(x, u, Ts):
     # Ad= Matrix([[Ts*(-1.0 - 72000000000.0*exp(-8750/x1)) + 1, -630000000000000.0*Ts*x0*exp(-8750/x1)/x1**2], [15062761506276.2*Ts*exp(-8750/x1), Ts*(1.31799163179916e+17*x0*exp(-8750/x1)/x1**2 - 3.09205020920502) + 1]])
