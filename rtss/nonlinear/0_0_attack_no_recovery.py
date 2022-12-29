@@ -109,6 +109,7 @@ for exp in exps:
                 rec_u = U.alpha_to_control(alpha)
                 u = rec_u[0]
                 exp.model.evolve(u)
+                logger.debug(f'recovering {i=},{u=},{x_cur.miu=}')
             else:
                 if i == recovery_complete_index:
                     logger.debug(f'state after recovery: {exp.model.cur_x}')
