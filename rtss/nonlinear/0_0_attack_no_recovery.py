@@ -5,7 +5,10 @@ from copy import deepcopy
 import matplotlib.pyplot as plt
 import numpy as np
 
-from utils.observers import full_state_nonlinear as fsn
+from utils.observers import full_state_nonlinear_from_gaussian as fsn
+from utils.formal.gaussian_distribution import GaussianDistribution
+from utils.formal.zonotope import Zonotope
+from utils.formal.reachability import ReachableSet
 
 # logger
 import logging
@@ -65,9 +68,18 @@ for exp in exps:
         exp_name = f" {bl} {exp.name} "
         logger.info(f"{exp_name:=^40}")
 
+        # init some variables
+        recovery_complete_index = exp.max_index - 1
+        x_cur = None
+        sysd = None
+        u_lo = exp.model.controller.control_lo
+        u_up = exp.model.controller.control_up
+        U = Zonotope.from_box(u_lo, u_up)
+        W = exp.model.p_noise_dist
+
         # init for recovery
         exp.model.reset()
-        non_est = fsn.Estimator(exp.model.ode, exp.dt)
+        non_est = fsn.Estimator(exp.model.ode, exp.model.n, exp.model.m, exp.dt, W)
 
         for i in range(0, exp.max_index + 1):
             assert exp.model.cur_index == i
@@ -76,20 +88,41 @@ for exp in exps:
             exp.model.cur_feedback = exp.attack.launch(exp.model.cur_feedback, i, exp.model.states)
             if i == exp.attack_start_index - 1:
                 logger.debug(f'trustworthy_index={i}, trustworthy_state={exp.model.cur_x}')
+
+            # state reconstruction & linearization
             if i == exp.recovery_index:
                 logger.debug(f'recovery_index={i}, recovery_start_state={exp.model.cur_x}')
-                # state reconstruction
                 us = exp.model.inputs[exp.attack_start_index - 1:i]
-                x_0 = exp.model.states[exp.attack_start_index - 1]
-                xs = non_est.estimate(x_0, us)
-                # g_xs = exp.model.states[exp.attack_start_index:i+1] # ground truth
-                x_cur = xs[-1]
+                x_0 = GaussianDistribution(exp.model.states[exp.attack_start_index - 1], np.zeros((exp.model.n, exp.model.n)))
+                x_cur, sysd = non_est.estimate(x_0, us)
                 logger.debug(f'recovered_cur_state={x_cur}')
+            if exp.recovery_index < i < recovery_complete_index:
+                u_last = [exp.model.inputs[i - 1]]
+                x_cur, sysd = non_est.estimate(x_cur, u_last)
 
+            # call OPRP (did not consider good sensor)
+            if exp.recovery_index <= i < recovery_complete_index:
+                reach = ReachableSet(sysd.A, sysd.B, U, W, max_step=100)
+                reach.init(x_cur, exp.s)
+                k, X_k, D_k, z_star, alpha, P, arrive = reach.given_k(max_k=exp.k_given)
+                recovery_complete_index = i + k
+                rec_u = U.alpha_to_control(alpha)
+                u = rec_u[0]
+                exp.model.evolve(u)
+            else:
+                if i == recovery_complete_index:
+                    logger.debug(f'state after recovery: {exp.model.cur_x}')
+                    step = recovery_complete_index - exp.recovery_index
+                    logger.debug(f'use {step} steps to recover.')
+                exp.model.evolve()
 
-            exp.model.evolve()
-
-        sys.exit()
+        exp_rst[bl] = {}
+        exp_rst[bl]['refs'] = deepcopy(exp.model.refs)
+        exp_rst[bl]['states'] = deepcopy(exp.model.states)
+        exp_rst[bl]['outputs'] = deepcopy(exp.model.outputs)
+        exp_rst[bl]['inputs'] = deepcopy(exp.model.inputs)
+        exp_rst[bl]['time'] = {}
+        exp_rst[bl]['time']['recovery_complete'] = recovery_complete_index
 
     # ==================== plot =============================
     plt.rcParams.update({'font.size': 24})  # front size

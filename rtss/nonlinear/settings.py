@@ -12,13 +12,13 @@ class cstr:
     max_index = 300
     dt = 0.1
     ref = [np.array([0.98189, 300.00013])] * (max_index+1)
-    # noise = {
-    #     'process': {
-    #         'type': 'white',
-    #         'param': {'C': np.array([[0.03, 0], [0, 0.04]])}
-    #     }
-    # }
-    noise = {}
+    noise = {
+        'process': {
+            'type': 'white',
+            'param': {'C': np.array([[1e-7, 0], [0, 1e-7]])}
+        }
+    }
+    # noise = {}
     model = CSTR(name, dt, max_index, noise=noise)
     control_lo = np.array([250])
     control_up = np.array([350])
@@ -40,6 +40,9 @@ class cstr:
     control_lo = np.array([250])
     control_up = np.array([350])
     recovery_ref = np.array([0.98189, 300.00013])
+
+    s = Strip(np.array([0, 1]), a=target_set_lo[output_index], b=target_set_up[output_index])
+    k_given = 40
 
     # Q = np.diag([1, 1])
     # QN = np.diag([1, 1])
