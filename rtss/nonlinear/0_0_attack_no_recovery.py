@@ -102,14 +102,14 @@ for exp in exps:
 
             # call OPRP (did not consider good sensor)
             if exp.recovery_index <= i < recovery_complete_index:
-                reach = ReachableSet(sysd.A, sysd.B, U, W, max_step=100)
+                reach = ReachableSet(sysd.A, sysd.B, U, W, max_step=100, c=sysd.c)
                 reach.init(x_cur, exp.s)
                 k, X_k, D_k, z_star, alpha, P, arrive = reach.given_k(max_k=exp.k_given)
                 recovery_complete_index = i + k
                 rec_u = U.alpha_to_control(alpha)
                 u = rec_u[0]
                 exp.model.evolve(u)
-                logger.debug(f'recovering {i=},{u=},{x_cur.miu=}')
+                logger.debug(f'recovering {i=},{u=},{x_cur.miu=},x_grnd={exp.model.states[i]}')
             else:
                 if i == recovery_complete_index:
                     logger.debug(f'state after recovery: {exp.model.cur_x}')
