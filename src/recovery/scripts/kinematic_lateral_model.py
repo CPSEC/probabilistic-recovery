@@ -22,19 +22,27 @@ class LaneKeeping:
         dpsi = v * cos(beta) * (tan(delta_f)-tan(delta_r)) / (l_f + l_r)
         return np.array([dx, dy, dpsi])
 
-    def lin_dis(self, x, u):
+    def f(self, x, u):
+        dx = self.ode(None, x, u)
+        return x+dt * dx
+
+    def jfx(self, x, u):
         delta_f = u[0]   # steering angle of front wheel
         psi = x[2]
         Ad=np.array([
             [1, 0, -dt*v*sin(psi + atan((l_f*tan(delta_r) + l_r*tan(delta_f))/(l_f + l_r)))],
             [0, 1,  dt*v*cos(psi + atan((l_f*tan(delta_r) + l_r*tan(delta_f))/(l_f + l_r)))],
             [0, 0,                                                                        1]])
+        return Ad
+
+    def jfu(self, x, u):
+        delta_f = u[0]   # steering angle of front wheel
+        psi = x[2]       
         Bd=np.array([
             [                                                                                                                       -dt*l_r*v*(tan(delta_f)**2 + 1)*sin(psi + atan((l_f*tan(delta_r) + l_r*tan(delta_f))/(l_f + l_r)))/((1 + (l_f*tan(delta_r) + l_r*tan(delta_f))**2/(l_f + l_r)**2)*(l_f + l_r))],
             [                                                                                                                        dt*l_r*v*(tan(delta_f)**2 + 1)*cos(psi + atan((l_f*tan(delta_r) + l_r*tan(delta_f))/(l_f + l_r)))/((1 + (l_f*tan(delta_r) + l_r*tan(delta_f))**2/(l_f + l_r)**2)*(l_f + l_r))],
             [dt*(-l_r*v*(l_f*tan(delta_r) + l_r*tan(delta_f))*(tan(delta_f) - tan(delta_r))*(tan(delta_f)**2 + 1)/((1 + (l_f*tan(delta_r) + l_r*tan(delta_f))**2/(l_f + l_r)**2)**(3/2)*(l_f + l_r)**3) + v*(tan(delta_f)**2 + 1)/(sqrt(1 + (l_f*tan(delta_r) + l_r*tan(delta_f))**2/(l_f + l_r)**2)*(l_f + l_r)))]])
-        cc=(x + self.ode(0, x, u)*dt) - Ad@x - Bd@u
-        return Ad, Bd, cc
+        return Bd
 
     
     
