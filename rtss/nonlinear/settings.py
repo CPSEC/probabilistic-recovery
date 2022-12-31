@@ -63,6 +63,7 @@ class cstr:
     # for linearizations for baselines, find equilibrium point and use below
     u_ss = np.array([274.57786])
     x_ss = np.array([0.98472896, 300.00335862])
+    jh = lambda x, u: np.array([[1, 0]])
 
     # attack_start_index = 90
     # bias = np.array([0, -25])

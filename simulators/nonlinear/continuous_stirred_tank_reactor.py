@@ -112,7 +112,15 @@ class CSTR(Simulator):
 
     def __init__(self, name, dt, max_index, noise=None):
         super().__init__('CSTR ' + name, dt, max_index)
+        Caf = 1
+        Tf = 350
         self.nonlinear(ode=cstr, n=2, m=1, p=2)  # number of states, control inputs, outputs
+
+        self.f = lambda x, u: np.array([[x[0] + dt * (q / V * (Caf - x[0]) - k0 * np.exp(-EoverR / x[1]) * x[0])],\
+        [ x[1] + dt * (q / V * (Tf - x[1]) + mdelH / (rho * Cp) * k0 * np.exp(-EoverR / x[1]) * x[0] + UA / V / rho / Cp * (u[0] - x[1])) ]])
+        self.jfx = lambda x, u: np.array([[1 - dt * (k0 * np.exp(-EoverR/x[1]) - q / V), -dt * EoverR * x[0] * np.exp(- EoverR / x[1]) / x[1]**2],\
+            [dt * k0 * mdelH * np.exp(-EoverR / x[1]) / (Cp * rho), 1 - dt * ( UA * x[1]**2 + Cp * q *rho * x[1]**2 - EoverR * V * k0 * mdelH * x[0] * np.exp(-EoverR/x[1]) ) / (Cp * V * rho * x[1]**2) ]])
+        self.jfu = lambda x, u: np.array([[0],[UA * dt / (Cp * V * rho)]])
         controller = Controller(dt)
         settings = {
             'init_state': x_0,

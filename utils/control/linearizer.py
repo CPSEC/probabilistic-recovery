@@ -4,27 +4,34 @@ from functools import partial
 from scipy.signal import StateSpace
 
 class Linearizer:
-    def __init__(self, ode, nx, nu, dt):
+    def __init__(self, ode, nx, nu, dt, jfx=None, jfu=None):
         self.ode = ode
         self.nx = nx
         self.nu = nu
         self.dt = dt
+        self.jfx = jfx
+        self.jfu = jfu
 
     def at(self, x_0: np.ndarray, u_0: np.ndarray):
         # ode(t, x, u)
-        A = approx_fprime(x_0, lambda x: self.ode(0, x, u_0))
-        B = approx_fprime(u_0, lambda u: self.ode(0, x_0, u))
-        assert A.shape == (self.nx, self.nx)
-        assert B.shape == (self.nx, self.nu)
+        if self.jfx == None or self.jfu == None:
+            A = approx_fprime(x_0, lambda x: self.ode(0, x, u_0))
+            B = approx_fprime(u_0, lambda u: self.ode(0, x_0, u))
+            C = np.diag([1]*len(A)); D = np.zeros(B.shape) # not important or useful!
+            sysc = StateSpace(A, B, C, D)
+            self.sysd = sysc.to_discrete(self.dt)
+            Ad = self.sysd.A
+            Bd = self.sysd.B
+        else:
+            Ad = self.jfx(x_0, u_0)
+            Bd = self.jfu(x_0, u_0)
+            Cd = np.diag([1]*len(Ad)); Dd = np.zeros(Bd.shape) # not important or useful!
+            self.sysd = StateSpace(Ad, Bd, Cd, Dd)
+        assert Ad.shape == (self.nx, self.nx)
+        assert Bd.shape == (self.nx, self.nu)
         
-        C = np.diag([1]*len(A)); D = np.zeros(B.shape) # not important or useful!
-        self.sysc = StateSpace(A, B, C, D)
-        self.sysd = self.sysc.to_discrete(self.dt)
-        Ad = self.sysd.A
-        Bd = self.sysd.B
-        self.sysc.c = self.ode(0, x_0, u_0) - Ad@x_0 - Bd@u_0
         self.sysd.c = (x_0 + self.ode(0, x_0, u_0)*self.dt) - Ad@x_0 - Bd@u_0
-        return self.sysc, self.sysd
+        return self.sysd
 
 def analytical_linearize_cstr(x, u, Ts):
     # Ad= Matrix([[Ts*(-1.0 - 72000000000.0*exp(-8750/x1)) + 1, -630000000000000.0*Ts*x0*exp(-8750/x1)/x1**2], [15062761506276.2*Ts*exp(-8750/x1), Ts*(1.31799163179916e+17*x0*exp(-8750/x1)/x1**2 - 3.09205020920502) + 1]])
@@ -54,5 +61,5 @@ if __name__ == '__main__':
     x_0 = np.array([1, 300])
     u_0 = np.array([280])
     Ad, Bd, cd = linearize.at(x_0, u_0)
-    print(f'{A=}, \n{B=}, \n{c=}')
+    print(f'{Ad=}, \n{Bd=}, \n{cd=}')
 
