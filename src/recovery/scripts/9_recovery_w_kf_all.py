@@ -150,6 +150,7 @@ def main():
     cmd = VehicleCMD()
     attack = AttackCMD()
     record = StateRecord()
+    stop = False   # for parking 
 
     # speed PID controller
     speed_pid = PID(speed_P, speed_I, speed_D)
@@ -176,7 +177,7 @@ def main():
     U = Zonotope.from_box(control_lo, control_up)
     C_noise = np.diag([0.0001, 0.0001, 0.0001, 0.0001])
     W = GaussianDistribution.from_standard(np.zeros((4,))*0.01, C_noise)
-    safe_set = Strip(np.array([1, 0, 0, 0]), a=2, b=2.1)
+    safe_set = Strip(np.array([1, 0, 0, 0]), a=3, b=3.4)
     x_cur_update = None
     last_steer_target = None
     recovery_control_sequence = None
@@ -203,7 +204,10 @@ def main():
             # print(state.val.e_cg, state.val.e_cg_dot, state.val.theta_e, state.val.e_cg_dot)
 
             # cruise control
-            speed_pid.set_reference(speed_ref)
+            if stop:
+                speed_pid.set_reference(0)
+            else:
+                speed_pid.set_reference(speed_ref)
             acc_cmd = speed_pid.update(state.velocity)
             # model adaptation
             # v = state.velocity if state.velocity > 1 else 1
@@ -240,7 +244,7 @@ def main():
                 print(f"x_0={x_cur_update.miu=}")
                 k, X_k, D_k, z_star, alpha, P, arrive = reach.given_k(max_k=max_recovery_step)
                 print(f"{k=}, {z_star=}, {P=}")
-                recovery_end_index = recovery_start_index + k
+                # recovery_end_index = recovery_start_index + k
                 # attack_end_index = recovery_end_index - 1  #   for test!!!
                 recovery_control_sequence = U.alpha_to_control(alpha)
                 print('recovery_control=', recovery_control_sequence[0,:])
@@ -254,15 +258,21 @@ def main():
                 print(f"x_0={x_cur_update.miu=}")
                 k, X_k, D_k, z_star, alpha, P, arrive = reach.given_k(max_k=max_recovery_step)
                 print(f"{k=}, {z_star=}, {P=}")
-                recovery_end_index = time_index + k
+                # recovery_end_index = time_index + k
                 # attack_end_index = recovery_end_index - 1  #   for test!!!
                 recovery_control_sequence = U.alpha_to_control(alpha)
                 print('recovery_control=', recovery_control_sequence[0,:])
+
+                if safe_set.in_strip(x_cur_update.miu) and stop==False:
+                    stop = True
+                    recovery_end_index = time_index + 1
+                    rospy.loginfo("stoooooooooop!")
 
             if recovery_start_index <= time_index < recovery_end_index:
                 i = time_index - recovery_start_index
                 steer_target = recovery_control_sequence[0][0]
                 rospy.logdebug(f"i={time_index}, steer_target={steer_target:.4f}, e_cg={state.lateral_state[0]:.2f}")
+
 
             # control input record
             record.record_u(np.array([steer_target]), time_index)

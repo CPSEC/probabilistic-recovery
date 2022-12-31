@@ -39,7 +39,8 @@ plt.fill_between(t, y1, y2, facecolor='green', alpha=0.1)
 # trim
 plt.xlim((s_index*0.05, e_index*0.05))
 plt.ylim((-4.4, 3.5))
-plt.ylabel("Lateral Error (m)")
+plt.xlabel("Time [sec]")
+plt.ylabel("Lateral Error [m]")
 
 # save 
 fig_file = os.path.join(data_folder, 'lgsvl_state.svg')

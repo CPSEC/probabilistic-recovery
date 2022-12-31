@@ -12,8 +12,8 @@ speed_I: 0.1
 speed_D: 0 
 frame_id: "gps" 
 
-attack_start_index: 650
-attack_end_index: 730
-attack_mode: 0
+attack_start_index: 620
+attack_end_index: 660
+attack_mode: 1
 recovery_start_index: 700
 max_recovery_step: 100

@@ -11,7 +11,7 @@ from gui.msg import AttackCmd
 
 from utils.controllers.PID import PID
 from utils.controllers.LQR import LQR
-from utils.controllers.MPC import MPC
+from utils.controllers.MPC_OSQP import MPC
 from model import LaneKeeping
 from utils.formal.zonotope import Zonotope
 from utils.formal.gaussian_distribution import GaussianDistribution
@@ -154,15 +154,16 @@ def main():
     kf = KalmanFilter(sysd.A, sysd.B, sysd.C, sysd.D, Q, R)
     mpc_settings = {
         'Ad': sysd.A, 'Bd': sysd.B,
-        'Q': np.diag([1,1,1,1]), 'QN': np.diag([1,1,1,1]), 'R': np.eye(1)*10,
+        'Q': np.diag([0.2,1,1,1]), 'QN': np.diag([0.2,1,1,1]), 'R': np.eye(1)*100,
         'N': 50,
         # 'ddl': None, 'target_lo': , 'target_up':,
         # 'safe_lo': , 'safe_up':,
         'control_lo': np.array([-0.261799]), 'control_up': np.array([0.261799]),
-        'ref': np.array([0, 0, 0, 0])
+        'ref': np.array([3.2, 0, 0, 0])
     }
     mpc = MPC(mpc_settings)
-
+    safe_set = Strip(np.array([1, 0, 0, 0]), a=3, b=3.4)
+    stop = False
     
     rate = rospy.Rate(control_rate)
     time_index = 0  # time index
@@ -181,7 +182,10 @@ def main():
             # print(state.val.e_cg, state.val.e_cg_dot, state.val.theta_e, state.val.e_cg_dot)
 
             # cruise control
-            speed_pid.set_reference(speed_ref)
+            if stop:
+                speed_pid.set_reference(0)
+            else:
+                speed_pid.set_reference(speed_ref)
             acc_cmd = speed_pid.update(state.velocity)
             # model adaptation
             # v = state.velocity if state.velocity > 1 else 1
@@ -210,7 +214,7 @@ def main():
 
                 print(f"x_0={x_cur_update.miu=}")
                 cin, _ = mpc.update(feedback_value=x_cur_update.miu)
-                recovery_end_index = recovery_start_index + 30
+                # recovery_end_index = recovery_start_index + 30
 
 
             if recovery_start_index < time_index < recovery_end_index:
@@ -221,6 +225,11 @@ def main():
                 print(f"x_0={x_cur_update.miu=}")
                 cin, _ = mpc.update(feedback_value=x_cur_update.miu)
                 print(f"{cin=}")
+
+                if safe_set.in_strip(x_cur_update.miu) and stop==False:
+                    stop = True
+                    recovery_end_index = time_index + 1
+                    rospy.loginfo("stoooooooooop!")
 
             if recovery_start_index <= time_index < recovery_end_index:
                 i = time_index - recovery_start_index

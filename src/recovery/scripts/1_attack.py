@@ -81,9 +81,9 @@ def main():
             # sensor attack
             feedback = state.lateral_state.copy()
             if attack_end_index > time_index >= attack_start_index:
-                if attack_mode == 0:
+                if attack_mode == 0:   # attack GPS sensor
                     feedback += np.array([4, 0, 0, 0])
-                elif attack_mode == 1:
+                elif attack_mode == 1:  # attack IMU sensor
                     feedback += np.array([0, 0, 1, 0])
 
             steer_target = steer_lqr.update(feedback)

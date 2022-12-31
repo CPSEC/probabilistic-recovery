@@ -150,6 +150,9 @@ void LQRControllerNode::IMUCallback(const sensor_msgs::Imu::ConstPtr &msg){
   vehicle_state.theta_e = lqrController_->matrix_state_(2,0);
   vehicle_state.theta_e_dot = lqrController_->matrix_state_(3,0); 
   vehicle_state.v = vehicleState_.velocity;
+  vehicle_state.x = vehicleState_.x;
+  vehicle_state.y = vehicleState_.y;
+  vehicle_state.theta = vehicleState_.heading;
   statePub_.publish(vehicle_state);
 }
 
