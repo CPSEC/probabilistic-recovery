@@ -1,9 +1,20 @@
 import numpy as np
-import os, time
+import os, time, logging, sys
 from copy import deepcopy
 from scipy.signal import StateSpace
 from scipy.integrate import solve_ivp
 from utils.formal.gaussian_distribution import GaussianDistribution
+from utils.control.linearizer import Linearizer
+
+logging.basicConfig(
+    format="%(asctime)s [%(levelname)s] %(message)s",
+    handlers=[
+        logging.FileHandler("output.log"),
+        logging.StreamHandler(sys.stdout)
+    ]
+)
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
 
 rseed_str = os.getenv('RANDOM_SEED')
 if rseed_str is None:
@@ -14,7 +25,7 @@ else:
     except Exception as e:
         print('rseed read error:', e)
         rseed = np.uint32(int(time.time()))
-print('rseed=', rseed)
+logger.info(f'simulator: numpy random seed is set to {rseed}.')
 np.random.seed(rseed)
 
 class Simulator:
@@ -95,6 +106,15 @@ class Simulator:
         self.p = p
         self.ode = ode
 
+    def linearize_at(self, x_0: np.ndarray, u_0: np.ndarray):
+        """
+        self.sysc = Ax + Bu + c
+        """
+        assert self.model_type == 'nonlinear'
+        linearize = Linearizer(self.ode, self.n, self.m, self.dt)
+        self.sysc, self.sysd = linearize.at(x_0, u_0)
+
+
     def sim_init(self, settings: dict):
         """
         keys:
@@ -124,12 +144,25 @@ class Simulator:
                 C = noise['process']['param']['C']
                 self.p_noise_dist = GaussianDistribution.from_standard(miu, C)
                 self.p_noise = self.p_noise_dist.random(self.max_index + 2).T
+            elif noise['process']['type'] == 'box_uniform':
+                lo = noise['process']['param']['lo']
+                up = noise['process']['param']['up']
+                assert up.shape == (self.n,) and lo.shape == (self.n,)
+                noise_base = np.random.random_sample((self.max_index + 2, self.n))
+                self.p_noise = lo + noise_base * (up-lo)
+
         if 'measurement' in noise:
             if noise['measurement']['type'] == 'white':
                 miu = np.zeros((self.p,))
                 C = noise['measurement']['param']['C']
                 self.m_noise_dist = GaussianDistribution.from_standard(miu, C)
                 self.m_noise = self.m_noise_dist.random(self.max_index + 2).T
+            elif noise['measurement']['type'] == 'box_uniform':
+                lo = noise['process']['param']['lo']
+                up = noise['process']['param']['up']
+                assert up.shape == (self.p,) and lo.shape == (self.p,)
+                noise_base = np.random.random_sample((self.max_index + 2, self.p))
+                self.p_noise = lo + noise_base * (up - lo)
 
     def set_init_state(self, x):
         self.init_state = x
@@ -177,7 +210,7 @@ class Simulator:
         ts = (self.cur_index * self.dt, (self.cur_index + 1) * self.dt)
         res = solve_ivp(self.ode, ts, self.cur_x, args=(self.cur_u,))
         self.cur_index += 1
-        # self.cur_x = res.y[:, -1]
+        self.cur_x = res.y[:, -1]
         if self.model_type == 'linear':
             self.cur_x = self.sysd.A @ self.cur_x + self.sysd.B @ self.cur_u
         if self.p_noise is not None:  # process noise

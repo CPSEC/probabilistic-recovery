@@ -162,21 +162,12 @@ include_directories(
 catkin_install_python(PROGRAMS
   scripts/0_normal.py
   scripts/1_attack.py
-  # scripts/2_5_recovery.py
-  scripts/2_recovery_wo_kf.py
-  scripts/3_recovery_w_kf.py
-  scripts/4_recovery_w_kf_sysid.py
-  scripts/5_recovery_w_kf_with_idmodel.py
-  scripts/6_5_plus_new_target.py
-  scripts/7_5_plus_fixed_maintain.py
-  scripts/8_recovery_w_kf_idmodel_mpc.py
-  scripts/8_recovery_w_kf_mpc_data.py
-  scripts/8_5_normal_mpc.py
-  scripts/9_recovery_w_kf_all.py
-  scripts/9_1_recovery_w_kf_all_groundtruth.py
-  scripts/101_test_reconstruction.py
-  scripts/102_test_reconstruction_idmodel.py
   scripts/model.py
+  scripts/observer.py
+  scripts/path.py
+  scripts/sensor.py
+  scripts/kinematic_lateral_model.py
+  scripts/state_record.py
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 

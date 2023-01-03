@@ -38,6 +38,13 @@ class LP(Controller):
             self.set_control_limit(kwargs['control_lo'], kwargs['control_up'])
         if 'ref' in kwargs:
             self.set_reference(kwargs['ref'])
+        if 'solver' in kwargs:
+            self.set_solver(kwargs['solver'])
+
+        if 'c_nonlinear' in kwargs:
+            self.update_model_residual(kwargs['c_nonlinear'])
+        else:
+            self.update_model_residual(None)
 
     def ready_to_formulate(self):
         required = ['Ad', 'Bd', 'N', 'xr', 'x0']
@@ -65,6 +72,12 @@ class LP(Controller):
         self.Ad = Ad
         self.Bd = Bd
         self.nx, self.nu = Bd.shape
+
+    def update_model_residual(self, cd: np.ndarray):
+        if cd is not None:
+            self.cd = cd
+        else:
+            self.cd = np.zeros(self.nx)
 
     def update_horizon(self, N: int):
         self.N = N
@@ -102,7 +115,8 @@ class LP(Controller):
         self.Aeq = np.hstack([Ax, Bu])
         self.Aineq = np.eye((self.N + 1) * self.nx + self.N * self.nu)
 
-        self.leq = np.hstack([-self.x0, np.zeros(self.N * self.nx)])
+        repeated_cd = np.array(self.cd.tolist() * self.N)
+        self.leq = np.hstack([-self.x0, -1*repeated_cd]) # self.leq = np.hstack([-self.x0, np.zeros(self.N * self.nx)])
         if hasattr(self, 'ddl') and self.ddl <= self.N:
             self.lineq = np.hstack(
                 [np.kron(np.ones(self.ddl), self.xmin), np.kron(np.ones(self.N - self.ddl + 1), self.xtmin),
@@ -133,7 +147,7 @@ class LP(Controller):
             self.formulate()
         else:
             self.formulate_only_x0()
-        self.prob.solve(warm_start=True)
+        self.prob.solve(solver=self.solver, warm_start=True)
 
         if self.prob.status != cp.OPTIMAL:
             print('did not get an optimal solution!')
@@ -161,3 +175,6 @@ class LP(Controller):
 
     def set_reference(self, ref: np.ndarray):
         self.xr = ref
+
+    def set_solver(self, solver):
+        self.solver = solver

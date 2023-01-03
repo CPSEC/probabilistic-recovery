@@ -42,6 +42,11 @@ class MPC(Controller):
         if 'ref' in kwargs:
             self.set_reference(kwargs['ref'])
 
+        if 'c_nonlinear' in kwargs:
+            self.update_model_residual(kwargs['c_nonlinear'])
+        else:
+            self.update_model_residual(None)
+
     def ready_to_formulate(self):
         required = ['Ad', 'Bd', 'Q', 'QN', 'R', 'N', 'xr', 'x0']
         ddl_required = ['xtmin', 'xtmax']
@@ -68,6 +73,12 @@ class MPC(Controller):
         self.Ad = Ad
         self.Bd = Bd
         self.nx, self.nu = Bd.shape
+
+    def update_model_residual(self, cd: np.ndarray):
+        if cd is not None:
+            self.cd = cd
+        else:
+            self.cd = np.zeros(self.nx)
 
     def update_object(self, Q: np.ndarray, QN: np.ndarray, R: np.ndarray):
         self.Q = Q
@@ -98,10 +109,10 @@ class MPC(Controller):
            x = | x0, x1, ..., xN, u0, u1, ..., u{N-1} |
            Aeq                                     leq (1-D)
             | -I                              |     | -x0 |
-            | Ad -I              Bd           |     |     |
-            |    Ad -I              Bd        |     |     |
-            |        ...             ...      |     |     |
-            |           Ad -I            Bd   |     |     |
+            | Ad -I              Bd           |     | -c  |
+            |    Ad -I              Bd        |     | -c  |
+            |        ...             ...      |     | -c  |
+            |           Ad -I            Bd   |     | -c  |
         """
         if not self.ready_to_formulate():
             raise ValueError('Not ready to formulate')
@@ -112,7 +123,8 @@ class MPC(Controller):
         self.Aeq = np.hstack([Ax, Bu])
         self.Aineq = np.eye((self.N + 1) * self.nx + self.N * self.nu)
 
-        self.leq = np.hstack([-self.x0, np.zeros(self.N * self.nx)])
+        repeated_cd = np.array(self.cd.tolist() * self.N)
+        self.leq = np.hstack([-self.x0, -1*repeated_cd]) # np.hstack([-self.x0, np.zeros(self.N * self.nx)])
         if hasattr(self, 'ddl') and self.ddl <= self.N:
             self.lineq = np.hstack(
                 [np.kron(np.ones(self.ddl), self.xmin), np.kron(np.ones(self.N - self.ddl + 1), self.xtmin),

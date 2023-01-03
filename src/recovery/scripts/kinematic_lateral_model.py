@@ -1,5 +1,6 @@
 from math import atan, tan, cos, sin 
 import numpy as np
+from state_record import StateRecord
 
 # parameters
 delta_r = 0   # steering angle of rear wheel
@@ -8,7 +9,12 @@ l_f = l_r
 v = 5         # velocity
 dt = 0.05
 
-class LaneKeeping:
+class Kinematic:
+    def __init__(self) -> None:
+        self.n = 3    # number of states
+        self.m = 1    # number of control input
+        self.data = StateRecord()
+
     def ode(self, t, x, u):
         """
         x = [x, y, psi]    # location x, location y, heading angle
@@ -44,6 +50,5 @@ class LaneKeeping:
             [dt*(-l_r*v*(l_f*tan(delta_r) + l_r*tan(delta_f))*(tan(delta_f) - tan(delta_r))*(tan(delta_f)**2 + 1)/((1 + (l_f*tan(delta_r) + l_r*tan(delta_f))**2/(l_f + l_r)**2)**(3/2)*(l_f + l_r)**3) + v*(tan(delta_f)**2 + 1)/(sqrt(1 + (l_f*tan(delta_r) + l_r*tan(delta_f))**2/(l_f + l_r)**2)*(l_f + l_r)))]])
         return Bd
 
-    
-    
+
 

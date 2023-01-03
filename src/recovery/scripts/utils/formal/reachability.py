@@ -12,23 +12,29 @@ class ReachableSet:
     A, B - from discrete-time system
     """
 
-    def __init__(self, A, B, U: Zonotope, W: GaussianDistribution, max_step=50):
+    def __init__(self, A, B, U: Zonotope, W: GaussianDistribution, max_step=50, c=None):
         self.ready = False
         self.max_step = max_step
         self.u_dim = len(U)
         self.A = A
         self.B = B
+        self.c = c
         self.A_k = [np.eye(A.shape[0])]
         for i in range(max_step):
             self.A_k.append(A @ self.A_k[-1])
         self.A_k_B = [val @ B for val in self.A_k]
         self.A_k_B_U = [val @ B @ U for val in self.A_k]
         self.A_k_W = [val @ W for val in self.A_k]
+        if self.c is not None:
+            self.Ad_k_c = [i.dot(self.c) for i in self.A_k]
+            self.bar_c_k = [self.c, self.Ad_k_c[0]]
         self.bar_u_k = [U, self.A_k_B_U[0]]
         self.bar_w_k = [W, self.A_k_W[0]]
         for i in range(1, max_step):
             self.bar_u_k.append(self.A_k_B_U[i] + self.bar_u_k[-1])
             self.bar_w_k.append(self.A_k_W[i] + self.bar_w_k[-1])
+            if self.c is not None:
+                self.bar_c_k.append(self.Ad_k_c[i] + self.bar_c_k[-1])
 
     def init(self, x_0: GaussianDistribution, s: Strip):
         self.x_0 = x_0
@@ -38,7 +44,10 @@ class ReachableSet:
 
     def reachable_set_wo_noise(self, k: int) -> Zonotope:
         x_0 = self.x_0.miu
-        X_k = self.A_k[k] @ x_0 + self.bar_u_k[k]
+        if self.c is not None:
+            X_k = self.A_k[k] @ x_0 + self.bar_u_k[k] + self.bar_c_k[k]
+        else:
+            X_k = self.A_k[k] @ x_0 + self.bar_u_k[k]
         if self.s.point_to_strip(X_k.c):
             self.hp = self.s.center()
         return X_k
@@ -47,7 +56,10 @@ class ReachableSet:
         k = len(us)
         x = self.x_0.miu
         for u in us:
-            x = self.A @ x + self.B @ u
+            if self.c is not None:
+                x = self.A @ x + self.B @ u + self.c
+            else:
+                x = self.A @ x + self.B @ u
         return self.distribution(x, k)
 
     def first_intersection(self) -> ([int, None], Zonotope):
@@ -95,30 +107,22 @@ class ReachableSet:
         if not self.ready:
             print('Init before recovery!')
             raise RuntimeError
-        max_P = 0
         dummy_res = (None, None, None, None, 0, False)
         reach_res = [dummy_res]
-        k = 0
         arrived = False
+        max_P = 0
         for i in range(1, max_k + 1):
             res = self.reachable_set_k(i)
             reach_res.append(res)
             # X_k, D_k, z_star, alpha, P, arrive = res
-            # if P > max_P or P < 1e-7:     # fix bug when P is close to 0
-            #     max_P = P
-            #     k = i
+            if res[4] > max_P:
+                max_P = res[4]
             if res[5] and not arrived:
-                k = i
                 arrived = True
-        if k != 0:
-            res = reach_res[k]
-        else:
-            # res = max(reach_res, key=lambda val: val[4])  # P
-            # if res[4] < 1e-7:  # cannot recovery within max_k
-            #     res = reach_res[-1]
-            # k = reach_res.index(res)
-            res = reach_res[-1]
-            k = len(reach_res)-1
+                break
+        all_res = [val for val in reach_res if val[4] == max_P]
+        res = all_res[-1]
+        k = reach_res.index(res)
         return k, *res
 
     def given_P(self, P_given: float, max_k: int):

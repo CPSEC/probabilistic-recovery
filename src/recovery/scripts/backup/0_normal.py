@@ -1,17 +1,30 @@
 #!/usr/bin/env python
-import os
-from copy import deepcopy
-
 import numpy as np
-import rospy, rospkg
+
+import rospy
 from lqr_control.msg import VehicleState
 from lgsvl_msgs.msg import VehicleControlData
 
 from utils.controllers.PID import PID
 from utils.controllers.LQR import LQR
 from model import LaneKeeping
-from sensor import Sensor
-from observer import Observer
+
+class StateUpdate:
+    def __init__(self) -> None:
+        self.velocity = 0
+        self.lateral_state = np.zeros((4, 1), dtype=np.float32)
+
+        self.started = False
+        vehicle_state_topic = rospy.get_param("/vehicle_state_topic", "/vehicle_state")
+        self.state_sub = rospy.Subscriber(vehicle_state_topic, VehicleState, self.callback)
+
+    def callback(self, state):
+        self.velocity = state.v
+        self.lateral_state[0, 0] = state.e_cg
+        self.lateral_state[1, 0] = state.e_cg_dot
+        self.lateral_state[2, 0] = state.theta_e
+        self.lateral_state[3, 0] = state.theta_e_dot
+        self.started = True
 
 
 class VehicleCMD:
@@ -34,21 +47,10 @@ def main():
     speed_I = rospy.get_param("/speed_I")
     speed_D = rospy.get_param("/speed_D")
     speed_ref = rospy.get_param("/target_speed")
-    attack_start_index = rospy.get_param("/attack_start_index")
-    attack_end_index = rospy.get_param("/attack_end_index")
-    attack_mode = rospy.get_param("/attack_mode")
-
-    # get path file name 
-    _rp = rospkg.RosPack()
-    _rp_package_list = _rp.list()
-    data_folder = os.path.join(_rp.get_path('recovery'), 'data')
-    path_file = os.path.join(data_folder, 'cube_town_closed_line.txt')
 
     rospy.init_node('control_loop', log_level=rospy.DEBUG)
-    # state = StateUpdate()
+    state = StateUpdate()
     cmd = VehicleCMD()
-    sensor = Sensor()
-    observer = Observer(path_file, speed_ref)
 
     # speed PID controller
     speed_pid = PID(speed_P, speed_I, speed_D)
@@ -63,29 +65,18 @@ def main():
     rate = rospy.Rate(control_rate)
     time_index = 0  # time index
     while not rospy.is_shutdown():
-        if sensor.ready:
-            # cruise control
+        if state.started:
+            # print(state.val.e_cg, state.val.e_cg_dot, state.val.theta_e, state.val.e_cg_dot)
             speed_pid.set_reference(speed_ref)
-            acc_cmd = speed_pid.update(sensor.data['v'])
-            # model adaptation
+            acc_cmd = speed_pid.update(state.velocity)
             # v = state.velocity if state.velocity > 1 else 1
             # steer_model.update(v)
             # steer_lqr.update_gain(steer_model.A, steer_model.B, Q, R)
 
-            sensor_ = deepcopy(sensor)
-            # # sensor attack
-            if attack_end_index > time_index >= attack_start_index:
-                if attack_mode == 0:   # attack GPS sensor
-                    feedback += np.array([4, 0, 0, 0])
-                elif attack_mode == 1:  # attack IMU sensor
-                    feedback += np.array([0, 0, 1, 0])
-            
-
-            feedback = observer.est(sensor)
-            rospy.logdebug(f"time_index={time_index}, e_d={feedback[0]}, e_phi={feedback[2]}, speed={sensor.data['v']}")
-            steer_target = steer_lqr.update(feedback)
+            steer_target = steer_lqr.update(state.lateral_state)
             cmd.send(acc_cmd, steer_target)
             time_index += 1
+            rospy.logdebug(f"time_index={time_index}, speed={state.velocity}, e_cg={state.lateral_state[0]}")
         rate.sleep()
 
 
