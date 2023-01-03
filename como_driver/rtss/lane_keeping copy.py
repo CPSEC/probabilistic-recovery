@@ -27,7 +27,6 @@ import time
 from numpy import pi
 import numpy as np
 from scipy.signal import StateSpace
-# Import Recovery
 # Import Rtss
 from utils.formal.gaussian_distribution import GaussianDistribution
 from utils.formal.reachability import ReachableSet
@@ -37,7 +36,7 @@ from utils.formal.strip import Strip
 
 # Parameters To be moved to params file
 K_ATTACK = 65# Time attack begins. To be moved to a param file
-K_DETECTION = 65 + 15# Time attack begins. To be moved to a param file
+K_DETECTION = 65 + 2# Time attack begins. To be moved to a param file
 K_MAX = 50
 
 V_MAX = 1
@@ -46,7 +45,7 @@ HEADING_MAX = np.pi/3
 HEADING_MIN = -np.pi/3
 ENCODER_SPEED_2_REAL = 1
 L = 0.32
-ISOLATION = True
+ISOLATION = False
 lr = 0.15
 lf = 0.17
 
@@ -72,7 +71,7 @@ class RTSS:
 		# Create reachable set
 		self.reach = ReachableSet(Ad, Bd, self.U, W, max_step=K_MAX + 10)
 		# Create strip
-		self.s = Strip(np.array([1, 0.1]), a=-0.6, b=-0.4)
+		self.s = Strip(np.array([0, 1, 0.1]), a=-0.6, b=-0.4)
 		# self.s = Strip(np.array([0, 1, 0]), a=-0.5, b=-0.3)
 		# Attack detection
 		self.recovery_index = recovery_index
@@ -182,45 +181,20 @@ class PID_ctrl:
 class System():
 	def __init__(self, dt):
 		
-		# model = ["rear", "cg", "filter"]
+		model = ["rear", "cg"]
 		model = "rear"
 		if model == "rear":
-			# self.A = [[0, 0, -u_linear[0] * np.sin(x_linear[2])],
-			# 	[0, 0,  u_linear[0] * np.cos(x_linear[2])],
-			# 	[0, 0, -1/filter*0]]
-			# self.B = [[np.cos(x_linear[2]), 0],
-			# 	[np.sin(x_linear[2]), 0],
-			# 	[np.tan(u_linear[1])/L, (u_linear[0] * (np.tan(u_linear[1])**2 + 1) / L) / 1]]
-			# self.C = [[1, 0, 0],
-			# 	[0, 1, 0],
-			# 	[0, 0, 1]]
-			# self.D = [[0, 0], [0, 0], [0, 0]]
-			self.A = [[0,  u_linear[0] * np.cos(x_linear[2])],
-				[0, 0]]
-			self.B = [[np.sin(x_linear[2]), 0],
-				[np.tan(u_linear[1])/L, (u_linear[0] * (np.tan(u_linear[1])**2 + 1) / L)]]
-			self.C = [[1, 0],
-				[0, 1]]
-			self.D = [[0, 0], [0, 0]]
-		elif model == "filter":
 			filter = 2
-			# self.A = [[0, 0, -u_linear[0] * np.sin(x_linear[2])],
-			# 	[0, 0,  u_linear[0] * np.cos(x_linear[2])],
-			# 	[0, 0, -1/filter*0]]
-			# self.B = [[np.cos(x_linear[2]), 0],
-			# 	[np.sin(x_linear[2]), 0],
-			# 	[np.tan(u_linear[1])/L, (u_linear[0] * (np.tan(u_linear[1])**2 + 1) / L) / 1]]
-			# self.C = [[1, 0, 0],
-			# 	[0, 1, 0],
-			# 	[0, 0, 1]]
-			# self.D = [[0, 0], [0, 0], [0, 0]]
-			self.A = [[0,  u_linear[0] * np.cos(x_linear[2])],
-				[0, -1/filter]]
-			self.B = [[np.sin(x_linear[2]), 0],
-				[np.tan(u_linear[1])/L, (u_linear[0] * (np.tan(u_linear[1])**2 + 1) / L) / filter]]
-			self.C = [[1, 0],
-				[0, 1]]
-			self.D = [[0, 0], [0, 0]]
+			self.A = [[0, 0, -u_linear[0] * np.sin(x_linear[2])],
+				[0, 0,  u_linear[0] * np.cos(x_linear[2])],
+				[0, 0, -1/filter*0]]
+			self.B = [[np.cos(x_linear[2]), 0],
+				[np.sin(x_linear[2]), 0],
+				[np.tan(u_linear[1])/L, (u_linear[0] * (np.tan(u_linear[1])**2 + 1) / L) / 1]]
+			self.C = [[1, 0, 0],
+				[0, 1, 0],
+				[0, 0, 1]]
+			self.D = [[0, 0], [0, 0], [0, 0]]
 		else:
 			c1 = lr**2 * np.tan(u_linear[1])**2 / L**2 + 1 # \frac{\tan^2(\delta)}{L^2} + 1
 			c2 = np.tan(u_linear[1])**2 + 1 # \tan(\delta)^2/L^2 + 1
@@ -319,7 +293,7 @@ class OptitrackFetcher():
 		self.states[0] = self.x
 		self.states[1] = self.y
 		self.states[2] = self.t
-		return self.states[1:]
+		return self.states
 
 
 
@@ -370,9 +344,8 @@ def main():
 	dt = 0.1
 
 	# Init rtss
-	n = 2
+	n = 3 
 	covariance = np.eye( n ) * 1/100000 
-	# covariance = np.eye( n ) * 1/10
 	# covariance[2, 2] = 1
 	mu = np.zeros((n,))
 	W = GaussianDistribution.from_standard(mu, covariance)
@@ -380,8 +353,7 @@ def main():
 	system = System(dt)
 	rtss = RTSS(system.Ad, system.Bd, system.Cd, system.Dd, W, system.u_min, system.u_max, K_DETECTION)
 	if ISOLATION:
-		C_kf = np.array([[0, 1]])
-		W.sigma = W.sigma * 100000
+		C_kf = np.array([[1, 0, 0], [0, 0, 1]])
 		Q = W.sigma 
 		R = np.eye(C_kf.shape[0]) *0
 		rtss.set_kalman_filter(C_kf, Q, R)
@@ -405,23 +377,24 @@ def main():
 		state = position_fetcher.get_odometer_info()
 		# print("Position from camera: ", state)
 		# print(f'x: {state[0]}, y: {state[1]}, theta: {state[2]}')
-		if k == K_ATTACK - 1: # Checkpoint state. attack begins
+		if k == K_ATTACK: # Checkpoint state. attack begins
 			print("Attack Begins")
 			store_state = state.copy()
 			# print("state attack: ", state)
 		if k >= K_ATTACK:
-			state[0] -= 0.4
+			state[1] -= 0.3
 			
-		mtr_cmd = u_linear[0] #get motor command
+
 		# Checkpoint ys and us (measurements and inputs)
-		if K_ATTACK <= k < K_DETECTION: # Time between attack begins and attack is detected
+		if K_ATTACK <= k <= K_DETECTION: # Time between attack begins and attack is detected
 			u = np.array([str_cmd])
 			us.append(u)
 			if ISOLATION:
 				ys.append( C_kf @ state )
-		elif k == K_DETECTION: # attack controller
-			# print("Reconfiguration begins")
-			# print(store_state)
+
+		if k == K_DETECTION: # attack controller
+			print("Reconfiguration begins")
+			
 			print("Reconfiguration begins!!: ", position_fetcher.get_odometer_info())
 			if ISOLATION: #  recovery with isolation
 				str_cmd, k_reconf_max = rtss.recovery_isolation_fs(us, ys, store_state)
@@ -434,7 +407,9 @@ def main():
 				str_cmd = u_recovery[k_reconf]
 				print("reconstructed state:", rtss.x_res_point)
 				# print(u_recovery)
-		elif K_DETECTION < k < recovery_complete_index:			
+		# print(k, recovery_complete_index)
+		mtr_cmd = u_linear[0] #get motor command
+		if K_DETECTION < k < recovery_complete_index:			
 			if ISOLATION: #  recovery with isolation
 				u = np.array([str_cmd])
 				str_cmd, k_reconf_max = rtss.recovery_isolation_ns( state, u)
@@ -450,7 +425,7 @@ def main():
 			str_cmd = 0	
 			# pass
 		else: # Fetch nominal controller
-			servo = lateral_ctrl.apply_pid(0, state[0], timestamp)
+			servo = lateral_ctrl.apply_pid(0, state[1], timestamp)
 			str_cmd = servo #get steering command
 			mtr_cmd = u_linear[0] #get motor command
 
@@ -458,7 +433,7 @@ def main():
 			# mtr_cmd = str_sub.get_motor() #get motor command
 		if k == recovery_complete_index:
 			state = position_fetcher.get_odometer_info()
-			print("Reconfiguration finished!!: ", state[0], ", ", state[1], ", ", "strip: ", rtss.s.l @ state)
+			print("Reconfiguration finished!!: ", state[0], ", ", state[1], ", ", state[2], ", ", "strip: ", rtss.s.l @ state)
 		# Publishes control commands 
 		ecu_publisher.set_ecu(float(mtr_cmd * ENCODER_SPEED_2_REAL), float(str_cmd))
 		ecu_publisher.publish_ecu()
@@ -466,7 +441,7 @@ def main():
 
 		k += 1
 		t_end = time.time()
-		# print(t_end - t_begin, ", ", state[0], ", ", state[1], ", ", str_cmd)
+
 		# print("Main loop: ", t_end - t_begin)
 		rate.sleep()
 		

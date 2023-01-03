@@ -93,7 +93,7 @@ def main():
 			publisher.publish_camera()
 
 			time_current = time.time()
-			print(f'{time_current - time_init}, {x}, {y}, {theta}')
+			# print(f'{time_current - time_init}, {x}, {y}, {theta}')
 			rate.sleep()
 	except e:
 		print(e)
