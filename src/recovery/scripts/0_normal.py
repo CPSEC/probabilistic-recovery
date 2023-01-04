@@ -73,6 +73,7 @@ def main():
 
             feedback = observer.est(sensor)
             rospy.logdebug(f"time_index={time_index}, e_d={feedback[0]}, e_phi={feedback[2]}, speed={sensor.data['v']}")
+            rospy.logdebug(f"     x={sensor.data['x']}, y={sensor.data['y']}, theta={sensor.data['yaw']}")
             steer_target = steer_lqr.update(feedback)
             cmd.send(acc_cmd, steer_target)
             time_index += 1

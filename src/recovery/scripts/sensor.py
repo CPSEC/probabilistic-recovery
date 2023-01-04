@@ -1,13 +1,20 @@
 from math import sqrt, atan, tan, cos, sin
 
+import numpy as np
 import rospy
 from nav_msgs.msg import Odometry
 from sensor_msgs.msg import Imu
 from tf.transformations import euler_from_quaternion
 from kinematic_lateral_model import l_f, l_r, delta_r
 
+class SensorData:
+    def __init__(self) -> None:
+        self.data = {'x':0, 'y':0, 'yaw':0}
 
-class Sensor:
+    def get_state(self):
+        return np.array([self.data['x'], self.data['y'], self.data['yaw']])
+
+class Sensor(SensorData):
     def __init__(self) -> None:
         """
         x, y:               position
@@ -16,7 +23,7 @@ class Sensor:
         angular_v:          z axis angular velocity
         a:                  acceleration
         """
-        self.data = {}
+        super().__init__()
         self.steering_angle = 0
         self.ready = False
         self.odom_ready = False

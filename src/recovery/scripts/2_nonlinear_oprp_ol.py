@@ -12,6 +12,7 @@ from utils.controllers.LQR import LQR
 from model import LaneKeeping
 from sensor import Sensor, SensorData
 from observer import Observer
+from state_record import StateRecord
 
 
 class VehicleCMD:
@@ -45,10 +46,10 @@ def main():
     path_file = os.path.join(data_folder, 'cube_town_closed_line.txt')
 
     rospy.init_node('control_loop', log_level=rospy.DEBUG)
-    # state = StateUpdate()
     cmd = VehicleCMD()
     sensor = Sensor()
     observer = Observer(path_file, speed_ref)
+    rec = StateRecord()
 
     # speed PID controller
     speed_pid = PID(speed_P, speed_I, speed_D)
@@ -86,6 +87,10 @@ def main():
             rospy.logdebug(f"     x={sensor.data['x']}, y={sensor.data['y']}, theta={sensor.data['yaw']}")
             steer_target = steer_lqr.update(feedback)
             cmd.send(acc_cmd, steer_target)
+
+            # record data
+            rec.record(x=sensor_.get_state(), u=np.array([steer_target]), t=time_index)
+
             time_index += 1
         rate.sleep()
 
