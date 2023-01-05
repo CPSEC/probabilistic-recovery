@@ -8,7 +8,7 @@ from nav_msgs.msg import Odometry
 
 
 def thread_gps():
-    print('GPS: thread starting ..')
+    # print('GPS: thread starting ..')
 
     rospy.Subscriber('uav_pos', Odometry, rover.ros_gps_callback)
     rate = rospy.Rate(10) # 10 hz
@@ -18,7 +18,7 @@ def thread_gps():
     t_pre = datetime.datetime.now()
     avg_number = 10
 
-    while not rospy.is_shutdown() and rover.on:
+    while rover.k_iter < rover.k_max and rover.on:
 
         t = datetime.datetime.now()
         dt = (t - t_pre).total_seconds()
@@ -31,4 +31,4 @@ def thread_gps():
 
         rate.sleep()
     
-    print('GPS: thread closed!')
+    # print('GPS: thread closed!')

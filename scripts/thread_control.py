@@ -8,23 +8,26 @@ from geometry_msgs.msg import Wrench
 from geometry_msgs.msg import Vector3
 
 
-def thread_control():
-    print('CONTROL: thread starting ..')
+def thread_control(detection_delay, reconfiguration, noise):
+    # print('CONTROL: thread starting ..')
 
     # pub = rospy.Publisher('uav_fm', Wrench, queue_size=1)
 
     freq = 20
     rate = rospy.Rate(freq) # 200 hz
-    recovery_name = ['rtss', 'emsoft', 'v_sensors']
-    recovery_name = recovery_name[2]
-    rover.init_recovery(freq=freq, isolation=False, recovery_name = recovery_name)
+    recovery_name = ['rtss', 'emsoft', 'v_sensors', 'rtss_nonlinear']
+    if 0 <= reconfiguration <= 3:
+        recovery_name = recovery_name[reconfiguration]
+    else:
+        raise NotImplemented
+    rover.init_recovery(freq=freq, isolation=False, recovery_name = recovery_name, detection_delay=detection_delay, noise=noise)
 
-    freq = 0.0
+    # freq = 0.0
     t = datetime.datetime.now()
     t_pre = datetime.datetime.now()
     avg_number = 100
 
-    while not rospy.is_shutdown() and rover.on:
+    while rover.k_iter < rover.k_max and rover.on:
         t = datetime.datetime.now()
         dt = (t - t_pre).total_seconds()
         if dt < 1e-6:
@@ -33,8 +36,11 @@ def thread_control():
         freq = (freq * (avg_number - 1) + (1 / dt)) / avg_number
         t_pre = t
         rover.freq_control = freq
-
-        fM = rover.run_controller()
+        try:
+            fM = rover.run_controller()
+        except:
+            rover.k_max = -1
+            print("error")
         
         # if (not rover.motor_on) or (rover.mode < 2):
         #     fM_message = Wrench(force=Vector3(x=0.0, y=0.0, z=0.0), \
@@ -46,5 +52,9 @@ def thread_control():
         # pub.publish(fM_message)
 
         rate.sleep()
+    rover.file_time.close()
+    rover.file_final_states.close()
+    rover.file_states.close()
+    # print('CONTROL: thread closed!')
+    # print('Finished \n\n\n\n\n\n\n\n\n\n')
     
-    print('CONTROL: thread closed!')

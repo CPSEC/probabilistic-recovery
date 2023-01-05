@@ -1,35 +1,39 @@
 import numpy as np
-from recovery.System import System
+from recovery.System import SystemModel
 from recovery.utils.controllers.MPC import MPC
 from recovery.utils.observers.full_state_bound import Estimator
 
 class RecoveryEmsoft():
-    def __init__(self, dt, u_min, u_max, attacked_sensor, isolation):
+    def __init__(self, dt, u_min, u_max, attacked_sensor, isolation, noise):
         self.u_min = u_min
         self.u_max = u_max
-        system_model = System(dt, u_min, u_max)
+        system_model = SystemModel(dt, u_min, u_max)
         self.system_model = system_model
         self.u_reconf = []
 
-        self.estimator = Estimator(system_model.Ad, system_model.Bd, max_k = 150, epsilon= 1e-7)
+        self.estimator = Estimator(system_model.Ad, system_model.Bd, max_k = 150, epsilon= 1e-7 + noise)
 
 
 
-        self.Q  = np.diag([0, 0, 0, 0, 0, 0,  0,  0,  0,  0,  0,  0,  0,  0,  0, 0, 0, 0])
+        self.Q  = np.diag([1, 1, 1, 0, 0, 0,  0,  0,  0,  0,  0,  0,  0,  0,  0, 0, 0, 0])
         self.Q[attacked_sensor, attacked_sensor] = 1
 
-        self.QN = np.diag([0, 0, 1, 0, 0, 0,  0,  0,  0,  0,  0,  0,  0,  0,  0, 0, 0, 0])
+        self.QN = np.diag([1, 1, 0, 0, 0, 0,  0,  0,  0,  0,  0,  0,  0,  0,  0, 0, 0, 0])
         self.QN[attacked_sensor, attacked_sensor] = 1
 
         self.R  = np.eye(system_model.m)/1000
         
+        scale_lo = - 3000*noise
+        scale_up = 3000*noise
 
-        #                    x1,  x2,  x3, v1,  v2, v3, r11, r12, r13, r21, r22, r23, r31, r32, r33, w1, w2, w3,
-        safe_lo = np.array([-10, -10, -10, -1, -1, -1,-1.5,-1.5,-1.5,-1.5,-1.5,-1.5,-1.5,-1.5,-1.5, -1, -1, -1])
+        scale_h_lo = - 3000*noise
+        scale_h_up = 300*noise
+        #                               x1,             x2,               x3, v1, v2,  v3, r11, r12, r13, r21, r22, r23, r31, r32, r33, w1, w2, w3,
+        safe_lo = np.array([-10 + scale_lo, -10 + scale_lo, -20 + scale_h_lo, -3, -3,  -3,-1.5,-1.5,-1.5,-1.5,-1.5,-1.5,-1.5,-1.5,-1.5, -1, -1, -1])
         safe_lo = safe_lo - system_model.x0
 
-        #                    x1,  x2, x3, v1, v2, v3, r11, r12, r13, r21, r22, r23, r31, r32, r33, w1, w2, w3,
-        safe_up = np.array([ 10,  10,  0,  1,  1,  1, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5,  1,  1,  1])
+        #                               x1,             x2, x3, v1, v2, v3, r11, r12, r13, r21, r22, r23, r31, r32, r33, w1, w2, w3,
+        safe_up = np.array([ 10 + scale_up,  10 + scale_up,  -8,  3,  3,  3, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5,  1,  1,  1])
         safe_up = safe_up - system_model.x0
 
 
@@ -37,17 +41,17 @@ class RecoveryEmsoft():
         self.safe_up = safe_up
 
         #                      x1,  x2,   x3, v1,  v2, v3, r11, r12, r13, r21, r22, r23, r31, r32, r33, w1, w2, w3,
-        target_lo = np.array([-10, -10, -1.1, -1,  -1, -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, -1, -1, -1])
+        target_lo = np.array([-5 + scale_lo, -5+ scale_lo, -15 + scale_h_lo, -3,  -3, -3,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, -1, -1, -1])
         target_lo = target_lo - system_model.x0
         self.target_lo = target_lo
 
         #                     x1, x2,   x3, v1, v2, v3, r11, r12, r13, r21, r22, r23, r31, r32, r33, w1, w2, w3,
-        target_up = np.array([10, 10, -0.9,  1,  1,  1,   1,   1,   1,   1,   1,   1,   1,   1,   1,  1,  1,  1])
+        target_up = np.array([5 + scale_up, 5 + scale_up, -9.5 + scale_h_up,  3,  3,  3,   1,   1,   1,   1,   1,   1,   1,   1,   1,  1,  1,  1])
         target_up = target_up - system_model.x0
         self.target_up = target_up
 
         #                x1, x2, x3, v1, v2, v3, r11, r12, r13, r21, r22, r23, r31, r32, r33, w1, w2, w3,
-        ref = np.array([5.2,  0, -1,  0,  0,  0,   1,   0,   0,   0,   1,   0,   0,   0,   1,  0,  0,  0])
+        ref = np.array([0,  0, -10,  0,  0,  0,   1,   0,   0,   0,   1,   0,   0,   0,   1,  0,  0,  0])
         ref = ref - system_model.x0
         self.ref = ref
         
@@ -63,7 +67,7 @@ class RecoveryEmsoft():
         
 
     def checkpoint_state(self, state):
-        x = self.process_state(state)
+        x = state
         self.x_checkpoint = x - self.system_model.x0
 
     def checkpoint(self, x, u):
@@ -97,7 +101,7 @@ class RecoveryEmsoft():
         }
         self.mpc = MPC(mpc_settings)
 
-        self.k_max = k
+        self.k_max = k + 3
         _, rec_u = self.mpc.update(feedback_value= x_curr)
         fM = rec_u[0] # Pick the first u
         self.k_recovery = 0
@@ -131,14 +135,14 @@ class RecoveryEmsoft():
         return fM
 
     # Auxiliary function to flatten the state vector
-    def process_state(self, x):
-        pos = x[0]
-        v = x[1]
-        R = x[3].T
-        R = R.flatten()
-        w = x[4]
-        x = np.concatenate((pos, v, R, w)).flatten()
-        return x
+    # def process_state(self, x):
+    #     pos = x[0]
+    #     v = x[1]
+    #     R = x[3].T
+    #     R = R.flatten()
+    #     w = x[4]
+    #     x = np.concatenate((pos, v, R, w)).flatten()
+    #     return x
 
 
         

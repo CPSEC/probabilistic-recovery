@@ -57,7 +57,7 @@ class Estimator:
                 k = i - 1
                 # print('x_0_up', x_0_up)
                 break
-        print('x_0_up', x_0_up)
+        # print('x_0_up', x_0_up)
         return k
 
 

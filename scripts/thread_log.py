@@ -6,7 +6,7 @@ import rospy
 
 
 def thread_log():
-    print('LOG: thread starting ..')
+    # print('LOG: thread starting ..')
 
     freq = 50.0
     t0 = datetime.datetime.now()
@@ -20,7 +20,7 @@ def thread_log():
 
     rate = rospy.Rate(freq)
 
-    while not rospy.is_shutdown() and rover.on:
+    while rover.k_iter < rover.k_max and rover.on:
         t = datetime.datetime.now()
         dt = (t - t_pre).total_seconds()
         if dt < 1e-6:
@@ -49,7 +49,7 @@ def thread_log():
         f.close()
 
 
-    print('LOG: thread closed!')
+    # print('LOG: thread closed!')
 
 
 def write_header(file_name):

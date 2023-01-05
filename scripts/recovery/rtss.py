@@ -74,7 +74,7 @@ class RTSS:
         # print("Attack detected, state:", self.x_cur_update.miu)
         k, X_k, D_k, z_star, alpha, P, arrive = self.reach.given_k(max_k=self.k_max)
         rec_u_temp = self.U.alpha_to_control(alpha)
-        print("Probability:", P)
+        # print("Probability:", P)
         return rec_u_temp[0], k
         
     
@@ -84,12 +84,12 @@ class RTSS:
         x_0 = GaussianDistribution( x_0, np.zeros((n, n)) )
         self.reach.init( x_0, self.s )
         self.x_res_point = self.reach.state_reconstruction(us)
-        print("estimated state:  ", self.x_res_point.miu + np.array([0,  0, -1,  0,  0,  0,   1,   0,   0,   0,   1,   0,   0,   0,   1,  0,  0,  0] ))
+        # print("estimated state:  ", self.x_res_point.miu + np.array([0,  0, -1,  0,  0,  0,   1,   0,   0,   0,   1,   0,   0,   0,   1,  0,  0,  0] ))
         self.reach.init( self.x_res_point, self.s )
         # Run one-step rtss
         k, X_k, D_k, z_star, alpha, P, arrive = self.reach.given_k(max_k=self.k_max)
         # Compute u
         rec_u = self.U.alpha_to_control(alpha)
-        print("Probability:", P)
+        # print("Probability:", P)
         return rec_u, k
 

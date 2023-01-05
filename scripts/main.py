@@ -15,20 +15,21 @@ import rospy
 import std_msgs
 import threading
 import time
+import sys
 
 
-def run_uav():
+def run_uav(strategy, detection_delay, noise):
 
     rospy.init_node('uav', anonymous=True)
     reset_uav()
 
     # Create threads
-    t1 = threading.Thread(target=thread_control)
+    t1 = threading.Thread(target=thread_control, args=(detection_delay, strategy, noise,))
     t2 = threading.Thread(target=thread_imu)
     t3 = threading.Thread(target=thread_gps)
     t4 = threading.Thread(target=thread_reference)
     t5 = threading.Thread(target=thread_log)
-    t6 = threading.Thread(target=thread_resend_control)
+    t6 = threading.Thread(target=thread_resend_control, args=(noise,))
     
     # Start threads.
     t1.start()
@@ -48,4 +49,7 @@ def run_uav():
 
 
 if __name__ == '__main__':
-    run_uav()
+    strategy = int(sys.argv[1])
+    detection_delay = float(sys.argv[2])
+    noise = float(sys.argv[3])
+    run_uav( strategy, detection_delay, noise )

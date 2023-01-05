@@ -1,0 +1,32 @@
+<?xml version="1.0" ?>
+<sdf version="1.4">
+  <world name="default">
+    <include>
+      <uri>model://ground_plane</uri>
+    </include>
+    <include>
+      <uri>model://sun</uri>
+    </include>    
+    <include>
+      <uri>model://my_ground_plane</uri>
+    </include>
+    
+    <plugin name='wind_plugin' filename='libgazebo_wind_plugin.so'>
+      <frameId>link</frameId>
+      <robotNamespace/>
+      <windVelocityMean>40000000000.0</windVelocityMean>
+      <windVelocityMax>200000000000.0</windVelocityMax>
+      <windVelocityVariance>0</windVelocityVariance>
+      <windDirectionMean>0 1 0</windDirectionMean>
+      <windDirectionVariance>0</windDirectionVariance>
+      <windGustStart>0</windGustStart>
+      <windGustDuration>0</windGustDuration>
+      <windGustVelocityMean>0</windGustVelocityMean>
+      <windGustVelocityMax>20.0</windGustVelocityMax>
+      <windGustVelocityVariance>0</windGustVelocityVariance>
+      <windGustDirectionMean>1 0 0</windGustDirectionMean>
+      <windGustDirectionVariance>0</windGustDirectionVariance>
+      <windPubTopic>world_wind</windPubTopic>
+    </plugin>
+  </world>
+</sdf>

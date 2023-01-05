@@ -138,11 +138,18 @@ add_library(control_plugin
 #    src/gazebo_wind_plugin.cpp
 )
 target_link_libraries(control_plugin ${GAZEBO_LIBRARIES} ${Boost_LIBRARIES})
-#add_library(world_plugin
-#    SHARED
-#    src/gazebo_wind_plugin.cpp
-#)
-#target_link_libraries(world_plugin ${GAZEBO_LIBRARIES} ${Boost_LIBRARIES})
+
+set(target_linking_LIBRARIES ${catkin_LIBRARIES} ${GAZEBO_LIBRARIES})
+add_library(gazebo_wind_plugin
+    SHARED
+    src/gazebo_wind_plugin.cpp
+)
+target_link_libraries(gazebo_wind_plugin ${target_linking_LIBRARIES} )
+add_dependencies(gazebo_wind_plugin ${catkin_EXPORTED_TARGETS})
+list(APPEND targets_to_install gazebo_wind_plugin)
+#set_target_properties(gazebo_wind_plugin PROPERTIES COMPILE_FLAGS "${roscpp_CFLAGS_OTHER}")
+#set_target_properties(gazebo_wind_plugin PROPERTIES LINK_FLAGS "${roscpp_LDFLAGS_OTHER}")
+#target_link_libraries(gazebo_wind_plugin ${roscpp_LIBRARIES}  )
 
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the

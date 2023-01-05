@@ -8,7 +8,7 @@ from sensor_msgs.msg import Imu
 
 
 def thread_imu():
-    print('IMU: thread starting ..')
+    # print('IMU: thread starting ..')
 
     rospy.Subscriber('uav_imu', Imu, rover.ros_imu_callback)
 
@@ -18,7 +18,7 @@ def thread_imu():
     t_pre = datetime.datetime.now()
     avg_number = 100
 
-    while not rospy.is_shutdown() and rover.on:
+    while rover.k_iter < rover.k_max and rover.on:
         t = datetime.datetime.now()
         dt = (t - t_pre).total_seconds()
         if dt < 1e-6:
@@ -30,4 +30,4 @@ def thread_imu():
 
         rate.sleep()
     
-    print('IMU: thread closed!')
+    # print('IMU: thread closed!')

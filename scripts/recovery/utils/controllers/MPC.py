@@ -140,8 +140,8 @@ class MPC(Controller):
         else:
             self.formulate_only_x0()
         res = self.prob.solve()
-        # if res.info.status != 'solved':
-        #     raise ValueError('OSQP did not solve the problem!')
+        if 'infeasible' in res.info.status:
+            raise ValueError('OSQP did not solve the problem!')
         # Apply first control input to the plant
         # res.x = [ x0, x1, ... xN, u0, u1, u{N-1} ]
         ctrl = res.x[-self.N * self.nu:-(self.N - 1) * self.nu].reshape((-1, self.nu))

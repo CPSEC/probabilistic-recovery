@@ -1,22 +1,30 @@
 import numpy as np
-from recovery.System import System
+from recovery.System import SystemModel
 from recovery.rtss import RTSS
 from recovery.utils.formal.gaussian_distribution import GaussianDistribution
 
 class RecoveryRTSS():
-    def __init__(self, dt, u_min, u_max, attacked_sensor, isolation):
-        system_model = System(dt, u_min, u_max)
+    def __init__(self, dt, u_min, u_max, attacked_sensor, isolation, noise):
+        system_model = SystemModel(dt, u_min, u_max)
         self.system_model = system_model
-        self.W = 0.001 * np.eye(system_model.n)
+        # 0.00001
+        # No noise 0.0025
+        # Noise 0.01: 0.01
+
+        self.W = (noise/6 + 0.001) * np.eye(system_model.n) #*20
+        self.W[-1, -1] = noise/2 + 0.001
+        self.W[-2, -2] = noise/2 + 0.001
+        self.W[-3, -3] = noise/2 + 0.001
+        # self.W = self.W *15
         mu = np.zeros((self.system_model.n))
         self.W = GaussianDistribution.from_standard(mu, self.W)
 
-        l = np.array([0,  0,  0,  0,  0,  0,   0,   0,   0,   0,   0,   0,   0,   0,   0,  0,  0,  0])
-        l[attacked_sensor] = 1
-        a = -0.1
-        b = 0.1
+        l = np.array([1,  1,  -1,  0,  0,  0,   0,   0,   0,   0,   0,   0,   0,   0,   0,  0,  0,  0])
+        # l[attacked_sensor] = 1
+        a = -0.2
+        b = 0.2
 
-        self.rtss = RTSS(system_model.Ad, system_model.Bd, system_model.Cd, system_model.Dd, self.W, u_min, u_max, k_reconstruction=500, k_max=20, l=l, a=a, b=b )
+        self.rtss = RTSS(system_model.Ad, system_model.Bd, system_model.Cd, system_model.Dd, self.W, u_min, u_max, k_reconstruction=500, k_max=50, l=l, a=a, b=b )
         self.isolation = isolation
         
         self.k_recovery = -1
@@ -38,13 +46,13 @@ class RecoveryRTSS():
         
 
     def checkpoint_state(self, state):
-        x = self.process_state(state)
+        x = state
         self.x_checkpoint = x - self.system_model.x0
 
     def checkpoint(self, x, u):
         u = u.flatten()
         du = u - self.system_model.u0
-        x = self.process_state(x)
+        x = x
         if self.isolation:
             dy = self.C_kf @ (x - self.system_model.x0)
             self.checkpoint_closed_loop(dy, du)
@@ -85,7 +93,7 @@ class RecoveryRTSS():
         fM = np.zeros((4,1))
         
         
-        x = self.process_state(state)
+        x = state
         u = u.flatten()
 
         dx = x - self.system_model.x0
@@ -111,14 +119,14 @@ class RecoveryRTSS():
 
     # Auxiliary function to flatten the state vector
     # TODO: move outside. This function can go outside
-    def process_state(self, x):
-        pos = x[0]
-        v = x[1]
-        R = x[3].T
-        R = R.flatten()
-        w = x[4]
-        x = np.concatenate((pos, v, R, w)).flatten()
-        return x
+    # def process_state(self, x):
+    #     pos = x[0]
+    #     v = x[1]
+    #     R = x[3].T
+    #     R = R.flatten()
+    #     w = x[4]
+    #     x = np.concatenate((pos, v, R, w)).flatten()
+    #     return x
 
 
         

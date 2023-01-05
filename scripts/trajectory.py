@@ -48,7 +48,7 @@ class Trajectory:
         self.yaw_offset = 0.0
 
         # Take-off
-        self.takeoff_end_height = -1.0  # (m)
+        self.takeoff_end_height = -10  # (m)
         self.takeoff_velocity = -1.0  # (m/s)
 
         # Landing
@@ -266,11 +266,8 @@ class Trajectory:
 
             
     def stay(self):
-        if not self.trajectory_started:
-            self.set_desired_states_to_current()
-            self.trajectory_started = True
-        
-        self.mark_traj_end(True)
+        print(f'Reference after attack: {self.xd[0]}, {self.xd[1]}, {self.xd[2]}')
+        pass
 
 
     def circle(self):
@@ -299,8 +296,8 @@ class Trajectory:
         circle_W4 = circle_W3 * circle_W
 
         # axis 1
-        self.xd[0] = t/2
-        self.xd_dot[0] = 1/2
+        self.xd[0] = t/2 *0
+        self.xd_dot[0] = 1/2 *0
         self.xd_2dot[0] = - 0
         self.xd_3dot[0] = 0
         self.xd_4dot[0] = 0

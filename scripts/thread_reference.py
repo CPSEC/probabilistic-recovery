@@ -11,26 +11,31 @@ gi.require_version('Gtk', '3.0')
 from gi.repository import Gtk, GLib, Gdk
 
 class Reference():
-    def __init__(self):
+    def __init__(self, rover):
         self.t = 0
+        self.rover = rover
+        self.finished = False
     
     def refresh_task(self):
         self.t = rover.t
         # print(self.t)
-        if 0 < self.t < 5:
+        if 0 < self.t < 12:
             rover.mode = 2
-        elif 5 < self.t < 15:
+        elif 12 <= self.t < 24:
             rover.mode = 5
+        if rover.alarm and not self.finished:
+            self.finished = True
+            rover.mode = 4
 
 
     
 
 def thread_reference():
     # print('GUI: starting thread ..')
-    ref = Reference()
+    ref = Reference(rover)
     rover.motor_on = True
-    while not rospy.is_shutdown():
+    while rover.k_iter < rover.k_max and rover.on:
         ref.refresh_task()
         time.sleep(0.1)
     rover.on = False
-    print('GUI: thread closed!')
+    # print('GUI: thread closed!')
