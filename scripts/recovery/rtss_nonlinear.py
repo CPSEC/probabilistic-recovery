@@ -45,7 +45,7 @@ class RTSSNonlinear:
 	
 	def recovery(self, sysd, x_cur):
 		reach = ReachableSet(sysd.A, sysd.B, self.U, self.W, max_step=self.k_reconstruction, c=sysd.c)
-		print(x_cur.miu)
+		# print(x_cur.miu)
 		reach.init(x_cur, self.s)
 		k, X_k, D_k, z_star, alpha, P, arrive = reach.given_k(max_k=self.k_max)
 		rec_u = self.U.alpha_to_control(alpha)

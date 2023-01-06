@@ -88,7 +88,7 @@ class Rover:
         self.k_attack = 15*freq
         self.k_detection = self.k_attack + detection_delay*freq
         self.isolation = isolation 
-        self.k_max = self.k_detection + 200
+        self.k_max = self.k_detection + 10 * freq
         self.alarm = False
         self.recovered = False
 
@@ -99,11 +99,11 @@ class Rover:
 
         #
         self.fM = np.zeros((4, 1))
-        self.u_min = np.array([-2, -1e-6, -1e-6, -1e-6])
-        self.u_max = np.array([2, 1e-6, 1e-6, 1e-6])
+        self.u_min = np.array([-2, -1e-3, -1e-3, -1e-3]) # Constraint the input so that the control action is close to the linearization point
+        self.u_max = np.array([2, 1e-3, 1e-3, 1e-3]) # Constraint the input so that the control action is close to the linearization point
 
         file_name = "results/"
-        self.states_recovery = []
+        self.estimated_states_vs = []
         self.recovery_name = recovery_name
         if recovery_name == RECOVERY_NAMES[0]:
             self.recovery = RecoveryRTSS(1/freq, self.u_min, self.u_max, self.attack_sensor, self.isolation, noise) 
@@ -177,7 +177,7 @@ class Rover:
 
             if self.k_iter == self.k_attack - 1:
                 self.recovery.checkpoint_state( self.process_state(copy.deepcopy(states)) )
-                print("Checkpointed state:", states)
+                # print("Checkpointed state:", self.process_state(copy.deepcopy(states)))
 
             # attack
             if self.k_iter >= self.k_attack and not self.attack_gps:
@@ -204,7 +204,7 @@ class Rover:
                 elif self.k_detection < self.k_iter < self.recovery_complete_index:
                     fM, k_reconf = self.recovery.update_recovery_ni(self.process_state(states), u)
                     self.recovery_complete_index = self.k_iter + k_reconf
-                    print(fM)
+                    # print(fM)
                 elif self.k_iter >= self.recovery_complete_index: # recovery finishes
                     fM = self.fM *0
                 else: # nominal control 
@@ -221,28 +221,27 @@ class Rover:
             elif self.recovery_name == RECOVERY_NAMES[2]: # TODO: Implement
                 if self.k_detection == self.k_iter:
                     self.alarm = True
-                    states = self.recovery.update_recovery_fi()
-                    self.states_recovery = states
-                    fM = self.nominal_control(states, desired)
+                    self.estimated_states_vs = self.recovery.update_recovery_fi()
+                    fM = self.nominal_control(self.estimated_states_vs, desired)
                 elif self.k_detection < self.k_iter <= self.k_max:
                     # Send the states that we estimated previous step and the control action
-                    self.states = self.recovery.update_recovery_ni(self.process_state(self.states_recovery), u)
-                    fM = self.nominal_control(self.states, desired)
+                    self.estimated_states_vs = self.recovery.update_recovery_ni(self.process_state(self.estimated_states_vs), u)
+                    try:
+                        fM = self.nominal_control(self.estimated_states_vs, desired)
+                    except:
+                        self.write_final_states(states_pt)
                 elif self.k_iter > self.k_max:
                     fM = np.zeros((4, 1))
                 else:
                     fM = self.nominal_control(states, desired)
                 arrived = False
                 if self.k_detection < self.k_iter <= self.k_max:
-                    arrived = self.recovery.in_set(self.process_state(self.states))
+                    aaaa = self.process_state(self.estimated_states_vs)
+                    print(aaaa[2])
+                    arrived = self.recovery.in_set(self.process_state(self.estimated_states_vs))
                 if arrived or self.k_iter >= self.k_max:
                     # Store final state
-                    state_print = self.print_state(self.process_state(states_pt))
-                    str_write = str(self.k_iter) + "," + str(self.detection_delay) + state_print + str(self.k_iter - self.k_detection)
-                    self.file_final_states.write(str_write)
-                    self.file_final_states.write("\n")
-                    self.k_iter = inf
-                    
+                    self.write_final_states(states_pt)
             else:
                 raise NotImplemented
 
@@ -268,6 +267,15 @@ class Rover:
             self.fM = fM
             self.k_iter += 1
         return self.fM
+
+    def write_final_states(self, states_pt):
+        state_print = self.print_state(self.process_state(states_pt))
+        str_write = str(self.k_iter) + "," + str(self.detection_delay) + state_print + str(self.k_iter - self.k_detection)
+        self.file_final_states.write(str_write)
+        self.file_final_states.write("\n")
+        self.k_iter = inf
+        pass
+
     def print_state(self, states):
         text = ''
         for state in states:
@@ -278,8 +286,8 @@ class Rover:
     def process_state(self, x):
         pos = x[0]
         v = x[1]
-        R = x[3].T
-        R = np.round(R.flatten())
+        R = x[3]
+        R = R.flatten()
         w = x[4]
         x = np.concatenate((pos, v, R, w)).flatten()
         return x

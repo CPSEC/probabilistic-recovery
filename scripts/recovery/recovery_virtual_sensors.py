@@ -87,8 +87,7 @@ class RecoveryVirtualSensor():
         R = np.zeros((3, 3))
         for i in range(0, 3):
             R[i, :] = R_aux[i*3: (i+1)*3]
-        R = R
-        states = (pos, vel, vel*0, R, w)
+        states = (pos, vel, vel*0, R.T, w)
         return states
 
     # Auxiliary function to flatten the state vector

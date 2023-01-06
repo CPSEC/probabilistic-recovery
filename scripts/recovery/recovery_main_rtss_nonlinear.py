@@ -47,7 +47,7 @@ class RecoveryRTSSNonlinear():
 		self.x_checkpoint = []
 		self.u_checkpoint = []
 		print("init open loop")
-		self.rtss = RTSSNonlinear(self.system_model.ode, self.dt, self.W, self.u_min, self.u_max, k_reconstruction=21, k_max=20,\
+		self.rtss = RTSSNonlinear(self.system_model.ode, self.dt, self.W, self.u_min, self.u_max, k_reconstruction=31, k_max=30,\
 			l=self.l, a=self.a, b=self.b, euler=self.euler, fd=self.system_model.fd, jfx=self.system_model.jfx,\
 			jfu=self.system_model.jfu, isolation=self.isolation)
 	
@@ -59,7 +59,7 @@ class RecoveryRTSSNonlinear():
 		self.C_kf = C
 		Q = self.W.sigma
 		R = np.eye(C.shape[0]) * 1e-4
-		self.rtss = RTSSNonlinear(self.system_model.ode, self.dt, self.W, self.u_min, self.u_max, k_reconstruction=21, k_max=20,\
+		self.rtss = RTSSNonlinear(self.system_model.ode, self.dt, self.W, self.u_min, self.u_max, k_reconstruction=31, k_max=30,\
 			l=self.l, a=self.a, b=self.b, euler=self.euler, fd=self.system_model.fd, jfx=self.system_model.jfx,\
 			jfu=self.system_model.jfu, jh=jh, isolation=self.isolation, Q=Q, R=R)
 		
@@ -120,6 +120,7 @@ class RecoveryRTSSNonlinear():
 			self.u_reconf, self.k_recovery_max = self.rtss.recovery_ns(du)
 
 		fM = copy.deepcopy(self.u_reconf) + self.system_model.u0 * 0
+		# print(self.u_reconf)
 		fM = self.convert_input(fM)
 		self.k_recovery += 1
 		return fM, self.k_recovery_max

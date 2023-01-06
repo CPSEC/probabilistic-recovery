@@ -20,14 +20,14 @@ def thread_control(detection_delay, reconfiguration, noise):
         recovery_name = recovery_name[reconfiguration]
     else:
         raise NotImplemented
-    rover.init_recovery(freq=freq, isolation=False, recovery_name = recovery_name, detection_delay=detection_delay, noise=noise)
+    rover.init_recovery(freq=freq, isolation=True, recovery_name = recovery_name, detection_delay=detection_delay, noise=noise)
 
     # freq = 0.0
     t = datetime.datetime.now()
     t_pre = datetime.datetime.now()
     avg_number = 100
 
-    while rover.k_iter < rover.k_max and rover.on:
+    while rover.k_iter <= rover.k_max and rover.on:
         t = datetime.datetime.now()
         dt = (t - t_pre).total_seconds()
         if dt < 1e-6:
@@ -36,6 +36,7 @@ def thread_control(detection_delay, reconfiguration, noise):
         freq = (freq * (avg_number - 1) + (1 / dt)) / avg_number
         t_pre = t
         rover.freq_control = freq
+        
         try:
             fM = rover.run_controller()
         except:
