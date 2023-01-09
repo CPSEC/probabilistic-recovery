@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 import os
-from copy import deepcopy
+from math import pi
 
 import numpy as np
 import rospy, rospkg
@@ -10,9 +10,8 @@ from lgsvl_msgs.msg import VehicleControlData
 from utils.controllers.PID import PID
 from utils.controllers.LQR import LQR
 from model import LaneKeeping
-from sensor import Sensor, SensorData
+from sensor import Sensor
 from observer import Observer
-from state_record import StateRecord
 
 
 class VehicleCMD:
@@ -46,20 +45,14 @@ def main():
     path_file = os.path.join(data_folder, 'cube_town_closed_line.txt')
 
     rospy.init_node('control_loop', log_level=rospy.DEBUG)
+    # state = StateUpdate()
     cmd = VehicleCMD()
     sensor = Sensor()
     observer = Observer(path_file, speed_ref)
-    rec = StateRecord()
 
     # speed PID controller
     speed_pid = PID(speed_P, speed_I, speed_D)
     speed_pid.setWindup(100)
-    # steering LQR controller
-    steer_model = LaneKeeping(speed_ref)
-    Q = np.eye(4)
-    R = np.eye(1) * 10
-    steer_lqr = LQR(steer_model.A, steer_model.B, Q, R)
-    steer_lqr.set_control_limit(np.array([-0.261799]), np.array([0.261799]))
     
     rate = rospy.Rate(control_rate)
     time_index = 0  # time index
@@ -68,29 +61,9 @@ def main():
             # cruise control
             speed_pid.set_reference(speed_ref)
             acc_cmd = speed_pid.update(sensor.data['v'])
-            # model adaptation
-            # v = state.velocity if state.velocity > 1 else 1
-            # steer_model.update(v)
-            # steer_lqr.update_gain(steer_model.A, steer_model.B, Q, R)
 
-            sensor_ = SensorData()
-            sensor_.data = deepcopy(sensor.data)
-            # # sensor attack
-            if attack_end_index > time_index >= attack_start_index:
-                if attack_mode == 0:   # attack GPS sensor    y: -4
-                    sensor_.data['y'] -= 4
-                elif attack_mode == 1:  # attack IMU sensor    heading: -0.8
-                    sensor_.data['yaw'] -= 0.8
-            
-            feedback = observer.est(sensor_)
-            rospy.logdebug(f"time_index={time_index}, e_d={feedback[0]}, e_phi={feedback[2]}, speed={sensor.data['v']}")
-            rospy.logdebug(f"     x={sensor.data['x']}, y={sensor.data['y']}, theta={sensor.data['yaw']}")
-            steer_target = steer_lqr.update(feedback)
+            steer_target = pi/4
             cmd.send(acc_cmd, steer_target)
-
-            # record data
-            rec.record(x=sensor_.get_state(), u=np.array([steer_target]), t=time_index)
-
             time_index += 1
         rate.sleep()
 

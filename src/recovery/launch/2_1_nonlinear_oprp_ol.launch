@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<launch>
+  <rosparam file="$(find recovery)/config/param.yaml" command="load" />
+  <node pkg='recovery' type="2_1_nonlinear_oprp_ol.py" name="control_loop" output="screen"></node>
+</launch>

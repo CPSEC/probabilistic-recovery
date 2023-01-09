@@ -23,10 +23,10 @@ class StateRecord:
         return self.xs[i]
 
     def get_xs(self, start, end):
-        return np.vstack(self.xs[start:end])
+        return self.xs[start:end]
 
     def get_us(self, start, end):
-        return np.vstack(self.us[start:end]) 
+        return self.us[start:end]
 
     def get_ys(self, C, start, end):
         xs = np.vstack(self.xs[start:end])

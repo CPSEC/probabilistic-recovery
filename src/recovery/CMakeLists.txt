@@ -162,11 +162,14 @@ include_directories(
 catkin_install_python(PROGRAMS
   scripts/0_normal.py
   scripts/1_attack.py
+  scripts/2_1_nonlinear_oprp_ol.py
+  scripts/2_2_nonlinear_oprp_cl.py
+  scripts/kinematic_lateral_model.py
   scripts/model.py
   scripts/observer.py
   scripts/path.py
   scripts/sensor.py
-  scripts/kinematic_lateral_model.py
+  scripts/settings.py
   scripts/state_record.py
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )

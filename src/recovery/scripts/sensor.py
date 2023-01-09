@@ -24,7 +24,6 @@ class Sensor(SensorData):
         a:                  acceleration
         """
         super().__init__()
-        self.steering_angle = 0
         self.ready = False
         self.odom_ready = False
         self.imu_ready = False
@@ -55,8 +54,6 @@ class Sensor(SensorData):
             if self.odom_ready == True:
                 self.ready = True
 
-    def set_theta(self, steering_angle):
-        self.steering_angle = steering_angle
 
 
 

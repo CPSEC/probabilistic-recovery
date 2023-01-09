@@ -48,7 +48,7 @@ class Estimator:
             else:
                 x = self.solve_euler(ts, x, u)
             t_solve = time.time() - t_init
-            print(t_solve)
+            # print(t_solve)
 
             # intermediate computations
             prod_Ai = As[i] @ prod_Ai

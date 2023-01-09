@@ -1,4 +1,4 @@
-from math import atan, tan, cos, sin 
+from math import atan, tan, cos, sin, sqrt
 import numpy as np
 from state_record import StateRecord
 
@@ -20,7 +20,7 @@ class Kinematic:
         x = [x, y, psi]    # location x, location y, heading angle
         u = [delta_f]      # steering angle of front wheel
         """
-        delta_f = u[0]   # steering angle of front wheel
+        delta_f = -u[0]   # steering angle of front wheel
         psi = x[2]
         beta = atan((l_f*tan(delta_r)+l_r*tan(delta_f))/(l_f+l_r))  # slip angle
         dx = v * cos(psi+beta)
@@ -33,7 +33,10 @@ class Kinematic:
         return x+dt * dx
 
     def jfx(self, x, u):
-        delta_f = u[0]   # steering angle of front wheel
+        """
+        got from src/recovery/scripts/compute_analytical_model.py
+        """
+        delta_f = -u[0]   # steering angle of front wheel
         psi = x[2]
         Ad=np.array([
             [1, 0, -dt*v*sin(psi + atan((l_f*tan(delta_r) + l_r*tan(delta_f))/(l_f + l_r)))],
@@ -42,7 +45,7 @@ class Kinematic:
         return Ad
 
     def jfu(self, x, u):
-        delta_f = u[0]   # steering angle of front wheel
+        delta_f = -u[0]   # steering angle of front wheel
         psi = x[2]       
         Bd=np.array([
             [                                                                                                                       -dt*l_r*v*(tan(delta_f)**2 + 1)*sin(psi + atan((l_f*tan(delta_r) + l_r*tan(delta_f))/(l_f + l_r)))/((1 + (l_f*tan(delta_r) + l_r*tan(delta_f))**2/(l_f + l_r)**2)*(l_f + l_r))],
