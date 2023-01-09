@@ -28,7 +28,8 @@ class ExtendedKalmanFilter:
     def one_step(self, x: np.ndarray, P: np.ndarray, u: np.ndarray, y: np.ndarray):
         x_predict, P_predict = self.predict(x, P, u)
         x_update, P_update = self.update(x_predict, P_predict, y)
-        return x_update.T[0], P_update
+        # return x_update.T[0], P_update
+        return x_update, P_update
 
     def multi_steps(self, x: np.ndarray, P: np.ndarray, us: np.ndarray, ys: np.ndarray):
         """

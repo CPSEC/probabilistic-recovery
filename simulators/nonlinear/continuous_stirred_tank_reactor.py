@@ -1,4 +1,5 @@
 import numpy as np
+from numpy import exp
 from utils import Simulator
 from utils.controllers.PID_incremental import PID
 
@@ -21,6 +22,7 @@ k0 = 7.2e10
 # U - Overall Heat Transfer Coefficient (W/m^2-K)
 # A - Area - this value is specific for the U calculation (m^2)
 UA = 5e4
+# q V rho Cp mdelH EoverR k0 UA Tc Ca T Caf Tf
 
 
 def cstr(t, x, u, Tf=350, Caf=1, use_imath=False):
@@ -61,6 +63,31 @@ def cstr(t, x, u, Tf=350, Caf=1, use_imath=False):
 
 def cstr_imath(t, x, u, Tf=350, Caf=1):
     return cstr(t=t, x=x, u=u, Tf=Tf, Caf=Caf, use_imath=True)
+
+
+def f(x, u, dt):
+    dx = cstr(None, x, u)
+    return x + dt * dx
+
+def jfx(x, u, dt):
+    Ca = x[0]
+    T = x[1]
+    Tc = u[0]
+    Ad = np.array([
+        [dt * (-k0 * exp(-EoverR / T) - q / V) + 1, -Ca * EoverR * dt * k0 * exp(-EoverR / T) / T ** 2],
+        [dt * k0 * mdelH * exp(-EoverR / T) / (Cp * rho),
+         dt * (Ca * EoverR * k0 * mdelH * exp(-EoverR / T) / (Cp * T ** 2 * rho) - q / V - UA / (Cp * V * rho)) + 1]])
+    return Ad
+
+def jfu(x, u, dt):
+    Ca = x[0]
+    T = x[1]
+    Tc = u[0]
+    Bd = np.array([
+        [0],
+        [UA * dt / (Cp * V * rho)]])
+    return Bd
+
 
 # initial states
 x_0 = np.array([0.98, 280])
@@ -116,11 +143,9 @@ class CSTR(Simulator):
         Tf = 350
         self.nonlinear(ode=cstr, n=2, m=1, p=2)  # number of states, control inputs, outputs
 
-        self.f = lambda x, u: np.array([[x[0] + dt * (q / V * (Caf - x[0]) - k0 * np.exp(-EoverR / x[1]) * x[0])],\
-        [ x[1] + dt * (q / V * (Tf - x[1]) + mdelH / (rho * Cp) * k0 * np.exp(-EoverR / x[1]) * x[0] + UA / V / rho / Cp * (u[0] - x[1])) ]])
-        self.jfx = lambda x, u: np.array([[1 - dt * (k0 * np.exp(-EoverR/x[1]) - q / V), -dt * EoverR * x[0] * np.exp(- EoverR / x[1]) / x[1]**2],\
-            [dt * k0 * mdelH * np.exp(-EoverR / x[1]) / (Cp * rho), 1 - dt * ( UA * x[1]**2 + Cp * q *rho * x[1]**2 - EoverR * V * k0 * mdelH * x[0] * np.exp(-EoverR/x[1]) ) / (Cp * V * rho * x[1]**2) ]])
-        self.jfu = lambda x, u: np.array([[0],[UA * dt / (Cp * V * rho)]])
+        self.f = lambda x, u: f(x, u, dt)
+        self.jfx = lambda x, u: jfx(x, u, dt)
+        self.jfu = lambda x, u: jfu(x, u, dt)
         controller = Controller(dt)
         settings = {
             'init_state': x_0,
