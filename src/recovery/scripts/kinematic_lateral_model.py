@@ -36,21 +36,21 @@ class Kinematic:
         """
         got from src/recovery/scripts/compute_analytical_model.py
         """
-        delta_f = -u[0]   # steering angle of front wheel
+        delta_f = u[0]   # steering angle of front wheel
         psi = x[2]
         Ad=np.array([
-            [1, 0, -dt*v*sin(psi + atan((l_f*tan(delta_r) + l_r*tan(delta_f))/(l_f + l_r)))],
-            [0, 1,  dt*v*cos(psi + atan((l_f*tan(delta_r) + l_r*tan(delta_f))/(l_f + l_r)))],
+            [1, 0, -dt*v*sin(psi + atan((l_f*tan(delta_r) - l_r*tan(delta_f))/(l_f + l_r)))],
+            [0, 1,  dt*v*cos(psi + atan((l_f*tan(delta_r) - l_r*tan(delta_f))/(l_f + l_r)))],
             [0, 0,                                                                        1]])
         return Ad
 
     def jfu(self, x, u):
-        delta_f = -u[0]   # steering angle of front wheel
+        delta_f = u[0]   # steering angle of front wheel
         psi = x[2]       
         Bd=np.array([
-            [                                                                                                                       -dt*l_r*v*(tan(delta_f)**2 + 1)*sin(psi + atan((l_f*tan(delta_r) + l_r*tan(delta_f))/(l_f + l_r)))/((1 + (l_f*tan(delta_r) + l_r*tan(delta_f))**2/(l_f + l_r)**2)*(l_f + l_r))],
-            [                                                                                                                        dt*l_r*v*(tan(delta_f)**2 + 1)*cos(psi + atan((l_f*tan(delta_r) + l_r*tan(delta_f))/(l_f + l_r)))/((1 + (l_f*tan(delta_r) + l_r*tan(delta_f))**2/(l_f + l_r)**2)*(l_f + l_r))],
-            [dt*(-l_r*v*(l_f*tan(delta_r) + l_r*tan(delta_f))*(tan(delta_f) - tan(delta_r))*(tan(delta_f)**2 + 1)/((1 + (l_f*tan(delta_r) + l_r*tan(delta_f))**2/(l_f + l_r)**2)**(3/2)*(l_f + l_r)**3) + v*(tan(delta_f)**2 + 1)/(sqrt(1 + (l_f*tan(delta_r) + l_r*tan(delta_f))**2/(l_f + l_r)**2)*(l_f + l_r)))]])
+            [                                                                                                                         dt*l_r*v*(tan(delta_f)**2 + 1)*sin(psi + atan((l_f*tan(delta_r) - l_r*tan(delta_f))/(l_f + l_r)))/((1 + (l_f*tan(delta_r) - l_r*tan(delta_f))**2/(l_f + l_r)**2)*(l_f + l_r))],
+            [                                                                                                                        -dt*l_r*v*(tan(delta_f)**2 + 1)*cos(psi + atan((l_f*tan(delta_r) - l_r*tan(delta_f))/(l_f + l_r)))/((1 + (l_f*tan(delta_r) - l_r*tan(delta_f))**2/(l_f + l_r)**2)*(l_f + l_r))],
+            [dt*(l_r*v*(l_f*tan(delta_r) - l_r*tan(delta_f))*(-tan(delta_f) - tan(delta_r))*(tan(delta_f)**2 + 1)/((1 + (l_f*tan(delta_r) - l_r*tan(delta_f))**2/(l_f + l_r)**2)**(3/2)*(l_f + l_r)**3) + v*(-tan(delta_f)**2 - 1)/(sqrt(1 + (l_f*tan(delta_r) - l_r*tan(delta_f))**2/(l_f + l_r)**2)*(l_f + l_r)))]])
         return Bd
 
 

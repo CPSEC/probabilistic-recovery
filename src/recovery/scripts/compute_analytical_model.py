@@ -5,10 +5,10 @@ from copy import deepcopy
 
 # ----------  modify -----------------------------
 x, y, psi, l_f, l_r, delta_f, delta_r, v = sym.symbols('x y psi l_f l_r delta_f delta_r v')
-beta = atan((l_f*tan(delta_r)+l_r*tan(delta_f))/(l_f+l_r))  # slip angle
+beta = atan((l_f*tan(delta_r)+l_r*tan(-delta_f))/(l_f+l_r))  # slip angle
 dx = v * cos(psi+beta)
 dy = v * sin(psi+beta)
-dpsi = v * cos(beta) * (tan(delta_f)-tan(delta_r)) / (l_f + l_r)
+dpsi = v * cos(beta) * (tan(-delta_f)-tan(delta_r)) / (l_f + l_r)
 
 vars = [x, y, psi]
 us = [delta_f]

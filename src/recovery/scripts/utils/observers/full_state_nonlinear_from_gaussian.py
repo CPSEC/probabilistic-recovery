@@ -77,9 +77,10 @@ class Estimator:
             # linearize at x_i, u_i to compute A_i, B_i, c_i
             u = us[i]
             y = ys[i]
+            print(i,x)
             sysd = self.linearize.at(x, u)
             As.append(deepcopy(sysd.A))
-            print(sysd.A)
+            print(f'  {sysd.A=}\n  {u=}\n  {y=}')
 
             # compute x_{i+1}=f(x_i, u_i)
             x, self.P = self.kf.one_step(x, self.P, u, y)

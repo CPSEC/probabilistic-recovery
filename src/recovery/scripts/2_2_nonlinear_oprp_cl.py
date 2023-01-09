@@ -130,9 +130,11 @@ def main():
                 x_cur, sysd = non_est.estimate(x_0, us, ys)
                 rospy.logdebug(f"     recovered state: {x_cur.miu}")
             if recovery_start_index < time_index < recovery_complete_index:
+                rospy.logdebug(f"[recoverying] i={time_index}, state={sensor.get_state()}")
                 u_last =  rec.get_us(time_index-1, time_index)
                 y_last = rec.get_ys(C_filter, time_index, time_index+1)
                 x_cur, sysd = non_est.estimate(x_cur, u_last, y_last)
+                rospy.logdebug(f"     predicted state: {x_cur.miu}")
 
             # call OPRP
             if recovery_start_index <= time_index < recovery_complete_index:
