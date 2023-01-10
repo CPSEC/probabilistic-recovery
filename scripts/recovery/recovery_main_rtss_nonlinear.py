@@ -22,7 +22,7 @@ class RecoveryRTSSNonlinear():
 			# self.W = self.W * 2 
 			self.W[-1, -1] = self.W[-2, -2] = self.W[-3, -3] = noise * 1.32 + 0.0025
 			self.W[ 0,  0] = self.W[ 1,  1] = noise * 1.45 + 0.086
-			self.W[2, 2] = noise / 1.55 + 0.0025
+			self.W[2, 2] = noise / 1.55 + 0.0025 
 			self.W = self.W / 1.38
 			if noise > 0.003:
 				self.W = self.W / 1.55
