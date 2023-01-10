@@ -22,7 +22,8 @@ def thread_resend_control(noise_variance):
     
     counter = 10
     noise = np.zeros((4, 1))
-    
+    while rover.freq == 0:
+        rate.sleep()
     while rover.k_iter < rover.k_max and rover.on:
         counter += 1
         t = datetime.datetime.now()
@@ -37,7 +38,7 @@ def thread_resend_control(noise_variance):
         fM = rover.fM
         fM_send = np.zeros((4, 1))
         fM_send[0] = fM[0]
-        if counter >= freq /20:
+        if counter >= freq /rover.freq:
             counter = 0
             for i in range (0, 4):
                 noise[i] = np.random.normal(0, noise_variance)

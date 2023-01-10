@@ -20,7 +20,7 @@ class Estimator:
 		self.isolation = isolation
 		if self.isolation:
 			self.kf = ExtendedKalmanFilter(fd, jfx, jh, Q, R)
-			self.P = np.zeros((n, n))
+			self.P = np.eye(n) * 1/100
 		
 
 	def estimate(self, x_0: GaussianDistribution, us, ys=None):

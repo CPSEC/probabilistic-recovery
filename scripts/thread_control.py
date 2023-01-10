@@ -7,20 +7,27 @@ import rospy
 from geometry_msgs.msg import Wrench
 from geometry_msgs.msg import Vector3
 
+from cmath import inf
 
-def thread_control(detection_delay, reconfiguration, noise):
+
+def thread_control(detection_delay, reconfiguration, noise, isolation):
     # print('CONTROL: thread starting ..')
 
     # pub = rospy.Publisher('uav_fm', Wrench, queue_size=1)
 
-    freq = 20
+    # freq = 20
+    freq = 50
     rate = rospy.Rate(freq) # 200 hz
     recovery_name = ['rtss', 'emsoft', 'v_sensors', 'rtss_nonlinear']
     if 0 <= reconfiguration <= 3:
         recovery_name = recovery_name[reconfiguration]
     else:
         raise NotImplemented
-    rover.init_recovery(freq=freq, isolation=True, recovery_name = recovery_name, detection_delay=detection_delay, noise=noise)
+    if isolation == 1:
+        iso = True
+    else:
+        iso = False
+    rover.init_recovery(freq=freq, isolation=iso, recovery_name = recovery_name, detection_delay=detection_delay, noise=noise)
 
     # freq = 0.0
     t = datetime.datetime.now()
@@ -40,7 +47,8 @@ def thread_control(detection_delay, reconfiguration, noise):
         try:
             fM = rover.run_controller()
         except:
-            rover.k_max = -1
+            rover.write_final_states(rover.states_pt)
+            rover.k_iter = inf
             print("error")
         
         # if (not rover.motor_on) or (rover.mode < 2):

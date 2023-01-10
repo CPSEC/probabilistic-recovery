@@ -71,11 +71,14 @@ class RecoveryVirtualSensor():
     def in_set(self, x):
         res = True
         # We are linearizing the model. So we define dx = x - x0, x0 the linearization point
-        x = x - self.system_model.x0
-        for i in range(len(x)):
-            if self.target_lo[i] > x[i] or self.target_up[i] < x[i]:
-                res = False
-                break
+        dx = x - self.system_model.x0
+        # for i in range(len(x)):
+        #     if self.target_lo[i] > dx[i] or self.target_up[i] < dx[i]:
+        #         res = False
+        #         break
+        d = (x[0] - 0)**2 + (x[1] - 0)**2 + (x[2] - (-10))**2
+        if d**(1/2) > 0.4:
+            res = False
         return res
 
     # Auxiliar functions to process states

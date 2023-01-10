@@ -1,14 +1,15 @@
 #!/bin/bash
 
 # parameters: strategy
+# isolation {0, 1}
 # noise
 
 # dd=(1.0 1.1 1.2 1.3 1.4 1.5 1.6 1.7 1.8 1.9 2.0)
 dd=(1.5)
 for d in ${dd[@]}; do
-	for i in {1..10}; do
+	for i in {1..15}; do
 		echo "detection delay $d "
-		python3 main.py $1 $d $2 
+		python3 main.py $1 $2 $d $3
 	done
 done
 if [ "$1" == "0" ]; then

@@ -5,6 +5,7 @@ from estimator import Estimator
 from trajectory import Trajectory
 
 import datetime
+import time
 import numpy as np
 import pdb
 import rospy
@@ -77,6 +78,9 @@ class Rover:
         self.trajectory = Trajectory()
 
         self.lock = threading.Lock()
+        self.t_init = time.time()
+
+        self.freq = 0
         
     
     def init_recovery(self, freq, isolation, recovery_name, detection_delay, noise):
@@ -85,7 +89,8 @@ class Rover:
         self.recovery_complete_index = inf
         #
         self.detection_delay = detection_delay
-        self.k_attack = 15*freq
+        # self.k_attack = 15*freq
+        self.k_attack = 40*freq
         self.k_detection = self.k_attack + detection_delay*freq
         self.isolation = isolation 
         self.k_max = self.k_detection + 10 * freq
@@ -146,6 +151,8 @@ class Rover:
         self.file_states = open(file_name_states, 'a')
         self.file_final_states = open(file_names_final_states, 'a')
 
+        
+
 
 
     
@@ -163,11 +170,11 @@ class Rover:
     def run_controller(self):
         self.update_current_time()
         with self.lock:
-            t_init = datetime.datetime.now()
+            t_init = time.time() - self.t_init
 
-            states_pt = self.estimator.get_states()
-            self.x, self.v, self.a, self.R, self.W = states_pt # copy the states for the gui
-            states = copy.deepcopy(states_pt) 
+            self.states_pt = self.estimator.get_states()
+            self.x, self.v, self.a, self.R, self.W = self.states_pt # copy the states for the gui
+            states = copy.deepcopy(self.states_pt) 
 
             if states[0][0] > 5000.2 and not self.attack_set:
                 self.k_attack = self.k_iter + 1
@@ -199,8 +206,7 @@ class Rover:
                     self.alarm = True
                     fM, k_reconf_max = self.recovery.update_recovery_fi()
                     self.recovery_complete_index = self.k_iter + k_reconf_max
-                    # print("reconfiguration begins", self.recovery.process_state(states_pt))
-
+                    # print("reconfiguration begins", self.recovery.process_state(self.states_pt))
                 elif self.k_detection < self.k_iter < self.recovery_complete_index:
                     fM, k_reconf = self.recovery.update_recovery_ni(self.process_state(states), u)
                     self.recovery_complete_index = self.k_iter + k_reconf
@@ -211,12 +217,8 @@ class Rover:
                     fM = self.nominal_control(states, desired)
                 if self.k_iter == self.recovery_complete_index or self.k_iter >= self.k_max:
                     # Store final state
-                    state_print = self.print_state(self.process_state(states_pt))
-                    str_write = str(self.k_iter) + "," + str(self.detection_delay) + state_print + str(self.k_iter - self.k_detection)
-                    self.file_final_states.write(str_write)
-                    self.file_final_states.write('\n')
+                    self.write_final_states(self.states_pt)
                     self.k_iter = inf
-                    print(state_print)
                     # print('Number of steps: ', )
             elif self.recovery_name == RECOVERY_NAMES[2]: # TODO: Implement
                 if self.k_detection == self.k_iter:
@@ -226,37 +228,33 @@ class Rover:
                 elif self.k_detection < self.k_iter <= self.k_max:
                     # Send the states that we estimated previous step and the control action
                     self.estimated_states_vs = self.recovery.update_recovery_ni(self.process_state(self.estimated_states_vs), u)
-                    try:
-                        fM = self.nominal_control(self.estimated_states_vs, desired)
-                    except:
-                        self.write_final_states(states_pt)
+                    fM = self.nominal_control(self.estimated_states_vs, desired)
                 elif self.k_iter > self.k_max:
                     fM = np.zeros((4, 1))
                 else:
                     fM = self.nominal_control(states, desired)
                 arrived = False
                 if self.k_detection < self.k_iter <= self.k_max:
-                    aaaa = self.process_state(self.estimated_states_vs)
-                    print(aaaa[2])
                     arrived = self.recovery.in_set(self.process_state(self.estimated_states_vs))
                 if arrived or self.k_iter >= self.k_max:
                     # Store final state
-                    self.write_final_states(states_pt)
+                    self.write_final_states(self.states_pt)
+                    self.k_iter = inf
             else:
                 raise NotImplemented
 
             fM = self.saturate_input(fM)
             
-            t_now = datetime.datetime.now()
+            t_now = time.time() - self.t_init
 
             # Store time
-            t = str(t_init - t_now)
+            t = str(t_now - t_init)
             if self.k_iter < inf:
                 self.file_time.write(f'{self.k_iter}, {self.k_detection}, {t}')
                 self.file_time.write('\n')
 
             # Store trajectory
-            state_print = self.print_state(self.process_state(states_pt))
+            state_print = self.print_state(self.process_state(self.states_pt))
             str_write = str(t_init) + "," + str(self.k_iter) + "," + str(self.detection_delay) + state_print
             self.file_states.write(str_write)
             self.file_states.write("\n")
@@ -273,7 +271,6 @@ class Rover:
         str_write = str(self.k_iter) + "," + str(self.detection_delay) + state_print + str(self.k_iter - self.k_detection)
         self.file_final_states.write(str_write)
         self.file_final_states.write("\n")
-        self.k_iter = inf
         pass
 
     def print_state(self, states):

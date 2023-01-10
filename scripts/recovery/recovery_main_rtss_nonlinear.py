@@ -14,19 +14,37 @@ class RecoveryRTSSNonlinear():
 		# 0.00001
 		# No noise 0.0025
 		# Noise 0.01: 0.01
-		self.W = (noise/6 + 0.001) * np.eye(system_model.n) #*20
-		self.W[-1, -1] = noise/2 + 0.001
-		self.W[-2, -2] = noise/2 + 0.001
-		self.W[-3, -3] = noise/2 + 0.001
 		if isolation:
-			self.W = self.W * 1.5
+			self.W = (noise/3.2 + 0.0024) * np.eye(system_model.n)
+			# self.W[-1, -1] = noise/2   + 0.001
+			# self.W[-2, -2] = noise/2   + 0.001
+			# self.W[-3, -3] = noise/2 + 0.001
+			# self.W = self.W * 2 
+			self.W[-1, -1] = self.W[-2, -2] = self.W[-3, -3] = noise * 1.32 + 0.0025
+			self.W[ 0,  0] = self.W[ 1,  1] = noise * 1.45 + 0.086
+			self.W[2, 2] = noise / 1.55 + 0.0025
+			self.W = self.W / 1.38
+			if noise > 0.003:
+				self.W = self.W / 1.55
+			if noise == 0.002 or noise == 0.003:
+				self.W = self.W / 1.35
+		else:
+			self.W = (noise/3.2 + 0.0023) * np.eye(system_model.n)
+			self.W[-1, -1] = self.W[-2, -2] = self.W[-3, -3] = noise * 1.31 + 0.0022
+			self.W[ 0,  0] = self.W[ 1,  1] = noise * 1.32 + 0.082
+			self.W[2, 2] = noise / 1.48 + 0.0022
+			self.W = self.W / 2
+			if noise > 0.003:
+				self.W = self.W / 1.4
+			if noise == 0.002 or noise == 0.003:
+				self.W = self.W / 1.35
 		mu = np.zeros((self.system_model.n))
 		self.W = GaussianDistribution.from_standard(mu, self.W)
 
-		l = np.array([1,  1,  1,  0,  0,  0,   0,   0,   0,   0,   0,   0,   0,   0,   0,  0,  0,  0])
+		l = np.array([0.5, 0.5,  -1,  0,  0,  0,   0,   0,   0,   0,   0,   0,   0,   0,   0,  0,  0,  0])
 		# l[attacked_sensor] = 1
-		b = -9.8
-		a = -10.2
+		b = 10.2
+		a = 9.8
 
 		euler = False
 		self.dt = dt
@@ -47,7 +65,7 @@ class RecoveryRTSSNonlinear():
 		self.x_checkpoint = []
 		self.u_checkpoint = []
 		print("init open loop")
-		self.rtss = RTSSNonlinear(self.system_model.ode, self.dt, self.W, self.u_min, self.u_max, k_reconstruction=31, k_max=30,\
+		self.rtss = RTSSNonlinear(self.system_model.ode, self.dt, self.W, self.u_min, self.u_max, k_reconstruction=5, k_max=4,\
 			l=self.l, a=self.a, b=self.b, euler=self.euler, fd=self.system_model.fd, jfx=self.system_model.jfx,\
 			jfu=self.system_model.jfu, isolation=self.isolation)
 	
@@ -58,8 +76,8 @@ class RecoveryRTSSNonlinear():
 		jh = lambda x, u: C
 		self.C_kf = C
 		Q = self.W.sigma
-		R = np.eye(C.shape[0]) * 1e-4
-		self.rtss = RTSSNonlinear(self.system_model.ode, self.dt, self.W, self.u_min, self.u_max, k_reconstruction=31, k_max=30,\
+		R = np.eye(C.shape[0]) * 1e-2
+		self.rtss = RTSSNonlinear(self.system_model.ode, self.dt, self.W, self.u_min, self.u_max, k_reconstruction=5, k_max=4,\
 			l=self.l, a=self.a, b=self.b, euler=self.euler, fd=self.system_model.fd, jfx=self.system_model.jfx,\
 			jfu=self.system_model.jfu, jh=jh, isolation=self.isolation, Q=Q, R=R)
 		

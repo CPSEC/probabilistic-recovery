@@ -11,14 +11,14 @@ class RecoveryEmsoft():
         self.system_model = system_model
         self.u_reconf = []
 
-        self.estimator = Estimator(system_model.Ad, system_model.Bd, max_k = 150, epsilon= 1e-7 + noise)
+        self.estimator = Estimator(system_model.Ad, system_model.Bd, max_k = 150*2, epsilon= 2e-3 + noise)
 
 
 
         self.Q  = np.diag([1, 1, 1, 0, 0, 0,  0,  0,  0,  0,  0,  0,  0,  0,  0, 0, 0, 0])
         self.Q[attacked_sensor, attacked_sensor] = 1
 
-        self.QN = np.diag([1, 1, 0, 0, 0, 0,  0,  0,  0,  0,  0,  0,  0,  0,  0, 0, 0, 0])
+        self.QN = np.diag([1, 1, 1, 0, 0, 0,  0,  0,  0,  0,  0,  0,  0,  0,  0, 0, 0, 0])
         self.QN[attacked_sensor, attacked_sensor] = 1
 
         self.R  = np.eye(system_model.m)/1000

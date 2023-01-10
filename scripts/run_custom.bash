@@ -1,8 +1,6 @@
 #!/bin/bash
 
-# Parameters: port
-# 	      strategy
-
+# Input gazebo port
 cd ..
 cd devel && source setup.bash && cd ../
 cd scripts
@@ -15,11 +13,11 @@ sleep 10
 echo ${PID_GAZEBO}
 
 strat=$1
-isolation=$2
 noises=(0 0.001 0.002 0.003 0.004 0.005)
 # noises=(0.004 0.005)
 time=`date +%s`
 for noise in ${noises[@]}; do
-	./multiple_run.bash $strat $isolation ${noise} 
+	./multiple_run.bash 3 0 ${noise} 
+	./multiple_run.bash 3 1 ${noise} 
 done
 kill -9 ${PID_GAZEBO}
