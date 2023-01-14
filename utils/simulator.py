@@ -112,7 +112,7 @@ class Simulator:
         """
         assert self.model_type == 'nonlinear'
         linearize = Linearizer(self.ode, self.n, self.m, self.dt)
-        self.sysc, self.sysd = linearize.at(x_0, u_0)
+        self.sysd = linearize.at(x_0, u_0)
 
 
     def sim_init(self, settings: dict):

@@ -15,7 +15,7 @@ class cstr:
     noise = {
         'process': {
             'type': 'white',
-            'param': {'C': np.array([[1e-7, 0], [0, 1e-7]])}
+            'param': {'C': np.array([[1e-2, 0], [0, 0.4]])}
         }
     }
     # noise = {}
@@ -25,8 +25,8 @@ class cstr:
     model.controller.set_control_limit(control_lo, control_up)
 
     attack_start_index = 90  # index in time
-    recovery_index = 100  # index in time
-    bias = np.array([0, -25])
+    recovery_index = 105  # index in time
+    bias = np.array([0, -30])
     unsafe_states_onehot = [0, 1]
     attack = Attack('bias', bias, attack_start_index)
 
@@ -34,9 +34,9 @@ class cstr:
     ref_index = 1  # index in state
 
     safe_set_lo = np.array([-5, 250])
-    safe_set_up = np.array([5, 360])
-    target_set_lo = np.array([-5, 299])
-    target_set_up = np.array([5, 301])
+    safe_set_up = np.array([5, 330])
+    target_set_lo = np.array([-5, 296])
+    target_set_up = np.array([5, 304])
     control_lo = np.array([250])
     control_up = np.array([350])
     recovery_ref = np.array([0.98189, 300.00013])
@@ -46,8 +46,8 @@ class cstr:
 
     # Q = np.diag([1, 1])
     # QN = np.diag([1, 1])
-    Q = np.diag([1, 1000])
-    QN = np.diag([1, 1000])
+    Q = np.diag([1, 100])
+    QN = np.diag([1, 100])
     R = np.diag([1])
 
     MPC_freq = 1
@@ -55,8 +55,8 @@ class cstr:
     nu = 1
 
     # plot
-    y_lim = (280, 360)
-    x_lim = (8, dt * 200)
+    y_lim = (280, 340)
+    x_lim = (8, dt * 117)
     strip = (target_set_lo[output_index], target_set_up[output_index])
     y_label = 'Temperature [K]'
 
