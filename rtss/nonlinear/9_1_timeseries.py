@@ -12,6 +12,7 @@ markers = ["o", 'h', 'D', '^']
 colors = ["C0", "C4", "C1", "C2"]
 sheets = ['states_oprp_ol', 'states_oprp_cl', 'states_lqr', 'states_vsr']
 data_path = '../res/data'
+fig_path = '../res/figs'
 
 for exp in exps:
     plt.figure(figsize=(8, 3))
@@ -33,7 +34,7 @@ for exp in exps:
     x = np.array(exp.x_lim)
     y1 = exp.strip[0]
     y2 = exp.strip[1]
-    plt.fill_between(x, y1, y2, facecolor='green', alpha=0.1)
+    plt.fill_between(x, y1, y2, facecolor='green', alpha=0.3)
 
     # plot when attack starts and whe recovery starts
     plt.vlines(exp.attack_start_index * exp.dt, exp.y_lim[0], exp.y_lim[1], colors='red', linestyle='dashed',
@@ -52,8 +53,12 @@ for exp in exps:
     plt.xlabel('Time [sec]')
     plt.legend(ncol=2, loc=exp.legend_loc)
 
-    fig_path = os.path.join(data_path, exp.name, f'timeseries_{exp.name}.pdf')
-    plt.savefig(fig_path, bbox_inches='tight')
+    # save
+    exp_path = os.path.join(fig_path, exp.name)
+    if not os.path.exists(exp_path):
+        os.makedirs(exp_path)
+    fig_file = os.path.join(exp_path, f'timeseries_{exp.name}.pdf')
+    plt.savefig(fig_file, bbox_inches='tight')
     plt.show()
 
 
