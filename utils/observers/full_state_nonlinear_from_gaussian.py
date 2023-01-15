@@ -48,7 +48,7 @@ class Estimator:
             else:
                 x = self.solve_euler(ts, x, u)
             t_solve = time.time() - t_init
-            print(t_solve)
+            # print(t_solve)
 
             # intermediate computations
             prod_Ai = As[i] @ prod_Ai
@@ -79,7 +79,7 @@ class Estimator:
             y = ys[i]
             sysd = self.linearize.at(x, u)
             As.append(deepcopy(sysd.A))
-            print(sysd.A)
+            # print(sysd.A)
 
             # compute x_{i+1}=f(x_i, u_i)
             x, self.P = self.kf.one_step(x, self.P, u, y)

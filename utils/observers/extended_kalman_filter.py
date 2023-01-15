@@ -14,7 +14,7 @@ class ExtendedKalmanFilter:
     def predict(self, x: np.ndarray, P: np.ndarray, u: np.ndarray):
         x_predict = self.f(x, u)
         self.A = self.jf(x, u)
-        print(self.A)
+        # print(self.A)
         self.C = self.jh(x, u)
         P_predict = self.A @ P @ self.A.T + self.Q
         return x_predict, P_predict
