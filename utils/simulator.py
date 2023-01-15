@@ -1,6 +1,8 @@
 import numpy as np
 import os, time, logging, sys
 from copy import deepcopy
+from time import perf_counter
+
 from scipy.signal import StateSpace
 from scipy.integrate import solve_ivp
 from utils.formal.gaussian_distribution import GaussianDistribution
@@ -196,6 +198,7 @@ class Simulator:
         self.refs[self.cur_index] = deepcopy(self.cur_ref)
 
         # compute control input
+        compute_start = time.perf_counter()
         if self.feedback_type:
             self.cur_u = self.controller.update(self.cur_ref, self.cur_feedback, self.dt * self.cur_index)
         else:
@@ -203,6 +206,8 @@ class Simulator:
         # override control input
         if not (u is None):
             self.cur_u = u
+        compute_end = time.perf_counter()
+        timing = compute_end - compute_start
         assert self.cur_u.shape == (self.m,)
         self.inputs[self.cur_index] = deepcopy(self.cur_u)
 
@@ -230,4 +235,4 @@ class Simulator:
         else:
             self.cur_feedback = None
 
-        return self.cur_index
+        return self.cur_index, timing
