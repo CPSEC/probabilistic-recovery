@@ -192,22 +192,24 @@ class Simulator:
     def update_current_ref(self, ref):
         self.cur_ref = ref
 
-    def evolve(self, u=None):
+    def evolve(self, u=None, timer=None):
         # record data
         self.feedbacks[self.cur_index] = deepcopy(self.cur_feedback)
         self.refs[self.cur_index] = deepcopy(self.cur_ref)
 
         # compute control input
-        compute_start = time.perf_counter()
+        if timer is not None:
+            timer.tic()
         if self.feedback_type:
             self.cur_u = self.controller.update(self.cur_ref, self.cur_feedback, self.dt * self.cur_index)
         else:
             self.cur_u = u
         # override control input
         if not (u is None):
+            timer.tic()
             self.cur_u = u
-        compute_end = time.perf_counter()
-        timing = compute_end - compute_start
+        if timer is not None:
+            timer.toc()
         assert self.cur_u.shape == (self.m,)
         self.inputs[self.cur_index] = deepcopy(self.cur_u)
 
@@ -235,4 +237,4 @@ class Simulator:
         else:
             self.cur_feedback = None
 
-        return self.cur_index, timing
+        return self.cur_index
