@@ -29,13 +29,13 @@ logger.setLevel(logging.INFO)
 # logger.setLevel(logging.DEBUG)
 
 # random seed
-os.environ["RANDOM_SEED"] = '0'  # for reproducibility
+# os.environ["RANDOM_SEED"] = '0'  # for reproducibility
 
 # import benchmarks from settings
 from settings import cstr
 
 # simulation settings
-exp_nums = 2
+exp_nums = 100
 baselines = ['none', 'oprp_ol', 'oprp_cl', 'lqr', 'vsr']
 # baselines = ['vsr']
 exps = [cstr]
@@ -44,18 +44,47 @@ colors = {'none': 'red', 'oprp_cl': 'blue', 'oprp_ol': 'cyan', 'lqr': 'green',
 result = {}  # for plotting figures
 timer = Timer()
 
+
+# required objects
+def in_target_set(target_lo, target_hi, x_cur):
+    res = True
+    for i in range(len(x_cur)):
+        if target_lo[i] > x_cur[i] or target_hi[i] < x_cur[i]:
+            res = False
+            break
+    return res
+
+# create final states file
+# data
+import csv
+for exp in exps:
+    path = os.path.join('../res/data', exp.name)
+    if not os.path.exists(path):
+        os.makedirs(path)
+    for bl in baselines:
+        time_file_name = os.path.join(path, f'time_{bl}.csv')
+        with open(time_file_name, 'w', newline='') as f:
+            writer = csv.writer(f)
+            writer.writerow(['k', 'time', 'comp_time'])
+    final_states_file_name = os.path.join(path, f'final_states.csv')
+    with open(final_states_file_name, 'w', newline='') as f:
+        writer = csv.writer(f)
+        writer.writerow(['name', 'k', 'time', 'steps_recovery', 'attack_sz']+exp.state_names+['Success'])
+
+
 for num in range(exp_nums):
     logger.info(f"{'Iteration '+str(num):=^50}")
     for exp in exps:
         result[exp.name] = {}
         exp_rst = result[exp.name]
 
+
         # ---------  attack + no recovery  -------------
         if True:
             bl = 'none'
             exp_name = f" {bl} {exp.name} "
             logger.info(f"{exp_name:=^40}")
-            exp.model.reset()
+            exp.model.reset(noise=True)
 
             exp_rst[bl] = {}
             exp_rst[bl]['time'] = {}
@@ -133,7 +162,7 @@ for num in range(exp_nums):
                     rec_u = U.alpha_to_control(alpha)
                     u = rec_u[0]
                     timer.toc()
-                    exp.model.evolve(u)
+                    exp.model.evolve(u, timer=timer)
                     logger.debug(f'recovering {i=},{u=},{x_cur.miu=},x_grnd={exp.model.states[i]}')
                 else:
                     timer.toc()
@@ -149,6 +178,19 @@ for num in range(exp_nums):
             exp_rst[bl]['outputs'] = deepcopy(exp.model.outputs)
             exp_rst[bl]['inputs'] = deepcopy(exp.model.inputs)
             exp_rst[bl]['time']['recovery_complete'] = recovery_complete_index
+
+            final_states_file_name = os.path.join('../res/data', exp.name, f'final_states.csv')
+            with open(final_states_file_name, 'a', newline='') as f:
+                writer = csv.writer(f)
+                name = bl
+                k = recovery_complete_index
+                time = recovery_complete_index*exp.dt
+                steps_recovery = recovery_complete_index - exp.recovery_index
+                attack_sz = 0
+                states = exp.model.states[recovery_complete_index]
+                success = 1 if in_target_set(exp.target_set_lo, exp.target_set_up, states) else 0
+                data = [name, k, time, steps_recovery, attack_sz] + list(states) + [success]
+                writer.writerow(data)
 
         # ---------  attack + OPRP recovery (close loop) -------------
         if 'oprp_cl' in baselines:
@@ -214,7 +256,7 @@ for num in range(exp_nums):
                     rec_u = U.alpha_to_control(alpha)
                     u = rec_u[0]
                     timer.toc()
-                    exp.model.evolve(u)
+                    exp.model.evolve(u, timer=timer)
                     logger.debug(f'recovering {i=},{u=},{x_cur.miu=}')
                 else:
                     timer.toc()
@@ -230,6 +272,19 @@ for num in range(exp_nums):
             exp_rst[bl]['outputs'] = deepcopy(exp.model.outputs)
             exp_rst[bl]['inputs'] = deepcopy(exp.model.inputs)
             exp_rst[bl]['time']['recovery_complete'] = recovery_complete_index
+
+            final_states_file_name = os.path.join('../res/data', exp.name, f'final_states.csv')
+            with open(final_states_file_name, 'a', newline='') as f:
+                writer = csv.writer(f)
+                name = bl
+                k = recovery_complete_index
+                time = recovery_complete_index*exp.dt
+                steps_recovery = recovery_complete_index - exp.recovery_index
+                attack_sz = 0
+                states = exp.model.states[recovery_complete_index]
+                success = 1 if in_target_set(exp.target_set_lo, exp.target_set_up, states) else 0
+                data = [name, k, time, steps_recovery, attack_sz] + list(states) + [success]
+                writer.writerow(data)
 
         # ---------  attack + RTR-LQR recovery  -------------
         if 'lqr' in baselines:
@@ -316,7 +371,7 @@ for num in range(exp_nums):
                     rec_u_index = i - exp.recovery_index
                     u = rec_u_lqr[rec_u_index]
                     timer.toc()
-                    exp.model.evolve(u)
+                    exp.model.evolve(u, timer=timer)
                 else:
                     timer.toc()
                     exp.model.evolve(timer=timer)
@@ -327,6 +382,19 @@ for num in range(exp_nums):
             exp_rst[bl]['inputs'] = deepcopy(exp.model.inputs)
             exp_rst[bl]['time']['recovery_complete'] = recovery_complete_index + maintain_time
 
+            final_states_file_name = os.path.join('../res/data', exp.name, f'final_states.csv')
+            with open(final_states_file_name, 'a', newline='') as f:
+                writer = csv.writer(f)
+                name = bl
+                k = recovery_complete_index
+                time = recovery_complete_index*exp.dt
+                steps_recovery = recovery_complete_index - exp.recovery_index
+                attack_sz = 0
+                states = exp.model.states[recovery_complete_index]
+                success = 1 if in_target_set(exp.target_set_lo, exp.target_set_up, states) else 0
+                data = [name, k, time, steps_recovery, attack_sz] + list(states) + [success]
+                writer.writerow(data)
+
         # ---------  attack + virtual sensor recovery  -------------
         if 'vsr' in baselines:
             bl = 'vsr'
@@ -336,16 +404,6 @@ for num in range(exp_nums):
             exp_rst[bl] = {}
             exp_rst[bl]['time'] = {}
             exp_rst[bl]['time']['step'] = []
-
-            # required objects
-            def in_target_set(target_lo, target_hi, x_cur):
-                res = True
-                for i in range(len(x_cur)):
-                    if target_lo[i] > x_cur[i] or target_hi[i] < x_cur[i]:
-                        res = False
-                        break
-                return res
-
 
             # init for recovery
             exp.model.reset()
@@ -407,22 +465,26 @@ for num in range(exp_nums):
             exp_rst[bl]['inputs'] = deepcopy(exp.model.inputs)
             exp_rst[bl]['time']['recovery_complete'] = recovery_complete_index
 
+            final_states_file_name = os.path.join('../res/data', exp.name, f'final_states.csv')
+            with open(final_states_file_name, 'a', newline='') as f:
+                writer = csv.writer(f)
+                name = bl
+                k = recovery_complete_index
+                time = recovery_complete_index*exp.dt
+                steps_recovery = recovery_complete_index - exp.recovery_index
+                attack_sz = 0
+                states = exp.model.states[recovery_complete_index]
+                success = 1 if in_target_set(exp.target_set_lo, exp.target_set_up, states) else 0
+                data = [name, k, time, steps_recovery, attack_sz] + list(states) + [success]
+                writer.writerow(data)
+
         # ---------------------------   save state  ---------------------------
-        # res/data
         path = os.path.join('../res/data', exp.name)
-        if not os.path.exists(path):
-            os.makedirs(path)
-
-        import csv
-
         for bl in baselines:
             file_name = os.path.join(path, f'time_{bl}.csv')
             end_time = exp_rst[bl]['time']['recovery_complete']
-            mode = 'w' if num == 0 else 'a'
-            with open(file_name, mode, newline='') as f:
+            with open(file_name, 'a', newline='') as f:
                 writer = csv.writer(f)
-                if os.stat(file_name).st_size == 0:
-                    writer.writerow(['k', 'time', 'comp_time'])
                 for i in range(end_time + 1):
                     comp_time = exp_rst[bl]['time']['step'][i]
                     writer.writerow([i, i * exp.dt, comp_time])

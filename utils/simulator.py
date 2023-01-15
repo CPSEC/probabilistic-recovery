@@ -73,12 +73,14 @@ class Simulator:
             self.feedbacks = np.empty((self.max_index + 2, self.n), dtype=np.float)
             self.refs = np.empty((self.max_index + 2, self.n), dtype=np.float)  # reference value
 
-    def reset(self):
+    def reset(self, noise=False):
         # the noise will not reset!
         self.data_init()
         self.cur_index = 0
         self.set_init_state(self.init_state)
         self.controller.clear()
+        if noise==True:
+            self.noise_init(self.noise_setting)
 
     def linear(self, A, B, C=None, D=None):
         self.model_type = 'linear'
@@ -127,6 +129,7 @@ class Simulator:
         self.set_feedback_type(settings['feedback_type'])
         self.data_init()
         if 'noise' in settings:
+            self.noise_setting = settings['noise']
             self.noise_init(settings['noise'])
         self.set_init_state(settings['init_state'])
         self.set_controller(settings['controller'])

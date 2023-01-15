@@ -15,7 +15,7 @@ class cstr:
     noise = {
         'process': {
             'type': 'white',
-            'param': {'C': np.array([[1e-2, 0], [0, 0.4]])}
+            'param': {'C': np.array([[1e-2, 0], [0, 0.5]])}
         }
     }
     # noise = {}
@@ -35,8 +35,8 @@ class cstr:
 
     safe_set_lo = np.array([-5, 250])
     safe_set_up = np.array([5, 330])
-    target_set_lo = np.array([-5, 296])
-    target_set_up = np.array([5, 304])
+    target_set_lo = np.array([-5, 294])
+    target_set_up = np.array([5, 306])
     control_lo = np.array([250])
     control_up = np.array([350])
     recovery_ref = np.array([0.98189, 300.00013])
