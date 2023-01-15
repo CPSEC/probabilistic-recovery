@@ -25,7 +25,8 @@ logging.basicConfig(
     ]
 )
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
+logger.setLevel(logging.INFO)
+# logger.setLevel(logging.DEBUG)
 
 # random seed
 os.environ["RANDOM_SEED"] = '0'  # for reproducibility
@@ -44,6 +45,7 @@ result = {}  # for plotting figures
 timer = Timer()
 
 for num in range(exp_nums):
+    logger.info(f"{'Iteration '+str(num):=^50}")
     for exp in exps:
         result[exp.name] = {}
         exp_rst = result[exp.name]
@@ -416,7 +418,8 @@ for num in range(exp_nums):
         for bl in baselines:
             file_name = os.path.join(path, f'time_{bl}.csv')
             end_time = exp_rst[bl]['time']['recovery_complete']
-            with open(file_name, 'a', newline='') as f:
+            mode = 'w' if num == 0 else 'a'
+            with open(file_name, mode, newline='') as f:
                 writer = csv.writer(f)
                 if os.stat(file_name).st_size == 0:
                     writer.writerow(['k', 'time', 'comp_time'])
