@@ -13,3 +13,7 @@ class Timer:
 
     def reset(self):
         self.total_time = 0
+        self.tic()
+
+    def total(self):
+        return self.total_time

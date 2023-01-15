@@ -206,7 +206,8 @@ class Simulator:
             self.cur_u = u
         # override control input
         if not (u is None):
-            timer.tic()
+            if timer is not None:
+                timer.tic()
             self.cur_u = u
         if timer is not None:
             timer.toc()
