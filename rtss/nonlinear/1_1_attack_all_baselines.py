@@ -421,3 +421,24 @@ for exp in exps:
 
     plt.savefig(f'../fig/nonlinear/{exp.name}_all.png', format='png', bbox_inches='tight')
     plt.show()
+
+
+    # save state
+    # res/data
+    path = os.path.join('../res/data', exp.name)
+    if not os.path.exists(path):
+        os.makedirs(path)
+
+    import csv
+    for bl in baselines:
+        file_name = os.path.join(path, f'states_{bl}.csv')
+        end_time = exp_rst[bl]['time']['recovery_complete']
+        with open(file_name, 'w', newline='') as f:
+            writer = csv.writer(f)
+            writer.writerow(['k', 'time']+exp.state_names)
+            for i in range(end_time + 1):
+                states = list(exp_rst[bl]['states'][i])
+                writer.writerow([i, i*exp.dt]+states)
+
+
+

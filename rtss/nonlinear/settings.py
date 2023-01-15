@@ -55,8 +55,8 @@ class cstr:
     nu = 1
 
     # plot
-    y_lim = (280, 340)
-    x_lim = (8, dt * 117)
+    y_lim = (290, 350)
+    x_lim = (8.7, dt * 125)
     strip = (target_set_lo[output_index], target_set_up[output_index])
     y_label = 'Temperature [K]'
 
@@ -65,34 +65,13 @@ class cstr:
     x_ss = np.array([0.98472896, 300.00335862])
     jh = lambda x, u: np.array([[1, 0]])
 
-    # attack_start_index = 90
-    # bias = np.array([0, -25])
-    # attack = Attack('bias', bias, attack_start_index)
-    # recovery_index = 100
-    #
-    # output_index = 1 # index in state
-    # ref_index = 1 # index in state
-    #
-    # # needed by 1_recovery_given_p
-    # s = Strip(np.array([-1, 0]), a=-4.2, b=-3.8)
-    # P_given = 0.95
-    # max_recovery_step = 40
-    # # plot
-    # y_lim = (280, 360)
-    # x_lim = (8, dt * 200)
-    # strip = (target_set_lo[output_index], target_set_up[output_index])
-    # y_label = 'Temperature [K]'
-    #
-    # kf_C = np.array([[0, 1]])
-    # k_given = 40  # new added
-    # kf_R = np.diag([1e-7])
-    #
-    # # baseline
-    # safe_set_lo = np.array([4, 30])
-    # safe_set_up = np.array([5.07, 80])
-    # target_set_lo = np.array([3.9, 35.81277766])
-    # target_set_up = np.array([4.1, 60])
-    # recovery_ref = np.array([4,  41.81277766])
-    # Q = np.diag([100, 1])
-    # QN = np.diag([100, 1])
-    # R = np.diag([1])
+    # date file
+    state_names = ['Ca', 'T']
+    legend_loc = 'upper right'
+
+# only for plot
+class svl:
+    name = 'svl'
+    state_names = ['x', 'y', 'yaw']
+    output_index = 1
+
