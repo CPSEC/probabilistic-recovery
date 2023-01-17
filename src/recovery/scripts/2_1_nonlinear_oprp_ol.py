@@ -59,6 +59,9 @@ def main():
     sensor = Sensor()
     observer = Observer(path_file, speed_ref)
     rec = StateRecord()
+    gnd_rec = StateRecord()
+    os.environ['bl'] = 'oprp_ol'
+    rospy.on_shutdown(gnd_rec.save_data)
 
     # speed PID controller
     speed_pid = PID(speed_P, speed_I, speed_D)
@@ -153,7 +156,9 @@ def main():
             cmd.send(acc_cmd, steer_target)
             rospy.logdebug(f"    control input={steer_target}")
             # record data
-            rec.record(x=sensor_.get_state(), u=np.array([steer_target]), t=time_index)
+            if time_index <= recovery_complete_index:
+                rec.record(x=sensor_.get_state(), u=np.array([steer_target]), t=time_index)
+                gnd_rec.record(x=sensor.get_state(), u=np.array([steer_target]), t=time_index)
 
             time_index += 1
         rate.sleep()
