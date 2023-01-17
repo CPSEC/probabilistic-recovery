@@ -125,7 +125,7 @@ def main():
             if time_index == recovery_start_index:
                 rospy.logdebug(f"[recovery start] i={time_index}, state={sensor.get_state()}")
                 us = rec.get_us(attack_start_index - 1, time_index)
-                x_0 = GaussianDistribution(rec.get_x(time_index - 1), np.zeros((3, 3)))
+                x_0 = GaussianDistribution(rec.get_x(attack_start_index - 1), np.zeros((3, 3)))
                 ys = rec.get_ys(C_filter, attack_start_index, time_index+1)
                 x_cur, sysd = non_est.estimate(x_0, us, ys)
                 rospy.logdebug(f"     recovered state: {x_cur.miu}")

@@ -10,10 +10,14 @@ from lgsvl_msgs.msg import VehicleControlData
 
 from utils.controllers.PID import PID
 from utils.controllers.LQR import LQR
+from utils.controllers.MPC_cvxpy import MPC
 from utils.formal.gaussian_distribution import GaussianDistribution
 from utils.formal.reachability import ReachableSet
 from utils.formal.zonotope import Zonotope
 from utils.observers import full_state_nonlinear_from_gaussian as fsn
+from utils.observers import full_state_bound as fsb
+from utils.observers.extended_kalman_filter import ExtendedKalmanFilter
+from utils.control.linearizer import Linearizer
 from model import LaneKeeping
 from kinematic_lateral_model import Kinematic
 from sensor import Sensor, SensorData
@@ -76,8 +80,18 @@ def main():
     model = Kinematic()
     U = Zonotope.from_box(exp.control_lo, exp.control_up)
     W = GaussianDistribution(np.zeros(model.n), np.eye(model.n)*1e-6)
-    non_est = fsn.Estimator(model.ode, model.n, model.m, dt, W)
-
+    Q = W.sigma
+    C_filter = np.array([[1, 0, 0], [0, 0, 1]]) if attack_mode == 0 else np.array([[1, 0, 0], [0, 1, 0]])
+    R = np.zeros((C_filter.shape[0], C_filter.shape[0]))
+    jh = lambda x, u: C_filter
+    kalman_filter = ExtendedKalmanFilter(model.f, model.jfx, jh, Q, R)
+    non_est = fsn.Estimator(model.ode, model.n, model.m, dt, W, kf=kalman_filter, jfx=model.jfx, jfu=model.jfu)
+    linearize = Linearizer(model.ode, model.n, model.m, dt)
+    sysd = None
+    u_last = None
+    x_last = None
+    est = None
+    
     rate = rospy.Rate(control_rate)
     time_index = 0  # time index
     while not rospy.is_shutdown():
@@ -102,6 +116,9 @@ def main():
                 elif attack_mode == 1:  # attack IMU sensor    heading: -0.8
                     sensor_.data['yaw'] -= 0.8
 
+            # record sensor data
+            rec.record_x(sensor_.get_state(), time_index)
+
             if time_index < recovery_start_index:  # nominal controller
                 feedback = observer.est(sensor_)
                 rospy.logdebug(f"time_index={time_index}, e_d'={feedback[0]}, e_phi'={feedback[2]}, speed'={sensor.data['v']}")
@@ -110,35 +127,50 @@ def main():
                 
             if time_index == attack_start_index - 1:  # print ground truth
                 rospy.logdebug(f"[trustworthy] i={time_index}, state={sensor.get_state()}")
+                sysd = linearize.at(x_last, u_last)
+                est = fsb.Estimator(sysd.A, sysd.B, max_k=150, epsilon=1e-7, c=sysd.c)
 
             # state reconstruction & linearization
             if time_index == recovery_start_index:
                 rospy.logdebug(f"[recovery start] i={time_index}, state={sensor.get_state()}")
                 us = rec.get_us(attack_start_index - 1, time_index)
-                x_0 = GaussianDistribution(rec.get_x(attack_start_index - 1), np.zeros((3, 3)))
-                x_cur, sysd = non_est.estimate(x_0, us)
-                rospy.logdebug(f"     recovered state: {x_cur.miu}")
+                x_0 = rec.get_x(attack_start_index - 1)
+                x_cur_lo, x_cur_up, x_cur = est.estimate(x_0, us)
+                rospy.logdebug(f"     recovered state: {x_cur}")
 
-                # debug
-                # import pickle
-                # data_filename = os.path.join(_rp.get_path('recovery'), 'scripts/test/data.pkl')
-                # data = {'x_0': x_0, 'us': us, 'x_gnd': sensor.get_state()}
-                # with open(data_filename, 'wb') as f:
-                #     pickle.dump(data, f)
-                # return
+                # deadline calculation
+                safe_set_lo = exp.safe_set_lo
+                safe_set_up = exp.safe_set_up
+                control = u_last
+                sysd = linearize.at(x_cur, u_last)
+                est = fsb.Estimator(sysd.A, sysd.B, max_k=150, epsilon=1e-7, c=sysd.c)
+                k = est.get_deadline(x_cur, safe_set_lo, safe_set_up, control, max_k=100)
+                recovery_complete_index = recovery_start_index + k
+                rospy.logdebug(f'deadline={k}')
 
-            if recovery_start_index < time_index < recovery_complete_index:
-                u_last =  rec.get_us(time_index-1, time_index)
-                x_cur, sysd = non_est.estimate(x_cur, u_last)
+                # get recovery control sequence
+                Q_lqr = exp.Q #np.diag([1]*exp.nx)
+                QN_lqr = exp.QN  #np.diag([1]*exp.nx)
+                R_lqr = exp.R #  np.diag([1]*exp.nu)
+                lqr_settings = {
+                    'Ad': sysd.A, 'Bd': sysd.B, 'c_nonlinear': sysd.c,
+                    'Q': Q_lqr, 'QN': QN_lqr, 'R': R_lqr,
+                    # 'Q': exp.Q, 'QN': exp.QN, 'R': exp.R,
+                    'N': k + 3,
+                    'ddl': k, 'target_lo': exp.target_set_lo, 'target_up': exp.target_set_up,
+                    'safe_lo': exp.safe_set_lo, 'safe_up': exp.safe_set_up,
+                    'control_lo': exp.control_lo, 'control_up': exp.control_up,
+                    'ref': exp.recovery_ref
+                }
+                lqr = MPC(lqr_settings)
+                _ = lqr.update(feedback_value=x_cur)
+                rec_u_lqr = lqr.get_full_ctrl()
+                rec_x = lqr.get_last_x()
+                rospy.logdebug(f'expected recovery state={rec_x}')
 
-            # call OPRP
             if recovery_start_index <= time_index < recovery_complete_index:
-                reach = ReachableSet(sysd.A, sysd.B, U, W, max_step=100, c=sysd.c)
-                reach.init(x_cur, exp.s)
-                k, X_k, D_k, z_star, alpha, P, arrive = reach.given_k(max_k=exp.k_given)
-                recovery_complete_index = time_index + k
-                rec_u = U.alpha_to_control(alpha)
-                steer_target = rec_u[0][0]
+                rec_u_index = time_index - recovery_start_index
+                steer_target = rec_u_lqr[rec_u_index]  
 
             # final step, stop
             if recovery_complete_index == time_index:
@@ -152,10 +184,12 @@ def main():
                 steer_target = exp.control_lo[0]
             cmd.send(acc_cmd, steer_target)
             rospy.logdebug(f"    control input={steer_target}")
-            # record data
-            rec.record(x=sensor_.get_state(), u=np.array([steer_target]), t=time_index)
+            # record control input
+            rec.record_u(u=np.array([steer_target]), t=time_index)
 
             time_index += 1
+            u_last = np.array([steer_target])
+            x_last = sensor_.get_state()
         rate.sleep()
 
 

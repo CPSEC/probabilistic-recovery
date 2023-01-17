@@ -164,6 +164,8 @@ catkin_install_python(PROGRAMS
   scripts/1_attack.py
   scripts/2_1_nonlinear_oprp_ol.py
   scripts/2_2_nonlinear_oprp_cl.py
+  scripts/2_3_nonlinear_lqr.py
+  scripts/2_4_nonlinear_vsr.py
   scripts/kinematic_lateral_model.py
   scripts/model.py
   scripts/observer.py

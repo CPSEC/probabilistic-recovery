@@ -4,8 +4,8 @@ from state_record import StateRecord
 
 # parameters
 delta_r = 0   # steering angle of rear wheel
-l_r = 2.852 * 0.5   # distance between mass center and rear wheel
-l_f = l_r
+l_r = 0.4 #2.852 * 0.5   # distance between mass center and rear wheel
+l_f = 3.1
 v = 5         # velocity
 dt = 0.05
 
