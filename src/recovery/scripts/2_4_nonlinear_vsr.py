@@ -16,6 +16,7 @@ from utils.formal.reachability import ReachableSet
 from utils.formal.zonotope import Zonotope
 from utils.observers import full_state_nonlinear_from_gaussian as fsn
 from utils.observers import full_state_bound as fsb
+from utils.info.Timer import Timer
 from utils.observers.extended_kalman_filter import ExtendedKalmanFilter
 from utils.control.linearizer import Linearizer
 from model import LaneKeeping
@@ -58,6 +59,7 @@ def main():
     attack_end_index = rospy.get_param("/attack_end_index")
     attack_mode = rospy.get_param("/attack_mode")
     recovery_start_index = rospy.get_param("/recovery_start_index")
+    debug = rospy.get_param("/debug")
 
     # get path file name 
     _rp = rospkg.RosPack()
@@ -65,7 +67,10 @@ def main():
     data_folder = os.path.join(_rp.get_path('recovery'), 'data')
     path_file = os.path.join(data_folder, 'cube_town_closed_line.txt')
 
-    rospy.init_node('control_loop', log_level=rospy.DEBUG)
+    if debug:
+        rospy.init_node('control_loop', log_level=rospy.DEBUG)
+    else:
+        rospy.init_node('control_loop', log_level=rospy.INFO)
     cmd = VehicleCMD()
     sensor = Sensor()
     observer = Observer(path_file, speed_ref)
@@ -73,6 +78,7 @@ def main():
     gnd_rec = StateRecord()
     os.environ['bl'] = 'vsr'
     rospy.on_shutdown(gnd_rec.save_data)
+    timer = Timer()
 
     # speed PID controller
     speed_pid = PID(speed_P, speed_I, speed_D)
@@ -130,6 +136,7 @@ def main():
             # record sensor data
             rec.record_x(sensor_.get_state(), time_index)
 
+            timer.reset()
             if time_index < recovery_start_index:  # nominal controller
                 feedback = observer.est(sensor_)
                 rospy.logdebug(f"time_index={time_index}, e_d'={feedback[0]}, e_phi'={feedback[2]}, speed'={sensor.data['v']}")
@@ -181,8 +188,10 @@ def main():
 
             # final step, stop
             if recovery_complete_index == time_index:
-                rospy.logdebug(f"[recovery complete] i={time_index}, state={sensor.get_state()}")
+                rospy.loginfo(f"[recovery complete] i={time_index}, state={sensor.get_state()}")
                 steer_target = 0
+
+            timer.toc()
 
             # implement control input, consider control limit
             if steer_target > exp.control_up[0]:
@@ -195,6 +204,7 @@ def main():
             if time_index <= recovery_complete_index:
                 rec.record_u(u=np.array([steer_target]), t=time_index)
                 gnd_rec.record(x=sensor.get_state(), u=np.array([steer_target]), t=time_index)
+                gnd_rec.record_ct(ct=timer.total(), t=time_index)
 
             time_index += 1
             u_last = np.array([steer_target])

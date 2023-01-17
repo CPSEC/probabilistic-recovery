@@ -18,4 +18,5 @@ attack_mode: 1
 recovery_start_index: 650
 max_recovery_step: 100
 
-save_state: true
+save_state: false
+debug: false

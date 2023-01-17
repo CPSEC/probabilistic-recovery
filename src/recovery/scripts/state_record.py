@@ -9,6 +9,7 @@ class StateRecord:
         self.xs = []
         self.us = []
         self.ts = []
+        self.cts = []
         self.start = time.time()
     
     def record(self, x, u, t):
@@ -25,6 +26,10 @@ class StateRecord:
     def record_u(self, u, t):
         assert t == len(self.us)
         self.us.append(u)
+
+    def record_ct(self, ct, t):
+        assert t == len(self.cts)
+        self.cts.append(ct)
 
     def get_x(self, i):
         assert i < len(self.xs)
@@ -46,6 +51,8 @@ class StateRecord:
         save_state = rospy.get_param("/save_state")
         if save_state:
             self.save_all_states()
+        self.save_all_times()
+        
     
     def save_all_states(self):
         # filename
@@ -60,3 +67,21 @@ class StateRecord:
             cnt = len(self.xs)
             for i in range(cnt):
                 writer.writerow([i, self.ts[i]] + list(self.xs[i]))
+
+    def save_all_times(self):
+        _rp = rospkg.RosPack()
+        _rp_package_list = _rp.list()
+        data_folder = os.path.join(_rp.get_path('recovery'), 'data')
+        file_name = os.path.join(data_folder, 'svl', 'time_'+os.environ['bl']+'.csv')
+
+        if not os.path.exists(file_name):
+            with open(file_name, 'w', newline='') as f:
+                writer = csv.writer(f)
+                writer.writerow(['k', 'time', 'comp_time'])
+        with open(file_name, 'a', newline='') as f:
+            writer = csv.writer(f)
+            cnt = len(self.cts)
+            for i in range(cnt):
+                writer.writerow([i, self.ts[i], self.cts[i]])
+
+

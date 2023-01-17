@@ -28,7 +28,7 @@ class Estimator:
             # linearize at x_i, u_i to compute A_i, B_i, c_i
             ode_fixed_state = partial(self.ode, t=0, x=x)
             u_ss = fsolve(ode_fixed_state, us[i])
-            print(f'{u_ss=}')
+            # print(f'{u_ss=}')
             _, sysd = self.linearize.at(x, u_ss)
             As.append(deepcopy(sysd.A))
 
