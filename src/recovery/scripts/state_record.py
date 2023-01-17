@@ -3,6 +3,7 @@ import time
 import os
 import rospkg, rospy
 import csv
+from settings import Settings
 
 class StateRecord:
     def __init__(self) -> None:
@@ -11,6 +12,7 @@ class StateRecord:
         self.ts = []
         self.cts = []
         self.start = time.time()
+        self.exp = Settings()
     
     def record(self, x, u, t):
         assert t == len(self.xs)
@@ -52,6 +54,7 @@ class StateRecord:
         if save_state:
             self.save_all_states()
         self.save_all_times()
+        self.save_final_state()
         
     
     def save_all_states(self):
@@ -83,5 +86,43 @@ class StateRecord:
             cnt = len(self.cts)
             for i in range(cnt):
                 writer.writerow([i, self.ts[i], self.cts[i]])
+
+    @staticmethod
+    def in_target_set(target_lo, target_hi, x_cur):
+        res = True
+        for i in range(len(x_cur)):
+            if target_lo[i] > x_cur[i] or target_hi[i] < x_cur[i]:
+                res = False
+                break
+        return res
+
+    def save_final_state(self):
+        _rp = rospkg.RosPack()
+        _rp_package_list = _rp.list()
+        data_folder = os.path.join(_rp.get_path('recovery'), 'data')
+        file_name = os.path.join(data_folder, 'svl', 'final_states.csv')
+
+        if not os.path.exists(file_name):
+            with open(file_name, 'w', newline='') as f:
+                writer = csv.writer(f)
+                writer.writerow(['name', 'k', 'time', 'steps_recovery', 'attack_sz', 'x', 'y', 'yaw', 'Success'])
+        with open(file_name, 'a', newline='') as f:
+            writer = csv.writer(f)
+            # prepare data
+            name = os.environ['bl']
+            k = len(self.xs)
+            time = self.ts[-1]
+            recovery_start_index = rospy.get_param("/recovery_start_index")
+            steps_recovery = k - recovery_start_index
+            attack_sz = 0
+            x = self.xs[-1][0]
+            y = self.xs[-1][1]
+            yaw = self.xs[-1][2]
+            success = 1 if self.in_target_set(self.exp.target_set_lo, self.exp.target_set_up, self.xs[-1]) else 0
+            data = [name, k, time, steps_recovery, attack_sz, x, y, yaw, success]
+            writer.writerow(data)
+
+            
+
 
 
