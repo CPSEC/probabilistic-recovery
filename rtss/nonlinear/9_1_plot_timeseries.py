@@ -5,7 +5,9 @@ import numpy as np
 import os
 
 from settings import cstr
-exps = [cstr]
+from settings import svl
+# exps = [cstr]
+exps = [svl]
 
 labels = ['OPRP', 'OPRP-CL', 'RTR-LQR', 'VS']
 markers = ["o", 'h', 'D', '^']
@@ -31,15 +33,19 @@ for exp in exps:
         plt.plot(x[x.size - 1], y[y.size - 1], color=colors[s], marker='*', markersize=10)
 
     # strip
-    x = np.array(exp.x_lim)
+    x_range = np.array(exp.x_lim)
     y1 = exp.strip[0]
     y2 = exp.strip[1]
-    plt.fill_between(x, y1, y2, facecolor='green', alpha=0.3)
+    plt.fill_between(x_range, y1, y2, facecolor='green', alpha=0.3)
 
     # plot when attack starts and whe recovery starts
-    plt.vlines(exp.attack_start_index * exp.dt, exp.y_lim[0], exp.y_lim[1], colors='red', linestyle='dashed',
+    # plt.vlines(exp.attack_start_index * exp.dt, exp.y_lim[0], exp.y_lim[1], colors='red', linestyle='dashed',
+               # linewidth=2)
+    # plt.vlines(exp.recovery_index * exp.dt, exp.y_lim[0], exp.y_lim[1], colors='green', linestyle='dotted',
+    #            linewidth=2)
+    plt.vlines(x[exp.attack_start_index], exp.y_lim[0], exp.y_lim[1], colors='red', linestyle='dashed',
                linewidth=2)
-    plt.vlines(exp.recovery_index * exp.dt, exp.y_lim[0], exp.y_lim[1], colors='green', linestyle='dotted',
+    plt.vlines(x[exp.recovery_index], exp.y_lim[0], exp.y_lim[1], colors='green', linestyle='dotted',
                linewidth=2)
 
     # zoom in

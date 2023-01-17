@@ -5,7 +5,9 @@ import numpy as np
 import os
 
 from settings import cstr
-exps = [cstr]
+from settings import svl
+# exps = [cstr]
+exps = [svl]
 
 labels = ['OPRP', 'OPRP-CL', 'RTR-LQR', 'VS']
 markers = ["o", 'h', 'D', '^']

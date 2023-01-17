@@ -5,7 +5,9 @@ import numpy as np
 import os
 
 from settings import cstr
-exps = [cstr]
+from settings import svl
+# exps = [cstr]
+exps = [svl]
 
 labels = ['OPRP', 'OPRP-CL', 'RTR-LQR', 'VS']
 markers = ["o", 'h', 'D', '^']
@@ -32,7 +34,7 @@ for exp in exps:
     plt.boxplot(times)
     plt.xlabel("Strategy")
     plt.ylabel("Computation time [ms]")
-    plt.ylim((0, 15))
+    plt.ylim(exp.y_lim_time)
     plt.xticks([1, 2, 3, 4], labels)
 
     # save

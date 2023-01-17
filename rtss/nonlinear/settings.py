@@ -68,10 +68,25 @@ class cstr:
     # date file
     state_names = ['Ca', 'T']
     legend_loc = 'upper right'
+    y_lim_time = (0, 15)
 
 # only for plot
 class svl:
     name = 'svl'
     state_names = ['x', 'y', 'yaw']
     output_index = 1
+    x_lim = (30, 38.5)
+    y_lim = (44, 56)
+    from math import pi
+    target_set_lo = np.array([-55, 50.45-4.5, -pi])
+    target_set_up = np.array([55, 50.45-3, pi])
+    strip = (target_set_lo[output_index], target_set_up[output_index])
+    dt = 0.05
+    attack_start_index = 620
+    recovery_index = 650
+    y_label = 'y position [m]'
+    legend_loc = 'lower left'
 
+    y_lim_time = (0, 25)
+    nx = 3
+    s = Strip(np.array([0, 1, 0]), a=target_set_lo[output_index], b=target_set_up[output_index])
