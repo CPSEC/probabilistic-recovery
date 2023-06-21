@@ -76,7 +76,7 @@ class svl:
     state_names = ['x', 'y', 'yaw']
     output_index = 1
     x_lim = (30, 38.5)
-    y_lim = (44, 56)
+    y_lim = (40, 56)
     from math import pi
     target_set_lo = np.array([-55, 50.45-4.5, -pi])
     target_set_up = np.array([55, 50.45-3, pi])

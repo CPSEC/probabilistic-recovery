@@ -63,15 +63,15 @@ class Simulator:
         self.p_noise_dist = None
 
     def data_init(self):
-        self.inputs = np.empty((self.max_index + 2, self.m), dtype=np.float)
-        self.outputs = np.empty((self.max_index + 2, self.p), dtype=np.float)
-        self.states = np.empty((self.max_index + 2, self.n), dtype=np.float)
+        self.inputs = np.empty((self.max_index + 2, self.m), dtype=np.float64)
+        self.outputs = np.empty((self.max_index + 2, self.p), dtype=np.float64)
+        self.states = np.empty((self.max_index + 2, self.n), dtype=np.float64)
         if self.feedback_type == 'output':
-            self.feedbacks = np.empty((self.max_index + 2, self.p), dtype=np.float)
-            self.refs = np.empty((self.max_index + 2, self.p), dtype=np.float)
+            self.feedbacks = np.empty((self.max_index + 2, self.p), dtype=np.float64)
+            self.refs = np.empty((self.max_index + 2, self.p), dtype=np.float64)
         elif self.feedback_type == 'state':
-            self.feedbacks = np.empty((self.max_index + 2, self.n), dtype=np.float)
-            self.refs = np.empty((self.max_index + 2, self.n), dtype=np.float)  # reference value
+            self.feedbacks = np.empty((self.max_index + 2, self.n), dtype=np.float64)
+            self.refs = np.empty((self.max_index + 2, self.n), dtype=np.float64)  # reference value
 
     def reset(self, noise=False):
         # the noise will not reset!
