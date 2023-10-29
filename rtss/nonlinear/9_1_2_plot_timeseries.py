@@ -9,7 +9,7 @@ from settings import svl
 # exps = [cstr]
 exps = [svl]
 
-labels = ['OPRP-OL', 'OPRP-PCL']
+labels = ['OPR-OL', 'OPR-PCL']
 markers = ["o", 'h']
 colors = ["C0", "C4"]
 sheets = ['states_oprp_ol', 'states_oprp_cl']

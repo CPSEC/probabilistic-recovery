@@ -9,7 +9,7 @@ from settings import svl
 # exps = [cstr]
 exps = [svl]
 
-labels = ['OPRP-OL', 'RTR-LQR', 'VS']
+labels = ['OPR-OL', 'RTR-LQR', 'VS']
 markers = ["o", 'D', '^']
 colors = ["C0", "C1", "C2"]
 sheets = ['time_oprp_ol', 'time_lqr', 'time_vsr']
@@ -28,6 +28,11 @@ for exp in exps:
         time_data = pd.read_csv(csv_path)
         t = time_data[time_data['k'] >= exp.recovery_index]
         times.append(t['comp_time'].values*1000)
+
+    # print times for table
+    print("\n computation time:")
+    for time in times:
+        print(time.mean(), "+-", time.std())
 
     # plot
     plt.figure(figsize=(5, 3))

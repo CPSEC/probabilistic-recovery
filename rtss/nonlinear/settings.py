@@ -55,8 +55,8 @@ class cstr:
     nu = 1
 
     # plot
-    y_lim = (290, 350)
-    x_lim = (8.7, dt * 125)
+    y_lim = (290, 355)
+    x_lim = (8.7, dt * 122)
     strip = (target_set_lo[output_index], target_set_up[output_index])
     y_label = 'Temperature [K]'
 
