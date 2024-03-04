@@ -2,9 +2,9 @@ This is the implementation for the attack recovery algorithm desccribed in:
 
 > **Fast Attack Recovery for Stochastic Cyber-Physical Systems**
 >
-> Lin Zhang, Luis Burbano, Xin Chen, Alvaro A. Cardenas, Steve Drager, Matthew Anderson, and Fanxin Kong
+> Lin Zhang\*, Luis Burbano\*, Xin Chen, Alvaro A. Cardenas, Steve Drager, Matthew Anderson, and Fanxin Kong
 >
-> [[*RTAS 2024*]](https://2024.rtas.org/)
+> \* contributed equally. [[*RTAS 2024*]](https://2024.rtas.org/)
 
 ## News
 - **`[2024/01/21]`** This paper has been accepted by [RTAS 2024](https://2024.rtas.org/accepted-papers/)!
